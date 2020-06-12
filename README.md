@@ -16,6 +16,8 @@ The prompt also displays the mode of replacement:
 * *text* →.* *replacement* executes `replace-regexp`
 * *text* →?.* *replacement* executes `query-replace-regexp`
 
+![example](images/capture_blue.png)
+
 More flags can be toggled, to control:
 
 * the scope of the replacement, region or whole buffer
@@ -25,8 +27,6 @@ More flags can be toggled, to control:
 
 If you leave `visual-replace` without confirming, with C-g, you can
 continue where you left off by going up in the history.
-
-![example](images/capture_blue.png)
 
 ## Installation
 
@@ -47,7 +47,7 @@ With [use-package](https://github.com/jwiegley/use-package) and with a custom ke
           ("C-c r" . visual-replace-from-isearch)))
 ```
 
-### Usage
+## Usage
 
 Launch `visual-replace' with the keybinding you chose when installing, "M-%" by default. 
 
