@@ -1,4 +1,4 @@
-# visual-replace 
+# visual-replace  [![test](https://github.com/szermatt/visual-replace/workflows/test/badge.svg)](https://github.com/szermatt/visual-replace/actions)
 
 `visual-replace` provides a nicer interface
 [`query-replace`](https://www.gnu.org/software/emacs/manual/html_node/emacs/Query-Replace.html)
