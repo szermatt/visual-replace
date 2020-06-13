@@ -30,7 +30,7 @@ continue where you left off by going up in the history.
 
 ## Installation
 
-`visual-replace` requires Emacs 27.
+`visual-replace` requires Emacs 26.1.
 
 To replace `query-replace' with `visual-replace' globally, do:
 

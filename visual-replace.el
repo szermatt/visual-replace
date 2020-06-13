@@ -7,7 +7,7 @@
 ;; Version: 0.1
 ;; Keywords: replace query-replace
 ;; URL: http://github.com/szermatt/visual-replace
-;; Package-Requires: ((emacs "27"))
+;; Package-Requires: ((emacs "26.1"))
 
 
 ;;; Commentary:
