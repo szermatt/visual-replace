@@ -30,6 +30,8 @@ continue where you left off by going up in the history.
 
 ## Installation
 
+`visual-replace` requires Emacs 27.
+
 To replace `query-replace' with `visual-replace' globally, do:
 
 ```elisp

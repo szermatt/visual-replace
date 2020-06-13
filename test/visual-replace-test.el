@@ -1,4 +1,5 @@
-;;; tests visual-replace.el -*- lexical-binding: t -*-
+;;; visual-replace-test.el --- Tests for visual-replace -*- lexical-binding: t -*-
+
 
 (require 'visual-replace)
 (require 'ert)
@@ -1014,3 +1015,5 @@ The region of text with FACE are surrounded with []."
   (should (equal nil (visual-replace--ranges-fix nil)))
   (should (equal '((10 . 100)) (visual-replace--ranges-fix '((100 . 10)))))
   (should (equal '((10 . 20) (30 . 40)) (visual-replace--ranges-fix '((10 . 20) (30 . 35) (32 . 40))))))
+
+;;; visual-replace-test.el ends here

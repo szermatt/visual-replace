@@ -1,5 +1,14 @@
 ;;; visual-replace.el --- A prompt for replace-string and query-replace -*- lexical-binding: t -*-
 
+;; Copyright (C) 2020 Stephane Zermatten
+
+;; Author: Stephane Zermatten <szermatt@gmail.com>
+;; Maintainer: Stephane Zermatten <szermatt@gmail.com>
+;; Version: 0.1
+;; Keywords: replace query-replace
+;; URL: http://github.com/szermatt/visual-replace
+;; Package-Requires: ((emacs "27"))
+
 
 ;;; Commentary:
 ;;
