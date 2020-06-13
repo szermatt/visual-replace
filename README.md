@@ -68,7 +68,11 @@ If you started `visual-replace` with another keybinding, replace M-X with that k
 
 ## Testing
 
-Run `visual-replace_test.el` with ERT.
+Install [Cask](https://github.com/cask/cask) and run tests with:
+
+```sh
+cask exec ert-runner
+```
 
 ## License
 
