@@ -597,6 +597,19 @@
                    (nth 1 test-visual-replace-snapshot) 'visual-replace-match)
                   "[hell]o, world, [hell]o, [hell]o!"))))
 
+(ert-deftest test-visual-replace-preview-case-fold ()
+  (test-visual-replace-env
+   (insert "Hello, world, hello, heLLO!")
+   (goto-char (point-min))
+   (display-buffer (current-buffer))
+   (test-visual-replace-run "hello <F1> _ <F1> c <F1> _ <F1> x" (visual-replace-read))
+   (should (equal (test-visual-replace-highlight-face
+                   (nth 0 test-visual-replace-snapshot) 'visual-replace-match)
+                  "[Hello], world, [hello], [heLLO]!"))
+   (should (equal (test-visual-replace-highlight-face
+                   (nth 1 test-visual-replace-snapshot) 'visual-replace-delete-match)
+                  "Hello, world, [hello], heLLO!"))))
+
 (ert-deftest test-visual-replace-preview-delete ()
   (test-visual-replace-env
    (insert "hello, world, hello, hello!")

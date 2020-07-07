@@ -755,6 +755,7 @@ Adds the overlays to `visual-replace--overlays'"
          (from (visual-replace-args-from args))
          (replace-lax-whitespace (visual-replace-args-lax-ws-non-regexp args))
          (replace-regexp-lax-whitespace (visual-replace-args-lax-ws-regexp args))
+         (case-fold-search (visual-replace-args-case-fold args))
          (ranges (visual-replace--range-intersect-sorted
                   (visual-replace--ranges-fix ranges)
                   (visual-replace--visible-ranges (current-buffer)))))
