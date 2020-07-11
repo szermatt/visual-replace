@@ -610,6 +610,19 @@
                    (nth 1 test-visual-replace-snapshot) 'visual-replace-delete-match)
                   "Hello, world, [hello], heLLO!"))))
 
+(ert-deftest test-visual-replace-preview-case-fold-uppercase ()
+  (test-visual-replace-env
+   (insert "Hello, world, hello, HELLO!")
+   (goto-char (point-min))
+   (display-buffer (current-buffer))
+   (test-visual-replace-run "HELLO <F1> _ <F1> c <F1> _ <F1> x" (visual-replace-read))
+   (should (equal (test-visual-replace-highlight-face
+                   (nth 0 test-visual-replace-snapshot) 'visual-replace-match)
+                  "Hello, world, hello, [HELLO]!"))
+   (should (equal (test-visual-replace-highlight-face
+                   (nth 1 test-visual-replace-snapshot) 'visual-replace-delete-match)
+                  "Hello, world, hello, [HELLO]!"))))
+
 (ert-deftest test-visual-replace-preview-delete ()
   (test-visual-replace-env
    (insert "hello, world, hello, hello!")

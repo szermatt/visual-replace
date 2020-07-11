@@ -755,7 +755,10 @@ Adds the overlays to `visual-replace--overlays'"
          (from (visual-replace-args-from args))
          (replace-lax-whitespace (visual-replace-args-lax-ws-non-regexp args))
          (replace-regexp-lax-whitespace (visual-replace-args-lax-ws-regexp args))
-         (case-fold-search (visual-replace-args-case-fold args))
+         (case-fold-search (if (and (visual-replace-args-case-fold args) search-upper-case)
+                               (isearch-no-upper-case-p (visual-replace-args-from args)
+                                                        (visual-replace-args-regexp args))
+                             (visual-replace-args-case-fold args)))
          (ranges (visual-replace--range-intersect-sorted
                   (visual-replace--ranges-fix ranges)
                   (visual-replace--visible-ranges (current-buffer)))))
@@ -769,7 +772,7 @@ Adds the overlays to `visual-replace--overlays'"
                     from end
                     (visual-replace-args-regexp args)
                     (visual-replace-args-word args)
-                    (visual-replace-args-case-fold args))
+                    case-fold-search)
               (let ((m-start (match-beginning 0))
                     (m-end (match-end 0)))
                 (when (or (= m-end m-start)
