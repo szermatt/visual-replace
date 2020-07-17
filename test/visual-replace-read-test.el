@@ -676,6 +676,17 @@
    ;; enter an infinite loop.
    (test-visual-replace-run "<F1> r \\b\\b\\b <F1> _ <F1> x" (visual-replace-read))))
 
+(ert-deftest test-visual-replace-preview-regex-eval ()
+  (test-visual-replace-env
+   (insert "hello, world, hello")
+   (goto-char (point-min))
+   (display-buffer (current-buffer))
+   (test-visual-replace-run "h\\(el+\\) TAB \\#\\,(upcase SPC \\1) <F1> r <F1> _ <F1> x"
+                            (visual-replace-read))
+   (should (equal (test-visual-replace-highlight-face
+                   (car test-visual-replace-snapshot) 'visual-replace-replacement)
+                  "hell[0ELL]o, world, hell[1ELL]o"))))
+
 (ert-deftest test-visual-replace-preview-skip-readonly ()
   (test-visual-replace-env
    (insert "hello, world, ")

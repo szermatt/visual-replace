@@ -533,7 +533,9 @@ of (start . end) as returned by `region-bounds'."
             (dolist (range (visual-replace--ranges-fix ranges))
               (perform-replace
                from
-               (visual-replace-args-to args)
+               (query-replace-compile-replacement
+                (visual-replace-args-to args)
+                (visual-replace-args-regexp args))
                (visual-replace-args-query args)
                (visual-replace-args-regexp args)
                (visual-replace-args-word args)
@@ -765,7 +767,15 @@ Adds the overlays to `visual-replace--overlays'"
     (catch 'visual-replace-timeout
       (dolist (range ranges)
         (let ((start (car range))
-              (end (cdr range)))
+              (end (cdr range))
+              (replacement
+               (condition-case nil
+                   (if (visual-replace-args-to args)
+                       (query-replace-compile-replacement
+                        (visual-replace-args-to args)
+                        (visual-replace-args-regexp args)))
+                 (error nil)))
+              (replacement-count -1))
           (save-excursion
             (goto-char start)
             (while (replace-search
@@ -773,23 +783,29 @@ Adds the overlays to `visual-replace--overlays'"
                     (visual-replace-args-regexp args)
                     (visual-replace-args-word args)
                     case-fold-search)
-              (let ((m-start (match-beginning 0))
-                    (m-end (match-end 0)))
-                (when (or (= m-end m-start)
-                          (>= (float-time
-                               (time-subtract (get-internal-run-time)
-                                              preview-start))
-                              visual-replace-preview-max-duration))
-                  (visual-replace--clear-preview)
-                  (throw 'visual-replace-timeout nil))
-                (when-let ((ov (visual-replace--overlay
-                                m-start m-end
-                                (condition-case nil
-                                    (match-substitute-replacement
-                                     (visual-replace-args-to args))
-                                  ;; ignore invalid replacements
-                                  (error nil)))))
-                  (push ov visual-replace--overlays))))))))))
+              (let ((match-replacement
+                     (condition-case nil
+                         (cond
+                          ((stringp replacement)
+                           (match-substitute-replacement replacement))
+                          ((consp replacement)
+                           (cl-incf replacement-count)
+                           (funcall (car replacement) (cdr replacement)
+                                    replacement-count)))
+                       ;; ignore invalid replacements
+                       (error nil))))
+                (let ((m-start (match-beginning 0))
+                      (m-end (match-end 0)))
+                  (when (or (= m-end m-start)
+                            (>= (float-time
+                                 (time-subtract (get-internal-run-time)
+                                                preview-start))
+                                visual-replace-preview-max-duration))
+                    (visual-replace--clear-preview)
+                    (throw 'visual-replace-timeout nil))
+                  (when-let ((ov (visual-replace--overlay
+                                  m-start m-end match-replacement)))
+                    (push ov visual-replace--overlays)))))))))))
 
 (defun visual-replace--visible-ranges (buf)
   "Return the visible ranges of BUF.

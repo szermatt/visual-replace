@@ -44,6 +44,16 @@
    (should (equal (test-visual-replace-content)
                    "HellO, world"))))
 
+(ert-deftest test-visual-replace-regexp-eval ()
+  (test-visual-replace-env
+   (insert "hello, hello")
+   (goto-char (point-min))
+   (test-visual-replace-run
+    "h\\(.*?\\)o RET \\#\\,(upcase SPC \\1)e <F1> r RET"
+    (call-interactively 'visual-replace))
+   (should (equal (test-visual-replace-content)
+                   "0ELLe, 1ELLe"))))
+
 (ert-deftest test-visual-replace-query ()
   (test-visual-replace-env
    (insert "hello 1\n")
