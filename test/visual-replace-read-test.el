@@ -708,10 +708,9 @@
             (buffer-substring-no-properties (point-min) (point-max))))))
 
 (ert-deftest test-visual-replace-read-read-only-buffer ()
-  :expected-result :failed
   (test-visual-replace-env
    (insert "foo")
    (read-only-mode)
-   (visual-replace-read)))
+   (should-error (visual-replace-read))))
 
 ;;; visual-replace-test.el ends here
