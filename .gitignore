@@ -1,5 +1,7 @@
 *.elc
 .cask
 ert-profile
-
-
+/visual-replace-autoloads.el
+/dist
+/.eldev
+/Eldev-local

@@ -1,0 +1,3 @@
+; -*- mode: emacs-lisp; lexical-binding: t -*-
+
+(eldev-use-plugin 'autoloads)

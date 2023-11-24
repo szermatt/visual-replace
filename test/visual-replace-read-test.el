@@ -411,7 +411,7 @@
    (should (equal test-visual-replace-snapshot
                   '("Replace from point [hello →?.* world]: []hello →?.* world")))))
 
-(ert-deftest test-visual-replace-history-regex-toggle ()
+(ert-deftest test-visual-replace-history-regex-toggle-2 ()
   (test-visual-replace-env
    (test-visual-replace-run "hello TAB world <F1> r <F1> q RET" (visual-replace-read))
    (should
