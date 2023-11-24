@@ -3,6 +3,20 @@
 (require 'ert)
 (require 'ert-x)
 
+;; forward compatibility
+(when (< emacs-major-version 28)
+  (defmacro ert-replace-simulate-keys (keys &rest body)
+    "Execute BODY with KEYS as pseudo-interactive input."
+    (declare (debug t) (indent 1))
+    `(let ((unread-command-events
+            ;; Add some C-g to try and make sure we still exit
+            ;; in case something goes wrong.
+            (append ,keys '(?\C-g ?\C-g ?\C-g)))
+           ;; Tell `read-from-minibuffer' not to read from stdin when in
+           ;; batch mode.
+           (executing-kbd-macro t))
+       ,@body)))
+
 (ert-deftest test-visual-replace-from-point ()
   (test-visual-replace-env
    (insert "hello 1\n")
