@@ -5,7 +5,7 @@
 ;; Author: Stephane Zermatten <szermatt@gmail.com>
 ;; Maintainer: Stephane Zermatten <szermatt@gmail.com>
 ;; Version: 0.1
-;; Keywords: replace query-replace
+;; Keywords: convenience matching
 ;; URL: http://github.com/szermatt/visual-replace
 ;; Package-Requires: ((emacs "26.1"))
 
@@ -201,8 +201,9 @@ Not normally turned on manually."
     (define-key map [remap isearch-query-replace-regexp] 'visual-replace-from-isearch)
     map))
 
+;;;###autoload
 (define-minor-mode visual-replace-global-mode
-  "Global mode for remapping `query-replace' to `visual-replace.'"
+  "Global mode for remapping `query-replace' to `visual-replace'."
   :keymap visual-replace-global-mode-map
   :global t
   :group 'visual-replace)
@@ -271,7 +272,7 @@ slot."
 Each entry is a struct `visual-replace-args'.")
 
 (defvar visual-replace--scope nil
-  "What replace applies to: \=='region \=='from-point or \=='full.")
+  "What replace applies to: \\='region \\='from-point or \\='full.")
 
 (defvar visual-replace--calling-buffer nil
   "Buffer from which `visual-replace' was called.")
@@ -450,9 +451,9 @@ INITIAL-ARGS is used to set the prompt's initial state, if
 specified. It must be a `visual-replace-args' struct.
 
 INITIAL-SCOPE is used to initialize the replacement scope,
-\=='region \=='from-point or \=='full. If it is a number, it is
-used as point for \=='from-point. By default, the scope is
-\=='region if the region is active, or \=='from-point otherwise."
+\\='region \\='from-point or \\='full. If it is a number, it is
+used as point for \\='from-point. By default, the scope is
+\\='region if the region is active, or \\='from-point otherwise."
   (barf-if-buffer-read-only)
   (let ((history-add-new-input nil)
         (visual-replace--calling-buffer (current-buffer))
@@ -525,7 +526,7 @@ used as point for \=='from-point. By default, the scope is
       ;; visual-replace argument list
       (list final-args (visual-replace--scope-ranges)))))
 
-;;;###autoload
+
 (defun visual-replace (args ranges)
   "Replace text.
 
