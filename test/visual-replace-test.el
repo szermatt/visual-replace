@@ -5,7 +5,7 @@
 
 ;; compatibility: ert-replace-simulate-keys is only available since
 ;; Emacs 28. It is provided here to make the tests pass under 26 and 27.
-(defmacro visual-replace-visual-replace-ert-replace-simulate-keys (keys &rest body)
+(defmacro visual-replace-ert-simulate-keys (keys &rest body)
   "Execute BODY with KEYS as pseudo-interactive input."
   (declare (debug t) (indent 1))
   `(let ((unread-command-events
@@ -128,7 +128,7 @@
      (goto-char (point-min))
      (search-forward "-at-point 3")
      (goto-char (match-beginning 0))
-     (ert-simulate-keys (kbd "TAB r e p l RET")
+     (visual-replace-ert-simulate-keys (kbd "TAB r e p l RET")
        (visual-replace-thing-at-point))
      (should (equal (concat "this is thing-at-point 0\n"
                             "this is thing-at-point 1\n"
@@ -148,7 +148,7 @@
      (goto-char (point-min))
      (search-forward "-at-point 3")
      (goto-char (match-beginning 0))
-     (ert-simulate-keys (kbd "TAB r e p l RET")
+     (visual-replace-ert-simulate-keys (kbd "TAB r e p l RET")
        (visual-replace-thing-at-point 'word))
      (should (equal (concat "this is thing-at-point 0\n"
                             "this is thing-at-point 1\n"
@@ -168,7 +168,7 @@
      (search-forward-regexp "text 3")
      (goto-char (match-beginning 0))
      (let ((visual-replace-default-to-full-scope 'full))
-       (ert-simulate-keys (kbd "TAB r e p l a c e d RET")
+       (visual-replace-ert-simulate-keys (kbd "TAB r e p l a c e d RET")
          (visual-replace-selected)))
      (should (equal (concat "this is replaced 0\n"
                             "this is replaced 1\n"
@@ -188,7 +188,7 @@
      (search-forward-regexp "\\(some text\\) 3")
      (set-mark (match-beginning 1))
      (goto-char (match-end 1))
-     (ert-simulate-keys (kbd "TAB r e p l a c e d RET")
+     (visual-replace-ert-simulate-keys (kbd "TAB r e p l a c e d RET")
        (visual-replace-selected))
      (should (equal (concat "this is some text 0\n"
                             "this is some text 1\n"
@@ -207,7 +207,7 @@
      (goto-char (point-min))
      (search-forward "some text 3")
      (goto-char (match-beginning 0))
-     (ert-simulate-keys (kbd "TAB r e p l a c e d RET")
+     (visual-replace-ert-simulate-keys (kbd "TAB r e p l a c e d RET")
        (visual-replace-selected))
      (should (equal (concat "this is some text 0\n"
                             "this is some text 1\n"
@@ -228,7 +228,7 @@
      (set-mark (match-beginning 1))
      (goto-char (match-end 1))
      (let ((visual-replace-default-to-full-scope 'full))
-       (ert-simulate-keys (kbd "TAB r e p l a c e d RET")
+       (visual-replace-ert-simulate-keys (kbd "TAB r e p l a c e d RET")
          (visual-replace-selected)))
      (should (equal (concat "this is replaced 0\n"
                             "this is replaced 1\n"
@@ -249,7 +249,7 @@
      (set-mark (point))
      (search-forward-regexp "text 4")
      
-     (ert-simulate-keys (kbd "text TAB r e p l a c e d RET")
+     (visual-replace-ert-simulate-keys (kbd "text TAB r e p l a c e d RET")
        (call-interactively 'visual-replace))
      (should (equal (concat "this is text 0\n"
                             "this is text 1\n"
@@ -272,7 +272,7 @@
 
      ;; region is active, yet use the full scope anyway
      (let ((visual-replace-initial-scope 'full))
-       (ert-simulate-keys (kbd "text TAB r e p l a c e d RET")
+       (visual-replace-ert-simulate-keys (kbd "text TAB r e p l a c e d RET")
          (call-interactively 'visual-replace)))
      (should (equal (concat "this is replaced 0\n"
                             "this is replaced 1\n"
@@ -290,7 +290,7 @@
    (with-selected-window (display-buffer (current-buffer))
      (goto-char (point-min))
      (search-forward-regexp "text 2")
-     (ert-simulate-keys (kbd "text TAB r e p l a c e d RET")
+     (visual-replace-ert-simulate-keys (kbd "text TAB r e p l a c e d RET")
        (call-interactively 'visual-replace))
      (should (equal (concat "this is text 0\n"
                             "this is text 1\n"
@@ -309,7 +309,7 @@
      (goto-char (point-min))
      (search-forward-regexp "text 2")
      (let ((visual-replace-default-to-full-scope 'full))
-       (ert-simulate-keys (kbd "text TAB r e p l a c e d RET")
+       (visual-replace-ert-simulate-keys (kbd "text TAB r e p l a c e d RET")
          (call-interactively 'visual-replace)))
      (should (equal (concat "this is replaced 0\n"
                             "this is replaced 1\n"
