@@ -204,7 +204,8 @@ Not normally turned on manually."
 (define-minor-mode visual-replace-global-mode
   "Global mode for remapping `query-replace' to `visual-replace.'"
   :keymap visual-replace-global-mode-map
-  :global t)
+  :global t
+  :group 'visual-replace)
 
 (defvar visual-replace-functions nil
   "Hooks that modify a `visual-replace-args' instance, just before execution.
@@ -270,7 +271,7 @@ slot."
 Each entry is a struct `visual-replace-args'.")
 
 (defvar visual-replace--scope nil
-  "What replace applies to: 'region 'from-point or 'full.")
+  "What replace applies to: \=='region \=='from-point or \=='full.")
 
 (defvar visual-replace--calling-buffer nil
   "Buffer from which `visual-replace' was called.")
@@ -449,8 +450,9 @@ INITIAL-ARGS is used to set the prompt's initial state, if
 specified. It must be a `visual-replace-args' struct.
 
 INITIAL-SCOPE is used to initialize the replacement scope,
-'region 'from-point or 'full. If it is a number, it is used as
-point for 'from-point."
+\=='region \=='from-point or \=='full. If it is a number, it is
+used as point for \=='from-point. By default, the scope is
+\=='region if the region is active, or \=='from-point otherwise."
   (barf-if-buffer-read-only)
   (let ((history-add-new-input nil)
         (visual-replace--calling-buffer (current-buffer))
