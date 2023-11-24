@@ -145,4 +145,43 @@
                     (buffer-substring-no-properties
                      (point-min) (point-max)))))))
 
+(ert-deftest test-visual-replace-selected ()
+  (test-visual-replace-env
+   (dotimes (i 6)
+     (insert (format "this is some text %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (search-forward-regexp "\\(some text\\) 3")
+     (set-mark (match-beginning 1))
+     (goto-char (match-end 1))
+     (ert-simulate-keys (kbd "TAB r e p l a c e d RET")
+       (visual-replace-selected))
+     (should (equal (concat "this is some text 0\n"
+                            "this is some text 1\n"
+                            "this is some text 2\n"
+                            "this is replaced 3\n"
+                            "this is replaced 4\n"
+                            "this is replaced 5\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
+(ert-deftest test-visual-replace-selected-fallback ()
+  (test-visual-replace-env
+   (dotimes (i 6)
+     (insert (format "this is some text %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (search-forward "some text 3")
+     (goto-char (match-beginning 0))
+     (ert-simulate-keys (kbd "TAB r e p l a c e d RET")
+       (visual-replace-selected))
+     (should (equal (concat "this is some text 0\n"
+                            "this is some text 1\n"
+                            "this is some text 2\n"
+                            "this is replaced text 3\n"
+                            "this is replaced text 4\n"
+                            "this is replaced text 5\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
 ;;; visual-replace-test.el ends here

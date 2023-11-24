@@ -49,6 +49,9 @@
 ;; Additionally `visual-replace-thing-at-point` starts a visual
 ;; replace session with the symbol at point - or another "thing"
 ;; understood by `thing-at-point`.
+;;
+;; `visual-replace-selected` starts with the text within the current
+;; active region.
 
 
 ;;; Installation
@@ -599,6 +602,24 @@ THING defaults to symbol. It can be set to anything that
               (car bounds)
               (cdr bounds)))
       (car bounds)))))
+
+;;;###autoload
+(defun visual-replace-selected ()
+  "Start visual replace for replacing text in region or the current word.
+
+Falls back to `visual-replace-thing-at-point' if the region is
+not active."
+  (interactive)
+  (if (region-active-p)
+      (apply
+       'visual-replace
+       (visual-replace-read
+        (visual-replace-make-args
+         :from (buffer-substring-no-properties
+                (min (mark) (point))
+                (max (mark) (point))))
+        (min (mark) (point))))
+    (visual-replace-thing-at-point)))
 
 (defun visual-replace-args--text (args &optional force-separator)
   "Build the text representation of ARGS, a `visual-replace-args' struct.

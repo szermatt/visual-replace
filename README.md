@@ -73,6 +73,9 @@ to `visual-replace`.
 the symbol at point, or a specified thing as understood by
 `thing-at-point`.
 
+`visual-replace-selected` starts with the text within the current
+active region.
+
 ## Testing
 
 Install [Cask](https://github.com/cask/cask) and run tests with:
