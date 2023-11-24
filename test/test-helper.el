@@ -206,5 +206,19 @@ The region of text with FACE are surrounded with []."
 (defun test-visual-replace-content ()
   (buffer-substring-no-properties (point-min) (point-max)))
 
+;; forward compatibility
+(eval-when-compile
+  (when (< emacs-major-version 28)
+    (defmacro ert-replace-simulate-keys (keys &rest body)
+      "Execute BODY with KEYS as pseudo-interactive input."
+      (declare (debug t) (indent 1))
+      `(let ((unread-command-events
+              ;; Add some C-g to try and make sure we still exit
+              ;; in case something goes wrong.
+              (append ,keys '(?\C-g ?\C-g ?\C-g)))
+             ;; Tell `read-from-minibuffer' not to read from stdin when in
+             ;; batch mode.
+             (executing-kbd-macro t))
+         ,@body))))
 
 ;;; test-helper.el ends here
