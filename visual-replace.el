@@ -121,6 +121,34 @@ Emacs freezing because of an overly complex query."
   :type 'number
   :group 'visual-replace)
 
+(defcustom visual-replace-initial-scope nil
+  "Set initial scope for visual replace sessions.
+
+By default, the initial scope is:
+ - the active region, if there is one
+ - from point if `visual-replace-default-to-full-scope' nil
+ - the full buffer otherwise
+
+With this option set, the initial scope ignores the active region
+entirely and is always set to either \\='from-point or \\='full."
+  :type '(choice
+          (const :tag "Default" nil)
+          (const :tag "From Point" from-point)
+          (const :tag "Full Buffer" full))
+  :group 'visual-replace)
+
+(defcustom visual-replace-default-to-full-scope nil
+  "Have scope default to full if there's no active region.
+
+With this option set and there is no active region, the region is
+set to \\='full instead of \\='from-point.
+
+Ignored if `visual-replace-initial-scope' is set.
+
+See also `visual-replace-initial-scope'."
+  :type 'boolean
+  :group 'visual-replace)
+
 (defface visual-replace-match
   '((t :inherit query-replace))
   "How to display the string that was matched.
@@ -460,12 +488,15 @@ used as point for \\='from-point. By default, the scope is
         (visual-replace--calling-point (if (numberp initial-scope) initial-scope (point)))
         (visual-replace--calling-region (when (region-active-p) (region-bounds)))
         (visual-replace--scope (cond
+                                (visual-replace-initial-scope visual-replace-initial-scope)
+                                ((and (numberp initial-scope) visual-replace-default-to-full-scope) 'full)
                                 ((numberp initial-scope) 'from-point)
                                 ((eq initial-scope 'from-point) 'from-point)
                                 ((eq initial-scope 'region) 'region)
                                 ((eq initial-scope 'full) 'full)
                                 (initial-scope (error "Invalid INITIAL-SCOPE value: %s" initial-scope))
                                 ((region-active-p) 'region)
+                                (visual-replace-default-to-full-scope 'full)
                                 (t 'from-point)))
         (minibuffer-allow-text-properties t) ; separator uses text-properties
         (minibuffer-history (mapcar 'visual-replace-args--text visual-replace-read-history))

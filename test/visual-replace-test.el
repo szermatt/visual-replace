@@ -145,6 +145,26 @@
                     (buffer-substring-no-properties
                      (point-min) (point-max)))))))
 
+(ert-deftest test-visual-replace-thing-at-point-full-scope ()
+  (test-visual-replace-env
+   (dotimes (i 6)
+     (insert (format "this is text %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (search-forward-regexp "text 3")
+     (goto-char (match-beginning 0))
+     (let ((visual-replace-default-to-full-scope 'full))
+       (ert-simulate-keys (kbd "TAB r e p l a c e d RET")
+         (visual-replace-selected)))
+     (should (equal (concat "this is replaced 0\n"
+                            "this is replaced 1\n"
+                            "this is replaced 2\n"
+                            "this is replaced 3\n"
+                            "this is replaced 4\n"
+                            "this is replaced 5\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
 (ert-deftest test-visual-replace-selected ()
   (test-visual-replace-env
    (dotimes (i 6)
@@ -181,6 +201,108 @@
                             "this is replaced text 3\n"
                             "this is replaced text 4\n"
                             "this is replaced text 5\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
+(ert-deftest test-visual-replace-selected-full-scope ()
+  (test-visual-replace-env
+   (dotimes (i 6)
+     (insert (format "this is some text %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (search-forward-regexp "\\(some text\\) 3")
+     (set-mark (match-beginning 1))
+     (goto-char (match-end 1))
+     (let ((visual-replace-default-to-full-scope 'full))
+       (ert-simulate-keys (kbd "TAB r e p l a c e d RET")
+         (visual-replace-selected)))
+     (should (equal (concat "this is replaced 0\n"
+                            "this is replaced 1\n"
+                            "this is replaced 2\n"
+                            "this is replaced 3\n"
+                            "this is replaced 4\n"
+                            "this is replaced 5\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
+(ert-deftest test-visual-replace-scope-to-region-if-active ()
+  (test-visual-replace-env
+   (dotimes (i 6)
+     (insert (format "this is text %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (search-forward-regexp "text 2")
+     (set-mark (point))
+     (search-forward-regexp "text 4")
+     
+     (ert-simulate-keys (kbd "text TAB r e p l a c e d RET")
+       (call-interactively 'visual-replace))
+     (should (equal (concat "this is text 0\n"
+                            "this is text 1\n"
+                            "this is text 2\n"
+                            "this is replaced 3\n"
+                            "this is replaced 4\n"
+                            "this is text 5\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
+(ert-deftest test-visual-replace-override-initial-scope ()
+  (test-visual-replace-env
+   (dotimes (i 6)
+     (insert (format "this is text %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (search-forward-regexp "text 2")
+     (set-mark (point))
+     (search-forward-regexp "text 4")
+
+     ;; region is active, yet use the full scope anyway
+     (let ((visual-replace-initial-scope 'full))
+       (ert-simulate-keys (kbd "text TAB r e p l a c e d RET")
+         (call-interactively 'visual-replace)))
+     (should (equal (concat "this is replaced 0\n"
+                            "this is replaced 1\n"
+                            "this is replaced 2\n"
+                            "this is replaced 3\n"
+                            "this is replaced 4\n"
+                            "this is replaced 5\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
+(ert-deftest test-visual-replace-scope-default-to-from-point ()
+  (test-visual-replace-env
+   (dotimes (i 6)
+     (insert (format "this is text %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (search-forward-regexp "text 2")
+     (ert-simulate-keys (kbd "text TAB r e p l a c e d RET")
+       (call-interactively 'visual-replace))
+     (should (equal (concat "this is text 0\n"
+                            "this is text 1\n"
+                            "this is text 2\n"
+                            "this is replaced 3\n"
+                            "this is replaced 4\n"
+                            "this is replaced 5\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
+(ert-deftest test-visual-replace-default-to-full-scope ()
+  (test-visual-replace-env
+   (dotimes (i 6)
+     (insert (format "this is text %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (search-forward-regexp "text 2")
+     (let ((visual-replace-default-to-full-scope 'full))
+       (ert-simulate-keys (kbd "text TAB r e p l a c e d RET")
+         (call-interactively 'visual-replace)))
+     (should (equal (concat "this is replaced 0\n"
+                            "this is replaced 1\n"
+                            "this is replaced 2\n"
+                            "this is replaced 3\n"
+                            "this is replaced 4\n"
+                            "this is replaced 5\n")
                     (buffer-substring-no-properties
                      (point-min) (point-max)))))))
 
