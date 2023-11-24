@@ -78,10 +78,11 @@ active region.
 
 ## Testing
 
-Install [Cask](https://github.com/cask/cask) and run tests with:
+Install [eldev](https://github.com/emacs-eldev/eldev#installation) and
+run tests with:
 
 ```sh
-cask exec ert-runner
+eldev test
 ```
 
 ## License
