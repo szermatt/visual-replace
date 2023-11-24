@@ -1,5 +1,8 @@
 ;;; visual-replace-test.el --- Tests for (visual-replace) -*- lexical-binding: t -*-
 
+(require 'ert)
+(require 'ert-x)
+
 (ert-deftest test-visual-replace-from-point ()
   (test-visual-replace-env
    (insert "hello 1\n")
@@ -96,10 +99,50 @@
                     "hullo, hello")))))
 
 (ert-deftest test-visual-replace-read-only-buffer ()
-  :expected-result :failed
   (test-visual-replace-env
    (insert "foo")
    (read-only-mode)
-   (visual-replace (visual-replace-make-args :from "foo" :to "bar"))))
+   (should-error
+    (visual-replace (visual-replace-make-args :from "foo" :to "bar")))))
+
+(ert-deftest test-visual-replace-thing-at-point ()
+  (test-visual-replace-env
+   (emacs-lisp-mode)
+   (dotimes (i 6)
+     (insert (format "this is thing-at-point %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (search-forward "-at-point 3")
+     (goto-char (match-beginning 0))
+     (ert-simulate-keys (kbd "TAB r e p l RET")
+       (visual-replace-thing-at-point))
+     (should (equal (concat "this is thing-at-point 0\n"
+                            "this is thing-at-point 1\n"
+                            "this is thing-at-point 2\n"
+                            "this is repl 3\n"
+                            "this is repl 4\n"
+                            "this is repl 5\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
+(ert-deftest test-visual-replace-word-at-point ()
+  (test-visual-replace-env
+   (emacs-lisp-mode)
+   (dotimes (i 6)
+     (insert (format "this is thing-at-point %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (search-forward "-at-point 3")
+     (goto-char (match-beginning 0))
+     (ert-simulate-keys (kbd "TAB r e p l RET")
+       (visual-replace-thing-at-point 'word))
+     (should (equal (concat "this is thing-at-point 0\n"
+                            "this is thing-at-point 1\n"
+                            "this is thing-at-point 2\n"
+                            "this is repl-at-point 3\n"
+                            "this is repl-at-point 4\n"
+                            "this is repl-at-point 5\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
 
 ;;; visual-replace-test.el ends here

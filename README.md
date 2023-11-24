@@ -66,6 +66,13 @@ In that mode:
 
 If you started `visual-replace` with another keybinding, replace M-X with that keybinding. Modify `visual-replace-mode-map` and `visual-replace-secondary-mode-map` to customize the keybindings.
 
+`visual-replace-from-isearch` switches from an active isearch session
+to `visual-replace`.
+
+`visual-replace-thing-at-point` starts a visual replace session with
+the symbol at point, or a specified thing as understood by
+`thing-at-point`.
+
 ## Testing
 
 Install [Cask](https://github.com/cask/cask) and run tests with:

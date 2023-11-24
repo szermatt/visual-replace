@@ -45,6 +45,11 @@
 ;; This package also defines the command `visual-replace-from-isearch',
 ;; which allows switching from isearch to `visual-replace', while keeping
 ;; as much of the current isearch flags as possible.
+;;
+;; Additionally `visual-replace-thing-at-point` starts a visual
+;; replace session with the symbol at point - or another "thing"
+;; understood by `thing-at-point`.
+
 
 ;;; Installation
 ;;
@@ -75,6 +80,7 @@
 ;;
 
 (require 'seq)
+(require 'thingatpt)
 (eval-when-compile (require 'subr-x)) ;; if-let
 
 ;;; Code:
@@ -433,17 +439,28 @@ This kills the whole section."
             (_ 'from-point))))
   (visual-replace--setup-invisibility-spec))
 
-(defun visual-replace-read (&optional initial-args)
+(defun visual-replace-read (&optional initial-args initial-scope)
   "Read arguments for `query-replace'.
 
 INITIAL-ARGS is used to set the prompt's initial state, if
-specified. It must be a `visual-replace-args' struct."
+specified. It must be a `visual-replace-args' struct.
+
+INITIAL-SCOPE is used to initialize the replacement scope,
+'region 'from-point or 'full. If it is a number, it is used as
+point for 'from-point."
   (barf-if-buffer-read-only)
   (let ((history-add-new-input nil)
         (visual-replace--calling-buffer (current-buffer))
-        (visual-replace--calling-point (point))
+        (visual-replace--calling-point (if (numberp initial-scope) initial-scope (point)))
         (visual-replace--calling-region (when (region-active-p) (region-bounds)))
-        (visual-replace--scope (if (region-active-p) 'region 'from-point))
+        (visual-replace--scope (cond
+                                ((numberp initial-scope) 'from-point)
+                                ((eq initial-scope 'from-point) 'from-point)
+                                ((eq initial-scope 'region) 'region)
+                                ((eq initial-scope 'full) 'full)
+                                (initial-scope (error "Invalid INITIAL-SCOPE value: %s" initial-scope))
+                                ((region-active-p) 'region)
+                                (t 'from-point)))
         (minibuffer-allow-text-properties t) ; separator uses text-properties
         (minibuffer-history (mapcar 'visual-replace-args--text visual-replace-read-history))
         (initial-input (let* ((args (or initial-args (visual-replace-make-args)))
@@ -565,6 +582,23 @@ for `visual-replace'. Replacement starts at the current point."
               isearch-lax-whitespace)))
     (isearch-exit)
     (apply 'visual-replace (visual-replace-read args))))
+
+;;;###autoload
+(defun visual-replace-thing-at-point (&optional thing)
+  "Start visual replace for the thing at point.
+
+THING defaults to symbol. It can be set to anything that
+ `thing-at-point` understands."
+  (interactive)
+  (let ((bounds (bounds-of-thing-at-point (or thing 'symbol))))
+    (apply
+     'visual-replace
+     (visual-replace-read
+      (visual-replace-make-args
+       :from (buffer-substring-no-properties
+              (car bounds)
+              (cdr bounds)))
+      (car bounds)))))
 
 (defun visual-replace-args--text (args &optional force-separator)
   "Build the text representation of ARGS, a `visual-replace-args' struct.
