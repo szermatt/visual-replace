@@ -850,6 +850,9 @@ Adds the overlays to `visual-replace--overlays'"
                                (isearch-no-upper-case-p (visual-replace-args-from args)
                                                         (visual-replace-args-regexp args))
                              (visual-replace-args-case-fold args)))
+         (nocasify (not (and case-replace case-fold-search)))
+         (regexp-flag (visual-replace-args-regexp args))
+         (literal (or (not regexp-flag) (eq regexp-flag 'literal)))
          (ranges (visual-replace--range-intersect-sorted
                   (visual-replace--ranges-fix ranges)
                   (visual-replace--visible-ranges (current-buffer)))))
@@ -876,7 +879,7 @@ Adds the overlays to `visual-replace--overlays'"
                      (condition-case nil
                          (cond
                           ((stringp replacement)
-                           (match-substitute-replacement replacement))
+                           (match-substitute-replacement replacement nocasify literal))
                           ((consp replacement)
                            (cl-incf replacement-count)
                            (funcall (car replacement) (cdr replacement)
