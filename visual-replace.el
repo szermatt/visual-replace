@@ -275,6 +275,39 @@ current value of regexp, call `visual-replace-args-lax-ws'.
   (lax-ws-non-regexp replace-lax-whitespace)
   (lax-ws-regexp replace-regexp-lax-whitespace))
 
+(cl-defstruct
+    (visual-replace--scope
+     (:copier nil)
+     (:constructor visual-replace--make-scope
+                   (initial-scope
+                    &aux
+                    (type (cond
+                           (visual-replace-initial-scope visual-replace-initial-scope)
+                           ((and (numberp initial-scope) visual-replace-default-to-full-scope) 'full)
+                           ((numberp initial-scope) 'from-point)
+                           ((eq initial-scope 'from-point) 'from-point)
+                           ((eq initial-scope 'region) 'region)
+                           ((eq initial-scope 'full) 'full)
+                           (initial-scope (error "Invalid INITIAL-SCOPE value: %s" initial-scope))
+                           ((region-active-p) 'region)
+                           (visual-replace-default-to-full-scope 'full)
+                           (t 'from-point)))
+                    (point (if (numberp initial-scope) initial-scope (point)))
+                    (bounds (when (region-active-p) (region-bounds))))))
+  "Stores the current scope and all possible scopes and their ranges.
+
+The scope is tied to the buffer that was active when
+`visual-replace--make-scope' was called."
+  ;; 'from-point, 'full or 'region. See also visual-replace--scope-types.
+  type
+  ;; value of (point) at creation time, for 'from-point
+  (point nil :read-only t)
+  ;; (region-bounds) at creation time, for 'region
+  (bounds nil :read-only t))
+
+(defconst visual-replace--scope-types '(region from-point full)
+  "Valid values for `visual-replace--scope-type'.")
+
 (defun visual-replace-args-lax-ws (args)
   "Return the appropriate lax whitespace setting for ARGS.
 
@@ -300,18 +333,12 @@ slot."
 Each entry is a struct `visual-replace-args'.")
 
 (defvar visual-replace--scope nil
-  "What replace applies to: \\='region \\='from-point or \\='full.")
+  "What replace applies to.
+
+This is an instance of the struct `visual-replace--scope'.")
 
 (defvar visual-replace--calling-buffer nil
   "Buffer from which `visual-replace' was called.")
-
-(defvar visual-replace--calling-point nil
-  "Position of the point in the buffer when `visual-replace' was called.")
-
-(defvar visual-replace--calling-region nil
-  "The region originally active in the calling buffer.
-
-Expressed as a list of (start . end), returned by `region-bounds'.")
 
 (defvar visual-replace--overlays nil
   "Overlays added for the preview in the calling buffer.")
@@ -459,17 +486,22 @@ This kills the whole section."
     (setf (visual-replace-args-lax-ws-non-regexp args) newval)
     (visual-replace--update-separator args 'forced)))
 
-(defun visual-replace-toggle-scope ()
-    "Toggle the scope while building arguments for `visual-replace'."
+(defun visual-replace-toggle-scope (&optional scope)
+  "Toggle the SCOPE type.
+
+If unspecified, SCOPE defaults to the variable
+`visual-replace--scope'."
   (interactive)
-  (setq visual-replace--scope
-        (if visual-replace--calling-region
-            (pcase visual-replace--scope
-              ('region 'full)
-              (_ 'region))
-          (pcase visual-replace--scope
-            ('from-point 'full)
-            (_ 'from-point))))
+  (let* ((scope (or scope visual-replace--scope))
+         (type (visual-replace--scope-type scope)))
+    (setf (visual-replace--scope-type scope)
+          (if (visual-replace--scope-bounds scope)
+              (pcase type
+                ('region 'full)
+                (_ 'region))
+            (pcase type
+              ('from-point 'full)
+              (_ 'from-point)))))
   (visual-replace--setup-invisibility-spec))
 
 (defun visual-replace-read (&optional initial-args initial-scope)
@@ -485,19 +517,7 @@ used as point for \\='from-point. By default, the scope is
   (barf-if-buffer-read-only)
   (let ((history-add-new-input nil)
         (visual-replace--calling-buffer (current-buffer))
-        (visual-replace--calling-point (if (numberp initial-scope) initial-scope (point)))
-        (visual-replace--calling-region (when (region-active-p) (region-bounds)))
-        (visual-replace--scope (cond
-                                (visual-replace-initial-scope visual-replace-initial-scope)
-                                ((and (numberp initial-scope) visual-replace-default-to-full-scope) 'full)
-                                ((numberp initial-scope) 'from-point)
-                                ((eq initial-scope 'from-point) 'from-point)
-                                ((eq initial-scope 'region) 'region)
-                                ((eq initial-scope 'full) 'full)
-                                (initial-scope (error "Invalid INITIAL-SCOPE value: %s" initial-scope))
-                                ((region-active-p) 'region)
-                                (visual-replace-default-to-full-scope 'full)
-                                (t 'from-point)))
+        (visual-replace--scope (visual-replace--make-scope initial-scope))
         (minibuffer-allow-text-properties t) ; separator uses text-properties
         (minibuffer-history (mapcar 'visual-replace-args--text visual-replace-read-history))
         (initial-input (let* ((args (or initial-args (visual-replace-make-args)))
@@ -730,43 +750,50 @@ TEXT is the textual content of the minibuffer, with properties."
 This returns text for all prompt, with different visibility
 spec. `visual-replace--setup-invisibility-spec' sets the appropriate
 spec for the current state."
-  (let ((all-scopes '(region from-point full)))
-    (mapconcat (lambda (scope)
-                 (let ((text (pcase scope
-                               ('region
-                                (format "in region (%sL)"
-                                        (if (mark)
-                                            (1+ (- (line-number-at-pos (max (point) (mark)))
-                                                   (line-number-at-pos (min (point) (mark)))))
-                                          0)))
-                               ('from-point "from point")
-                               ('full "in buffer"))))
-                   (add-text-properties 0 (length text)
-                                        (list 'invisible scope)
-                                        text)
-                   text))
-               all-scopes
-               "")))
+  (mapconcat (lambda (scope)
+               (let ((text (pcase scope
+                             ('region
+                              (format "in region (%sL)"
+                                      (if (mark)
+                                          (1+ (- (line-number-at-pos (max (point) (mark)))
+                                                 (line-number-at-pos (min (point) (mark)))))
+                                        0)))
+                             ('from-point "from point")
+                             ('full "in buffer"))))
+                 (add-text-properties 0 (length text)
+                                      (list 'invisible scope)
+                                      text)
+                 text))
+             visual-replace--scope-types
+             ""))
 
-(defun visual-replace--scope-ranges ()
-  "Return the regions replacement should work on.
+(defun visual-replace--scope-ranges (&optional scope)
+  "Return the regions replacement with SCOPE should work on.
+
+If unspecified, SCOPE defaults to the variable
+`visual-replace--scope'.
 
 Returns a list of (start . end)"
   (with-current-buffer visual-replace--calling-buffer
-    (pcase visual-replace--scope
-      ('from-point (list (cons visual-replace--calling-point (point-max))))
-      ('full (list (cons (point-min) (point-max))))
-      ('region visual-replace--calling-region))))
+    (let ((scope (or scope visual-replace--scope)))
+      (pcase (visual-replace--scope-type scope)
+        ('from-point (list (cons (visual-replace--scope-point scope) (point-max))))
+        ('full (list (cons (point-min) (point-max))))
+        ('region (visual-replace--scope-bounds scope))))))
 
-(defun visual-replace--setup-invisibility-spec ()
-  "Setup invisibility spec to display the appropriate prompt.
+(defun visual-replace--setup-invisibility-spec (&optional scope)
+  "Setup invisibility spec for SCOPE.
 
-Invisibility spec must be updated every time `visual-replace--scope'
-is changed."
-  (dolist (s '(region from-point full))
-    (if (eq s visual-replace--scope)
-        (remove-from-invisibility-spec s)
-      (add-to-invisibility-spec s))))
+If unspecified, SCOPE defaults to the variable
+`visual-replace--scope'.
+
+Invisibility spec must be updated every time
+`visual-replace--scope' is changed."
+  (let ((scope (or scope visual-replace--scope)))
+    (dolist (s visual-replace--scope-types)
+      (if (eq s (visual-replace--scope-type scope))
+          (remove-from-invisibility-spec s)
+        (add-to-invisibility-spec s)))))
 
 (defun visual-replace--warn (from)
   "Warn if FROM contains \\n or \\t."
