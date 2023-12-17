@@ -121,6 +121,11 @@ Emacs freezing because of an overly complex query."
   :type 'number
   :group 'visual-replace)
 
+(defcustom visual-replace-first-match-max-duration 0.05
+  "How much time to spend looking for the first match."
+  :type 'number
+  :group 'visual-replace)
+
 (defcustom visual-replace-initial-scope nil
   "Set initial scope for visual replace sessions.
 
@@ -342,11 +347,17 @@ This is an instance of the struct `visual-replace--scope'.")
 (defvar visual-replace--calling-buffer nil
   "Buffer from which `visual-replace' was called.")
 
+(defvar visual-replace--calling-window nil
+  "Window from which `visual-replace' was called.")
+
 (defvar visual-replace--overlays nil
   "Overlays added for the preview in the calling buffer.")
 
 (defvar visual-replace--incomplete nil
   "Replacement text entered, but not confirmed.")
+
+(defvar visual-replace--first-match-timer nil
+  "Timer scheduled to search for a first match to display.")
 
 (defun visual-replace-enter ()
   "Confirm the current text to replace.
@@ -519,6 +530,7 @@ used as point for \\='from-point. By default, the scope is
   (barf-if-buffer-read-only)
   (let ((history-add-new-input nil)
         (visual-replace--calling-buffer (current-buffer))
+        (visual-replace--calling-window (selected-window))
         (visual-replace--scope (visual-replace--make-scope initial-scope))
         (minibuffer-allow-text-properties t) ; separator uses text-properties
         (minibuffer-history (mapcar 'visual-replace-args--text visual-replace-read-history))
@@ -975,27 +987,89 @@ REPLACEMENT, if non-nil, is its replacement."
           (overlay-put ov 'display display-string))))
     ov))
 
-(defun visual-replace--update-preview ()
+(defun visual-replace--update-preview (&optional no-first-match)
   "Update the preview to reflect the content of the minibuffer.
 
 This is meant to be called from a timer. The result of this
 call is a set of overlays, stored in `visual-replace--overlays'."
   (visual-replace--clear-preview)
+  (when visual-replace--first-match-timer
+    (cancel-timer visual-replace--first-match-timer)
+    (setq visual-replace--first-match-timer nil))
   (let* ((args (visual-replace-args--from-minibuffer))
          (ranges (visual-replace--scope-ranges)))
     (when (> (length (visual-replace-args-from args)) 2)
       (with-current-buffer visual-replace--calling-buffer
-        (catch 'visual-replace-timeout
-          (dolist (m (visual-replace--search
-                      args
-                      (visual-replace--range-intersect-sorted
-                       ranges
-                       (visual-replace--visible-ranges
-                        (current-buffer)))
-                      visual-replace-preview-max-duration))
-            (when-let ((ov (visual-replace--overlay
-                            (nth 0 m) (nth 1 m) (nth 2 m))))
-              (push ov visual-replace--overlays))))))))
+        (let ((matches (visual-replace--search
+                        args
+                        (visual-replace--range-intersect-sorted
+                         ranges
+                         (visual-replace--visible-ranges (current-buffer)))
+                        visual-replace-preview-max-duration)))
+          (if matches
+              (dolist (m matches)
+                (when-let ((ov (visual-replace--overlay
+                                (nth 0 m) (nth 1 m) (nth 2 m))))
+                  (push ov visual-replace--overlays)))
+            ;; no matches within the visible region
+            (unless no-first-match
+              (visual-replace--schedule-first-match
+               args ranges
+               (visual-replace--scope-point
+                visual-replace--scope)
+               (point-max)))))))))
+
+(defun visual-replace--schedule-first-match (args ranges start end)
+  "Schedule a run of `visual-replace--first-match'.
+
+ARGS is the `visual-replace-args' instance to use for searching.
+RANGES the ranges that correspond to the scope. START and END
+define a subset of the buffer to search in this step."
+  (setq visual-replace--first-match-timer
+        (run-with-idle-timer 0 nil #'visual-replace--first-match
+                             args ranges start end)))
+
+(defun visual-replace--first-match (args ranges start end)
+  "Look for a match to display.
+
+This function is meant to be called exclusively from an idle
+timer, stored in `visual-replace--first-match-timer', by
+`visual-replace--update-preview' when it cannot find any match.
+
+ARGS is the `visual-replace-args' instance to use for searching.
+RANGES the ranges that correspond to the scope. START and END
+define a subset of the buffer to search in this step.
+
+This executes one step, searching at most 80 lines, then
+schedules another run for executing the next step.
+
+Note that calling `visual-replace--update-preview' cancels the
+timer"
+  (setq visual-replace--first-match-timer nil)
+  (with-current-buffer visual-replace--calling-buffer
+    (save-excursion
+      (goto-char start)
+      (let* ((limit (min end (pos-bol 80)))
+             (match (car (visual-replace--search
+                          args (visual-replace--range-intersect-sorted
+                                ranges `((,start . ,limit)))
+                          visual-replace-first-match-max-duration 1))))
+        (cond
+         (match
+          (with-selected-window visual-replace--calling-window
+            (goto-char (car match))
+            (recenter))
+          (visual-replace--update-preview 'no-first-match))
+         ((< limit end)
+          ;; there's more to search. Schedule another step.
+          (visual-replace--schedule-first-match args ranges limit end))
+         ((= end (point-max))
+          ;; we've reached the end. Rewind to search from the
+          ;; beginning of the buffer.
+          (visual-replace--schedule-first-match
+           args ranges
+           (point-min) (visual-replace--scope-point
+                        visual-replace--scope))))))))
 
 (defun visual-replace--clear-preview ()
   "Delete all overlays in `visual-replace--overlays', if any."
