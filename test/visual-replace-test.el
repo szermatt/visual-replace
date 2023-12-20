@@ -331,7 +331,7 @@
          (insert (format "this is text %d.\n" i)))
        (goto-char (point-min))
        (forward-line 3)
-       (recenter 3 t)
+       (recenter)
        (define-key
         visual-replace-mode-map
         (kbd "C-c t")
@@ -363,7 +363,7 @@
          (insert (format "this is text %d.\n" i)))
        (goto-char (point-max))
        (forward-line -3)
-       (recenter 3 t)
+       (recenter)
        (define-key
         visual-replace-mode-map
         (kbd "C-c t")
