@@ -1060,7 +1060,8 @@ timer"
   (with-current-buffer visual-replace--calling-buffer
     (save-excursion
       (goto-char start)
-      (let* ((limit (min end (pos-bol 80)))
+      (let* ((limit (min end (let ((inhibit-field-text-motion t))
+                               (line-beginning-position 80))))
              (match (car (visual-replace--search
                           args (visual-replace--range-intersect-sorted
                                 ranges `((,start . ,limit)))

@@ -333,7 +333,7 @@
        (forward-line 3)
        (recenter 3 t)
        (define-key
-        minibuffer-mode-map
+        visual-replace-mode-map
         (kbd "C-c t")
         (lambda ()
           (interactive)
@@ -365,7 +365,7 @@
        (forward-line -3)
        (recenter 3 t)
        (define-key
-        minibuffer-mode-map
+        visual-replace-mode-map
         (kbd "C-c t")
         (lambda ()
           (interactive)
