@@ -121,6 +121,17 @@ Emacs freezing because of an overly complex query."
   :type 'number
   :group 'visual-replace)
 
+(defcustom visual-replace-first-match t
+  "Jump to the first match if there isn't one visible.
+
+With this set, the buffer might jump around just so it can show a
+match.
+
+This option ensures that there's always a match visible, so you
+can see what the replacement will look like, once it's applied."
+  :type 'boolean
+  :group 'visual-replace)
+
 (defcustom visual-replace-first-match-max-duration 0.05
   "How much time to spend looking for the first match."
   :type 'number
@@ -1012,7 +1023,7 @@ call is a set of overlays, stored in `visual-replace--overlays'."
                                 (nth 0 m) (nth 1 m) (nth 2 m))))
                   (push ov visual-replace--overlays)))
             ;; no matches within the visible region
-            (unless no-first-match
+            (when (and visual-replace-first-match (not no-first-match))
               (visual-replace--schedule-first-match
                args ranges
                (visual-replace--scope-point
