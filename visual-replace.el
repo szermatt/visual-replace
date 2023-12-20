@@ -96,12 +96,12 @@ incomplete value from the last minibuffer session that was
 interrupted."
   :type 'boolean
   :group 'visual-replace)
-  
+
 (defcustom visual-replace-preview t
   "If true, highlight the matches while typing."
   :type 'boolean
   :group 'visual-replace)
-  
+
 (defcustom visual-replace-preview-delay 0.1
   "Highlight matchs after that many seconds of inactivity.
 
@@ -192,20 +192,20 @@ has been defined."
 
 This map is, by default, bound to the prefix that corresponds to
 the shortcut that was used to trigger `visual-replace'.")
-  
+
 (defvar visual-replace-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap isearch-toggle-regexp] 'visual-replace-toggle-regexp)
     (define-key map [remap isearch-toggle-word] 'visual-replace-toggle-word)
     (define-key map [remap isearch-toggle-case-fold] 'visual-replace-toggle-case-fold)
     (define-key map [remap isearch-toggle-lax-whitespace] 'visual-replace-toggle-lax-ws)
-    
+
     (define-key map (kbd "RET") 'visual-replace-enter)
     (define-key map (kbd "<return>") 'visual-replace-enter)
-    
+
     (define-key map (kbd "TAB") 'visual-replace-tab)
     (define-key map (kbd "<tab>") 'visual-replace-tab)
-    
+
     (define-key map [remap yank] 'visual-replace-yank)
     (define-key map [remap yank-pop] 'visual-replace-yank-pop)
     (define-key map [remap kill] 'visual-replace-kill)
@@ -933,7 +933,7 @@ Return a list of (start end replacement)."
                            ((stringp replacement)
                             (match-substitute-replacement replacement nocasify literal))
                            ((consp replacement)
-                            (prog1 
+                            (prog1
                                 (funcall (car replacement) (cdr replacement)
                                          replacement-count)
                               (cl-incf replacement-count)))))
@@ -961,14 +961,14 @@ REPLACEMENT, if non-nil, is its replacement."
     (overlay-put ov 'priority 1000)
     (overlay-put ov 'visual-replace t)
     (cond
-     
+
      ;; skip read-only text
      ((text-property-not-all start end 'read-only nil))
 
      ;; no replacement
      ((null replacement)
       (overlay-put ov 'face 'visual-replace-match))
-     
+
      ;; replaced with the empty string
      ((zerop (length replacement))
       (overlay-put ov 'face 'visual-replace-delete-match))

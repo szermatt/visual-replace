@@ -248,7 +248,7 @@
      (search-forward-regexp "text 2")
      (set-mark (point))
      (search-forward-regexp "text 4")
-     
+
      (visual-replace-ert-simulate-keys (kbd "text TAB r e p l a c e d RET")
        (call-interactively 'visual-replace))
      (should (equal (concat "this is text 0\n"

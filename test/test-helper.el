@@ -84,11 +84,11 @@ This is meant to be called within `test-visual-replace-env`."
             (define-key visual-replace-mode-map (kbd "<F1> h") 'previous-history-element)
             (define-key visual-replace-mode-map (kbd "<F1> x") 'exit-minibuffer)
             (define-key visual-replace-mode-map (kbd "<F1> g") ;; simulates a quit
-              (lambda () 
+              (lambda ()
                 (interactive)
                 (setq quit-flag t)
                 (exit-minibuffer)))
-            
+
             ;; The binding for the first <F1> is taken from launch-map and
             ;; starts visual-replace-read, after, when running visual-replace-read,
             ;; visual-replace-mode-map becomes active.
