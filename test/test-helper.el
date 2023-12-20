@@ -25,9 +25,21 @@ are triggered by the key F1 ! when running test-visual-replace-run.")
            (visual-replace-initial-scope nil)
            (visual-replace-default-to-full-scope nil)
            (test-visual-replace-snapshot nil))
-       (cl-letf (((symbol-function 'sit-for) (lambda (_))))
+       (cl-letf (((symbol-function 'sit-for) (lambda (_)))
+                 ((symbol-function 'window-end) #'test-visual-window-end))
          (ert-with-test-buffer nil
            ,@body)))))
+
+(defun test-visual-window-end (win)
+  "Compute window-end on demand for WIN.
+
+In normal situations, `window-end' is computed at the end of a
+redisplay. This is efficient, but causes problems during tests."
+  (with-current-buffer (window-buffer win)
+    (save-excursion
+      (goto-char (window-start win))
+      (forward-line (window-height win))
+      (point))))
 
 (defmacro test-visual-replace-run (macro &rest body)
   "Run BODY and execute MACRO.
@@ -205,5 +217,41 @@ The region of text with FACE are surrounded with []."
 
 (defun test-visual-replace-content ()
   (buffer-substring-no-properties (point-min) (point-max)))
+
+(defun visual-replace-ert-explain-string-match (a b)
+  `(string-match ,a ,b))
+(put 'equal 'ert-explainer 'visual-replace-ert-explain-string-match)
+
+(defun visual-replace-test-window-content (&optional win)
+  "Return the visible portion of WIN.
+
+If WIN is unspecified or nil, return the content of the selected
+window.
+
+Invisible text is skipped. If an overlay replaced some text using
+the display property, only the replacement is included in the
+text, surrounded by brackets.
+
+This requires `window-end' to be up-to-date. See
+`test-visual-window-end'."
+  (let ((win (or win (selected-window))))
+    (with-current-buffer (window-buffer win)
+      (save-restriction
+        (narrow-to-region (window-start win) (window-end win))
+        (save-excursion
+          (let ((last (point-min))
+                (sections))
+            (goto-char (point-min))
+            (while (not (eobp))
+              (setq last (point))
+              (goto-char (next-char-property-change (point) (point-max)))
+              (let* ((invisible (invisible-p last))
+                     (display (get-char-property last 'display)))
+                (push (cond
+                       (invisible "")
+                       (display (concat "[" display "]"))
+                       (t (buffer-substring-no-properties (point) last)))
+                      sections)))
+            (apply 'concat (nreverse sections))))))))
 
 ;;; test-helper.el ends here

@@ -320,4 +320,69 @@
                     (buffer-substring-no-properties
                      (point-min) (point-max)))))))
 
+(ert-deftest test-visual-replace-jump-forward-to-first-match ()
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+     (let* ((snapshots)
+            (win (selected-window))
+            (height (window-height win))
+            (to-replace (* 2 height)))
+       (dotimes (i (* 3 height))
+         (insert (format "this is text %d.\n" i)))
+       (goto-char (point-min))
+       (forward-line 3)
+       (recenter 3 t)
+       (define-key
+        minibuffer-mode-map
+        (kbd "C-c t")
+        (lambda ()
+          (interactive)
+          (visual-replace--update-preview)
+          (while visual-replace--first-match-timer
+            (ert-run-idle-timers))
+          (push (visual-replace-test-window-content win) snapshots)))
+       (visual-replace-ert-simulate-keys (kbd (format "t e x t SPC %d . TAB r e p l C-c t RET" to-replace))
+         (call-interactively 'visual-replace))
+
+       ;; C-c t was called once to capture window content.
+       (should (equal 1 (length snapshots)))
+
+       ;; The replacement was highlighted, even though it required scrolling the window.
+       (should (string-match (regexp-quote (format "[text %d.repl]" to-replace)) (car snapshots)))
+
+       ;; We're now back at the original position.
+       (should (equal 4 (line-number-at-pos (point))))))))
+
+(ert-deftest test-visual-replace-jump-backward-to-first-match ()
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+     (let* ((snapshots)
+            (win (selected-window))
+            (height (window-height win)))
+       (dotimes (i (* 3 height))
+         (insert (format "this is text %d.\n" i)))
+       (goto-char (point-max))
+       (forward-line -3)
+       (recenter 3 t)
+       (define-key
+        minibuffer-mode-map
+        (kbd "C-c t")
+        (lambda ()
+          (interactive)
+          (visual-replace--update-preview)
+          (while visual-replace--first-match-timer
+            (ert-run-idle-timers))
+          (push (visual-replace-test-window-content win) snapshots)))
+       (visual-replace-ert-simulate-keys (kbd "t e x t SPC 5 . C-c t TAB repl RET")
+         (call-interactively 'visual-replace))
+
+       ;; C-c t was called once to capture window content.
+       (should (equal 1 (length snapshots)))
+
+       ;; The replacement was highlighted, even though it required scrolling the window.
+       (should (string-match "[text 5.]" (car snapshots)))
+
+       ;; We're now back at the original position.
+       (should (equal (- (line-number-at-pos (point-max)) 3) (line-number-at-pos (point))))))))
+
 ;;; visual-replace-test.el ends here
