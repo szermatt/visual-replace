@@ -1024,23 +1024,36 @@ call is a set of overlays, stored in `visual-replace--overlays'."
                   (push ov visual-replace--overlays)))
             ;; no matches within the visible region
             (when (and visual-replace-first-match (not no-first-match))
-              (visual-replace--schedule-first-match
-               args ranges
-               (visual-replace--scope-point
-                visual-replace--scope)
-               (point-max)))))))))
+              (let ((origin (save-excursion
+                              (goto-char (visual-replace--scope-point
+                                          visual-replace--scope))
+                              (line-beginning-position))))
+                (visual-replace--schedule-first-match
+                 args
+                 (visual-replace--small-ranges
+                  (append
+                   ;; first search for a match below the original
+                   ;; position of the point.
+                   (visual-replace--range-intersect-sorted
+                    ranges
+                    `((,origin . ,(point-max))))
+                   ;; if none can be found, look for one above.
+                   (visual-replace--range-intersect-sorted
+                    ranges
+                    `((,(point-min) . ,origin))))))))))))))
 
-(defun visual-replace--schedule-first-match (args ranges start end)
+(defun visual-replace--schedule-first-match (args ranges)
   "Schedule a run of `visual-replace--first-match'.
 
 ARGS is the `visual-replace-args' instance to use for searching.
-RANGES the ranges that correspond to the scope. START and END
-define a subset of the buffer to search in this step."
-  (setq visual-replace--first-match-timer
-        (run-with-idle-timer 0 nil #'visual-replace--first-match
-                             args ranges start end)))
+RANGES is a series of (cons START END) to search, one after the
+other."
+  (when ranges
+    (setq visual-replace--first-match-timer
+          (run-with-idle-timer 0 nil #'visual-replace--first-match
+                               args ranges))))
 
-(defun visual-replace--first-match (args ranges start end)
+(defun visual-replace--first-match (args ranges)
   "Look for a match to display.
 
 This function is meant to be called exclusively from an idle
@@ -1048,40 +1061,28 @@ timer, stored in `visual-replace--first-match-timer', by
 `visual-replace--update-preview' when it cannot find any match.
 
 ARGS is the `visual-replace-args' instance to use for searching.
-RANGES the ranges that correspond to the scope. START and END
-define a subset of the buffer to search in this step.
+RANGES is a series of (cons START END) to search, one after the
+other.
 
-This executes one step, searching at most 80 lines, then
-schedules another run for executing the next step.
+This searches one range, then schedules another run for searching
+the next range, until RANGES is empty.
 
 Note that calling `visual-replace--update-preview' cancels the
 timer"
   (setq visual-replace--first-match-timer nil)
   (with-current-buffer visual-replace--calling-buffer
-    (save-excursion
-      (goto-char start)
-      (let* ((limit (min end (let ((inhibit-field-text-motion t))
-                               (line-beginning-position 80))))
-             (match (car (visual-replace--search
-                          args (visual-replace--range-intersect-sorted
-                                ranges `((,start . ,limit)))
-                          visual-replace-first-match-max-duration 1))))
-        (cond
-         (match
-          (with-selected-window visual-replace--calling-window
-            (goto-char (car match))
-            (recenter))
-          (visual-replace--update-preview 'no-first-match))
-         ((< limit end)
-          ;; there's more to search. Schedule another step.
-          (visual-replace--schedule-first-match args ranges limit end))
-         ((= end (point-max))
-          ;; we've reached the end. Rewind to search from the
-          ;; beginning of the buffer.
-          (visual-replace--schedule-first-match
-           args ranges
-           (point-min) (visual-replace--scope-point
-                        visual-replace--scope))))))))
+    (let* ((range (car ranges))
+           (match (car (visual-replace--search
+                        args (list range)
+                        visual-replace-first-match-max-duration 1))))
+      (if match
+          (progn
+            (with-selected-window visual-replace--calling-window
+              (goto-char (car match))
+              (recenter))
+            (visual-replace--update-preview 'no-first-match))
+        (visual-replace--schedule-first-match
+         args (cdr ranges))))))
 
 (defun visual-replace--clear-preview ()
   "Delete all overlays in `visual-replace--overlays', if any."
@@ -1154,6 +1155,28 @@ Returns a set of sorted, non-overlapping ranges."
             (setq aranges (cdr aranges))
           (setq branges (cdr branges)))))
     (nreverse intersect)))
+
+(defun visual-replace--small-ranges (ranges)
+  "Split RANGES into ranges of at most 80 lines.
+
+RANGES and the return value are both lists of (cons START END)
+with START and END positions in the current buffer that mark a
+certain range.
+
+Also skips empty ranges."
+  (save-excursion
+    (let ((result))
+      (dolist (range ranges)
+        (let ((start (car range))
+              (end (cdr range)))
+          (save-restriction
+            (narrow-to-region start end)
+            (while (< start end)
+              (goto-char start)
+              (forward-line 80)
+              (push `(,start . ,(point)) result)
+              (setq start (point))))))
+      (nreverse result))))
 
 (provide 'visual-replace)
 

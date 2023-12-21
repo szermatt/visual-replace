@@ -385,4 +385,25 @@
        ;; We're now back at the original position.
        (should (equal (- (line-number-at-pos (point-max)) 3) (line-number-at-pos (point))))))))
 
+(ert-deftest test-visual-replace-small-ranges ()
+  (ert-with-test-buffer nil
+    (dotimes (i 300)
+      (insert (format "line %d.\n" i)))
+    (goto-char (point-min))
+
+    (should (equal nil (visual-replace--small-ranges nil)))
+
+    (should (equal nil (visual-replace--small-ranges '((10 . 10)))))
+
+    (should (equal `((1 . ,(line-beginning-position 20))
+                     (,(line-beginning-position 100) . ,(line-beginning-position 120)))
+                   (visual-replace--small-ranges
+                    `((1 . ,(line-beginning-position 20))
+                      (,(line-beginning-position 100) . ,(line-beginning-position 120))))))
+
+    (should (equal `((1 . ,(line-beginning-position 81))
+                     (,(line-beginning-position 81) . ,(line-beginning-position 161))
+                     (,(line-beginning-position 161) . ,(line-beginning-position 200)))
+                   (visual-replace--small-ranges `((1 . ,(line-beginning-position 200))))))))
+
 ;;; visual-replace-test.el ends here
