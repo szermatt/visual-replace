@@ -167,16 +167,6 @@ and 'display."
                        (eq last-display (get-text-property pos 'display))))))
     (or pos end)))
 
-(defun test-visual-replace-overlay-to-properties ()
-  "Converts overlays in the current buffer to properties."
-  (save-excursion
-    (let ((ovlists (overlay-lists)))
-      (dolist (ov (append (car ovlists) (cdr ovlists)))
-        (let ((start (overlay-start ov))
-              (end (overlay-end ov))
-              (props (overlay-properties ov)))
-          (add-text-properties start end props))))))
-
 (defun test-visual-replace-preview (buf)
   "Compute a preview for the current state.
 
@@ -185,12 +175,9 @@ interpreting 'display and 'invisible. The face properties of the
 overlays are kept as text properties."
   (with-current-buffer buf
     (visual-replace--update-preview)
-    (let ((inhibit-read-only t))
-      (test-visual-replace-overlay-to-properties)
-      (setq test-visual-replace-snapshot
-            (append test-visual-replace-snapshot
-                    (list (test-visual-replace-buffer-substring
-                           (point-min) (point-max))))))))
+    (setq test-visual-replace-snapshot
+          (append test-visual-replace-snapshot
+                  (list (visual-replace-test-content))))))
 
 (defun test-visual-replace-highlight-face (text face)
   "Return a copy of TEXT with FACE highlighted.
@@ -212,7 +199,8 @@ The region of text with FACE are surrounded with []."
           (insert "]")
           (goto-char (1+ (point)))
           (setq active nil)))
-        (goto-char (next-property-change (point) nil (point-max)))))
+        (goto-char (next-property-change (point) nil (point-max))))
+      (when active (insert "]")))
     (buffer-substring (point-min) (point-max))))
 
 (defun test-visual-replace-content ()
@@ -237,38 +225,51 @@ text, surrounded by brackets.
 
 This requires `window-end' to be up-to-date. See
 `test-visual-window-end'."
-  (let ((win (or win (selected-window))))
+  (let ((win (or win (selected-window)))
+        (text))
     (with-current-buffer (window-buffer win)
       (save-restriction
         (narrow-to-region (window-start win) (window-end win))
-        (save-excursion
-          (let ((last (point-min))
-                (face nil)
-                (last-face nil)
-                (sections))
-            (goto-char (point-min))
-            (while (not (eobp))
-              (setq last (point))
-              (setq last-face face)
-              (goto-char (next-char-property-change (point) (point-max)))
-              (let* ((invisible (invisible-p last))
-                     (display (get-char-property last 'display)))
-                (setq face (get-char-property last 'face))
-                (when (and highlight-face
-                           (not (eq face last-face))
-                           (eq face highlight-face))
-                  (push (format "<%s>[" face) sections))
-                (push (cond
-                       (invisible "")
-                       (display (concat "[" display "]"))
-                       (t (buffer-substring-no-properties (point) last)))
-                      sections)
-                (when (and highlight-face
-                           (not (eq face last-face))
-                           (eq last-face highlight-face))
-                  (push "]" sections))))
-            (when (and highlight-face (eq highlight-face face))
-              (push "]" sections))
-            (apply 'concat (nreverse sections))))))))
+        (visual-replace-test-content)))))
+
+(defun visual-replace-test-content ()
+  "Return the content of the current buffer.
+
+Sections that are invisible are not included into the text.
+
+Section with a 'display overlay property are included instead of
+the text, with the display text put within curly braces.
+
+Other overlay properties are stored into the returned text as
+text properties."
+  (save-excursion
+    (let ((last (point-min))
+          (sections)
+          (ov-props))
+      (dolist (ov (car (overlay-lists)))
+        (let ((props (overlay-properties ov)))
+          (while props
+            (cl-pushnew (car props) ov-props)
+            (setq props (cdr (cdr props))))))
+      (setq ov-props (delq 'invisible ov-props))
+      (setq ov-props (delq 'display ov-props))
+
+      (goto-char (point-min))
+      (while (not (eobp))
+        (setq last (point))
+        (goto-char (next-char-property-change (point) (point-max)))
+        (let* ((invisible (invisible-p last))
+               (display (get-char-property last 'display)))
+          (push (cond
+                 (invisible "")
+                 (display (concat "{" display "}"))
+                 (t
+                  (let ((text (buffer-substring-no-properties (point) last)))
+                    (dolist (ov-prop ov-props)
+                      (let ((val (get-char-property last ov-prop)))
+                        (put-text-property 0 (length text) ov-prop val text)))
+                    text)))
+                sections)))
+      (apply 'concat (nreverse sections)))))
 
 ;;; test-helper.el ends here

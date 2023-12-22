@@ -348,7 +348,7 @@
        (should (equal 1 (length snapshots)))
 
        ;; The replacement was highlighted, even though it required scrolling the window.
-       (should (string-match (regexp-quote (format "[text %d.repl]" to-replace)) (car snapshots)))
+       (should (string-match (regexp-quote (format "{text %d.repl}" to-replace)) (car snapshots)))
 
        ;; We're now back at the original position.
        (should (equal 4 (line-number-at-pos (point))))))))
@@ -358,6 +358,7 @@
    (with-selected-window (display-buffer (current-buffer))
      (let* ((snapshots)
             (win (selected-window))
+            (visual-replace-default-to-full-scope t)
             (height (window-height win)))
        (dotimes (i (* 3 height))
          (insert (format "this is text %d.\n" i)))
@@ -373,14 +374,14 @@
           (while visual-replace--first-match-timer
             (ert-run-idle-timers))
           (push (visual-replace-test-window-content win) snapshots)))
-       (visual-replace-ert-simulate-keys (kbd "t e x t SPC 5 . C-c t TAB repl RET")
+       (visual-replace-ert-simulate-keys (kbd "t e x t SPC 5 . TAB repl C-c t RET")
          (call-interactively 'visual-replace))
 
        ;; C-c t was called once to capture window content.
        (should (equal 1 (length snapshots)))
 
        ;; The replacement was highlighted, even though it required scrolling the window.
-       (should (string-match "[text 5.]" (car snapshots)))
+       (should (string-match (regexp-quote "{text 5.repl}") (car snapshots)))
 
        ;; We're now back at the original position.
        (should (equal (- (line-number-at-pos (point-max)) 3) (line-number-at-pos (point))))))))
@@ -424,7 +425,9 @@
           (interactive)
           (push
            (cons (visual-replace-test-window-content) ;; minibuffer
-                 (visual-replace-test-window-content win 'visual-replace-region))
+                 (test-visual-replace-highlight-face
+                  (visual-replace-test-window-content win)
+                  'visual-replace-region))
            snapshots)))
        (define-key
         visual-replace-mode-map
@@ -444,7 +447,7 @@
                  (concat "line 0.\n"
                          "line 1.\n"
                          "line 2.\n"
-                         "<visual-replace-region>[line 3.\n"
+                         "[line 3.\n"
                          "line 4.\n"
                          "line 5.\n"
                          "]"))

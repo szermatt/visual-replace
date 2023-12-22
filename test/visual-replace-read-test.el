@@ -631,7 +631,7 @@
    (test-visual-replace-run "hell TAB <F1> _ <F1> x" (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
                    (car test-visual-replace-snapshot) 'visual-replace-delete-match)
-                  "[hell]o, world, [hell]o, [hell]o!")))) 
+                  "[hell]o, world, [hell]o, [hell]o!"))))
 
 (ert-deftest test-visual-replace-preview-replace ()
   (test-visual-replace-env
@@ -641,10 +641,10 @@
    (test-visual-replace-run "hell TAB hul <F1> _ <F1> x" (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
                    (car test-visual-replace-snapshot) 'visual-replace-delete-match)
-                  "[hell]hulo, world, [hell]hulo, [hell]hulo!"))
+                  "{[hell]hul}o, world, {[hell]hul}o, {[hell]hul}o!"))
    (should (equal (test-visual-replace-highlight-face
                    (car test-visual-replace-snapshot) 'visual-replace-replacement)
-                  "hell[hul]o, world, hell[hul]o, hell[hul]o!"))))
+                  "{hell[hul]}o, world, {hell[hul]}o, {hell[hul]}o!"))))
 
 (ert-deftest test-visual-replace-preview-regex ()
   (test-visual-replace-env
@@ -685,7 +685,7 @@
                             (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
                    (car test-visual-replace-snapshot) 'visual-replace-replacement)
-                  "hell[0ELL]o, world, hell[1ELL]o"))))
+                  "{hell[0ELL]}o, world, {hell[1ELL]}o"))))
 
 (ert-deftest test-visual-replace-preview-skip-readonly ()
   (test-visual-replace-env
@@ -702,7 +702,7 @@
                         (call-interactively 'visual-replace))
    (should (equal (test-visual-replace-highlight-face
                    (nth 0 test-visual-replace-snapshot) 'visual-replace-replacement)
-                  "hel[hol]lo, world, hello, hel[hol]lo!"))
+                  "{hel[hol]}lo, world, hello, {hel[hol]}lo!"))
    (should (equal
             "hollo, world, hello, hollo!"
             (buffer-substring-no-properties (point-min) (point-max))))))
