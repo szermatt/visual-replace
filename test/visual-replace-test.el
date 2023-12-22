@@ -406,4 +406,60 @@
                      (,(line-beginning-position 161) . ,(line-beginning-position 200)))
                    (visual-replace--small-ranges `((1 . ,(line-beginning-position 200))))))))
 
+(ert-deftest test-visual-replace-highlight-scope ()
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+     (delete-other-windows)
+     (should (>= (window-height) 6))
+     (let* ((snapshots)
+            (win (selected-window)))
+       (dotimes (i 6)
+         (insert (format "line %d.\n" i)))
+       (goto-char (point-min))
+       (forward-line 3)
+       (define-key
+        visual-replace-mode-map
+        (kbd "C-c t")
+        (lambda ()
+          (interactive)
+          (push
+           (cons (visual-replace-test-window-content) ;; minibuffer
+                 (visual-replace-test-window-content win 'visual-replace-region))
+           snapshots)))
+       (define-key
+        visual-replace-mode-map
+        (kbd "C-c s")
+        #'visual-replace-toggle-scope)
+       (should-not visual-replace-default-to-full-scope)
+       (visual-replace-ert-simulate-keys (kbd "foo C-c t C-c s C-c t TAB bar RET")
+         (call-interactively 'visual-replace))
+
+       ;; C-c t was called twice to capture window content.
+       (should (equal 2 (length snapshots)))
+
+       ;; 'from-point is highlighted
+       (should (equal
+                (cons
+                 "Replace from point: foo"
+                 (concat "line 0.\n"
+                         "line 1.\n"
+                         "line 2.\n"
+                         "<visual-replace-region>[line 3.\n"
+                         "line 4.\n"
+                         "line 5.\n"
+                         "]"))
+                (nth 1 snapshots)))
+
+       ;; 'full is not highlighted
+       (should (equal
+                (cons
+                 "Replace in buffer: foo"
+                 (concat "line 0.\n"
+                         "line 1.\n"
+                         "line 2.\n"
+                         "line 3.\n"
+                         "line 4.\n"
+                         "line 5.\n"))
+                (nth 0 snapshots)))))))
+
 ;;; visual-replace-test.el ends here

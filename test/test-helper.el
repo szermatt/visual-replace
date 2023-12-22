@@ -222,11 +222,14 @@ The region of text with FACE are surrounded with []."
   `(string-match ,a ,b))
 (put 'equal 'ert-explainer 'visual-replace-ert-explain-string-match)
 
-(defun visual-replace-test-window-content (&optional win)
+(defun visual-replace-test-window-content (&optional win highlight-face)
   "Return the visible portion of WIN.
 
 If WIN is unspecified or nil, return the content of the selected
 window.
+
+If HIGHLIGHT-FACE is specified, text that's displayed with this
+face set is written as <face-name>[...].
 
 Invisible text is skipped. If an overlay replaced some text using
 the display property, only the replacement is included in the
@@ -240,18 +243,32 @@ This requires `window-end' to be up-to-date. See
         (narrow-to-region (window-start win) (window-end win))
         (save-excursion
           (let ((last (point-min))
+                (face nil)
+                (last-face nil)
                 (sections))
             (goto-char (point-min))
             (while (not (eobp))
               (setq last (point))
+              (setq last-face face)
               (goto-char (next-char-property-change (point) (point-max)))
               (let* ((invisible (invisible-p last))
                      (display (get-char-property last 'display)))
+                (setq face (get-char-property last 'face))
+                (when (and highlight-face
+                           (not (eq face last-face))
+                           (eq face highlight-face))
+                  (push (format "<%s>[" face) sections))
                 (push (cond
                        (invisible "")
                        (display (concat "[" display "]"))
                        (t (buffer-substring-no-properties (point) last)))
-                      sections)))
+                      sections)
+                (when (and highlight-face
+                           (not (eq face last-face))
+                           (eq last-face highlight-face))
+                  (push "]" sections))))
+            (when (and highlight-face (eq highlight-face face))
+              (push "]" sections))
             (apply 'concat (nreverse sections))))))))
 
 ;;; test-helper.el ends here

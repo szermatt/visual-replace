@@ -190,6 +190,11 @@ This is the face that's used to show the replacement string, once a replacement
 has been defined."
   :group 'visual-replace)
 
+(defface visual-replace-region
+  '((t :inherit secondary-selection))
+  "Highlight for the region in which replacements occur."
+  :group 'visual-replace)
+
 (defvar visual-replace-secondary-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "r") 'visual-replace-toggle-regexp)
@@ -361,8 +366,11 @@ This is an instance of the struct `visual-replace--scope'.")
 (defvar visual-replace--calling-window nil
   "Window from which `visual-replace' was called.")
 
-(defvar visual-replace--overlays nil
+(defvar visual-replace--match-ovs nil
   "Overlays added for the preview in the calling buffer.")
+
+(defvar visual-replace--scope-ov nil
+  "Overlay that highlight the replacement region.")
 
 (defvar visual-replace--incomplete nil
   "Replacement text entered, but not confirmed.")
@@ -526,7 +534,7 @@ If unspecified, SCOPE defaults to the variable
             (pcase type
               ('from-point 'full)
               (_ 'from-point)))))
-  (visual-replace--setup-invisibility-spec))
+  (visual-replace--show-scope))
 
 (defun visual-replace-read (&optional initial-args initial-scope)
   "Read arguments for `query-replace'.
@@ -570,7 +578,7 @@ used as point for \\='from-point. By default, the scope is
                   (when trigger
                     (local-set-key trigger visual-replace-secondary-mode-map))
                   (visual-replace-minibuffer-mode t)
-                  (visual-replace--setup-invisibility-spec)
+                  (visual-replace--show-scope)
                   (setq-local yank-excluded-properties (append '(separator display face) yank-excluded-properties))
                   (setq-local text-property-default-nonsticky
                               (append '((separator . t) (face . t))
@@ -583,6 +591,7 @@ used as point for \\='from-point. By default, the scope is
                           initial-input nil nil nil (car search-ring) t))))
         ;; unwind
         (when timer (cancel-timer timer))
+        (visual-replace--clear-scope)
         (visual-replace--clear-preview)))
     (unless quit-flag (setq visual-replace--incomplete nil))
     (let* ((final-args (visual-replace-args--from-text text))
@@ -773,7 +782,7 @@ TEXT is the textual content of the minibuffer, with properties."
   "Build prompt text that reflects the current scope.
 
 This returns text for all prompt, with different visibility
-spec. `visual-replace--setup-invisibility-spec' sets the appropriate
+spec. `visual-replace--show-scope' sets the appropriate
 spec for the current state."
   (mapconcat (lambda (scope)
                (let ((text (pcase scope
@@ -806,19 +815,41 @@ Returns a list of (start . end)"
         ('full (list (cons (point-min) (point-max))))
         ('region (visual-replace--scope-bounds scope))))))
 
-(defun visual-replace--setup-invisibility-spec (&optional scope)
-  "Setup invisibility spec for SCOPE.
+(defun visual-replace--show-scope (&optional scope)
+  "Update the display to reflect the state of SCOPE.
 
 If unspecified, SCOPE defaults to the variable
 `visual-replace--scope'.
 
-Invisibility spec must be updated every time
-`visual-replace--scope' is changed."
-  (let ((scope (or scope visual-replace--scope)))
+This must be called every time `visual-replace--scope' is
+changed."
+  (let* ((scope (or scope visual-replace--scope))
+         (type (visual-replace--scope-type scope)))
     (dolist (s visual-replace--scope-types)
-      (if (eq s (visual-replace--scope-type scope))
+      (if (eq s type)
           (remove-from-invisibility-spec s)
-        (add-to-invisibility-spec s)))))
+        (add-to-invisibility-spec s)))
+    (if (eq 'from-point type)
+        ;; Highlight 'from-point only. 'region is already highlighted
+        ;; and 'full-buffer covers the whole buffer.
+        (let ((buf visual-replace--calling-buffer)
+              (ov visual-replace--scope-ov))
+          (unless (and ov (eq buf (overlay-buffer ov)))
+            (visual-replace--clear-scope)
+            (setq ov (make-overlay 1 1 buf)))
+          (with-current-buffer buf
+            (move-overlay ov (visual-replace--scope-point scope) (point-max)))
+          (overlay-put ov 'priority 1000)
+          (overlay-put ov 'face 'visual-replace-region)
+          (setq visual-replace--scope-ov ov))
+      (when visual-replace--scope-ov
+        (visual-replace--clear-scope)))))
+
+(defun visual-replace--clear-scope ()
+  "Get rid of any scope highlight overlay."
+  (when visual-replace--scope-ov
+    (delete-overlay visual-replace--scope-ov)
+    (setq visual-replace--scope-ov nil)))
 
 (defun visual-replace--warn (from)
   "Warn if FROM contains \\n or \\t."
@@ -1002,7 +1033,7 @@ REPLACEMENT, if non-nil, is its replacement."
   "Update the preview to reflect the content of the minibuffer.
 
 This is meant to be called from a timer. The result of this
-call is a set of overlays, stored in `visual-replace--overlays'."
+call is a set of overlays, stored in `visual-replace--match-ovs'."
   (visual-replace--clear-preview)
   (when visual-replace--first-match-timer
     (cancel-timer visual-replace--first-match-timer)
@@ -1021,7 +1052,7 @@ call is a set of overlays, stored in `visual-replace--overlays'."
               (dolist (m matches)
                 (when-let ((ov (visual-replace--overlay
                                 (nth 0 m) (nth 1 m) (nth 2 m))))
-                  (push ov visual-replace--overlays)))
+                  (push ov visual-replace--match-ovs)))
             ;; no matches within the visible region
             (when (and visual-replace-first-match (not no-first-match))
               (let ((origin (save-excursion
@@ -1085,11 +1116,11 @@ timer"
          args (cdr ranges))))))
 
 (defun visual-replace--clear-preview ()
-  "Delete all overlays in `visual-replace--overlays', if any."
+  "Delete all overlays in `visual-replace--match-ovs', if any."
   (with-current-buffer visual-replace--calling-buffer
-    (dolist (overlay visual-replace--overlays)
+    (dolist (overlay visual-replace--match-ovs)
       (delete-overlay overlay)))
-  (setq visual-replace--overlays nil))
+  (setq visual-replace--match-ovs nil))
 
 (defun visual-replace--after-change (&rest _ignored)
   "Update `visual-replace--incomplete'.
