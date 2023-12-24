@@ -51,18 +51,18 @@ With [use-package](https://github.com/jwiegley/use-package) and with a custom ke
 
 ## Usage
 
-Launch `visual-replace' with the keybinding you chose when installing, "M-%" by default. 
+Launch `visual-replace' with the keybinding you chose when installing, "M-%" by default.
 
 In that mode:
 
 * "TAB" navigates between the text to replace and the replacement string
 * "RET" switches to the replacement string, the first time, then executes the replacement
 * "M-% r" toggles regexp mode on and off
-* "M-% l" toggles query mode one and off 
-* "M-% SPC" toggles query mode one and off 
+* "M-% l" toggles query mode one and off
+* "M-% SPC" toggles query mode one and off
 * "M-% w" toggle limiting search to whole words
 * "M-% c" toggle case-fold
-* "M-% s" toggle lax whitespace 
+* "M-% s" toggle lax whitespace
 
 If you started `visual-replace` with another keybinding, replace M-X with that keybinding. Modify `visual-replace-mode-map` and `visual-replace-secondary-mode-map` to customize the keybindings.
 
