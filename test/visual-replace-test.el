@@ -465,4 +465,67 @@
                          "line 5.\n"))
                 (nth 0 snapshots)))))))
 
+(ert-deftest test-visual-replace-prev-next-match ()
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+     (let* ((snapshots))
+       (dotimes (i 6)
+         (insert (format "line %d.\n" i)))
+       (goto-char (point-min))
+       (forward-line 3)
+       (define-key visual-replace-mode-map (kbd "<up>") #'visual-replace-prev-match)
+       (define-key visual-replace-mode-map (kbd "<down>") #'visual-replace-next-match)
+       (define-key
+        visual-replace-mode-map
+        (kbd "C-c t")
+        (lambda ()
+          (interactive)
+          (push
+           (with-current-buffer visual-replace--calling-buffer
+             (let ((text (buffer-substring-no-properties
+                          (point-min) (point-max))))
+               (concat
+                (substring text 0 (1- (point)))
+                "<>"
+                (substring text (1- (point))))))
+           snapshots)))
+       (should-not visual-replace-default-to-full-scope)
+       (visual-replace-ert-simulate-keys
+        (kbd "line C-c t <down> C-c t <down> C-c t <up> C-c t <up> C-c t TAB bar RET")
+         (call-interactively 'visual-replace))
+
+       (should (equal
+                (list
+                 (concat "line 0.\n"
+                         "line 1.\n"
+                         "line 2.\n"
+                         "<>line 3.\n"
+                         "line 4.\n"
+                         "line 5.\n")
+                 (concat "line 0.\n"
+                         "line 1.\n"
+                         "line 2.\n"
+                         "line 3.\n"
+                         "<>line 4.\n"
+                         "line 5.\n")
+                 (concat "line 0.\n"
+                         "line 1.\n"
+                         "line 2.\n"
+                         "line 3.\n"
+                         "line 4.\n"
+                         "<>line 5.\n")
+                 (concat "line 0.\n"
+                         "line 1.\n"
+                         "line 2.\n"
+                         "line 3.\n"
+                         "<>line 4.\n"
+                         "line 5.\n")
+                 (concat "line 0.\n"
+                         "line 1.\n"
+                         "line 2.\n"
+                         "<>line 3.\n"
+                         "line 4.\n"
+                         "line 5.\n"))
+                (nreverse snapshots)))))))
+
 ;;; visual-replace-test.el ends here

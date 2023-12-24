@@ -36,7 +36,13 @@
 ;
 ;; - whether to apply the replacement to the whole buffer with
 ;; `visual-replace-toggle-scope', bound by default to M-% SPC or, more
-;; precisely, <visual-replace shortcut> SPC
+;;
+;; precisely, <visual-replace shortcut> SPC.
+;;
+;; While `visual-replace' is active, it scrolls the window to keep at
+;; least one example of matches visible. You can also press up and
+;; down to go through the matches. (C-p and C-n remain available to
+;; navigate through history.)
 ;;
 ;; Notable differences between `query-replace' and `visual-replace':
 ;;  - `visual-replace' keeps the point where it was before the replacement
@@ -221,6 +227,9 @@ the shortcut that was used to trigger `visual-replace'.")
 
     (define-key map (kbd "TAB") 'visual-replace-tab)
     (define-key map (kbd "<tab>") 'visual-replace-tab)
+
+    (define-key map (kbd "<up>") 'visual-replace-prev-match)
+    (define-key map (kbd "<down>") 'visual-replace-next-match)
 
     (define-key map [remap yank] 'visual-replace-yank)
     (define-key map [remap yank-pop] 'visual-replace-yank-pop)
@@ -915,7 +924,8 @@ text just before it's executed."
         args)
     args))
 
-(defun visual-replace--search (args sorted-ranges &optional max-duration max-matches)
+(defun visual-replace--search (args sorted-ranges
+                                    &optional max-duration max-matches backward)
   "Look for matches for ARGS within SORTED-RANGES.
 
 ARGS is a `visual-replace-args' struct.
@@ -923,6 +933,10 @@ ARGS is a `visual-replace-args' struct.
 If MAX-MATCHES is set, stop once that number of matches is
 reached and return the matches. If MAX-DURATION is set, stop
 after that much time has passed and return nothing.
+
+If BACKWARD is non-nil, search backward from the end of the
+regions to the beginning. This only matters when MAX-MATCHES is
+set.
 
 Return a list of (start end replacement)."
   (let* ((preview-start (get-internal-run-time))
@@ -950,6 +964,9 @@ Return a list of (start end replacement)."
                         (visual-replace-args-to args)
                         (visual-replace-args-regexp args)))
                  (error nil))))
+          (when backward
+            (setq start (cdr range))
+            (setq end (car range)))
           (save-excursion
             (goto-char start)
             (while (condition-case nil
@@ -957,17 +974,19 @@ Return a list of (start end replacement)."
                         from end
                         (visual-replace-args-regexp args)
                         (visual-replace-args-word args)
-                        case-fold-search)
+                        case-fold-search
+                        backward)
                      ;; Given an invalid regexp, just return nothing
                      (invalid-regexp (throw 'visual-replace-return nil)))
               (let ((m-start (match-beginning 0))
                     (m-end (match-end 0))
                     (m-replacement))
-                (when (or (= m-end m-start)
-                          (>= (float-time
-                               (time-subtract (get-internal-run-time)
-                                              preview-start))
-                              max-duration))
+                (when (and max-duration
+                           (or (= m-end m-start)
+                               (>= (float-time
+                                    (time-subtract (get-internal-run-time)
+                                                   preview-start))
+                                   max-duration)))
                   (throw 'visual-replace-return nil))
                 (condition-case nil
                     (setq m-replacement
@@ -1208,6 +1227,34 @@ Also skips empty ranges."
               (push `(,start . ,(point)) result)
               (setq start (point))))))
       (nreverse result))))
+
+(defun visual-replace-next-match ()
+  "Move the point to the next match."
+  (interactive)
+  (with-selected-window visual-replace--calling-window
+    (let ((match (car (visual-replace--search
+                       (visual-replace-args--from-minibuffer)
+                       (visual-replace--range-intersect-sorted
+                        (visual-replace--scope-ranges)
+                        `((,(1+ (point)) . ,(point-max))))
+                       nil 1))))
+      (if match
+          (goto-char (car match))
+        (error "No next match")))))
+
+(defun visual-replace-prev-match ()
+  "Move the point to the previous match."
+  (interactive)
+  (with-selected-window visual-replace--calling-window
+    (let ((match (car (visual-replace--search
+                       (visual-replace-args--from-minibuffer)
+                       (visual-replace--range-intersect-sorted
+                        (visual-replace--scope-ranges)
+                        `((,(point-min) . ,(point))))
+                       nil 1 'backward))))
+      (if match
+          (goto-char (car match))
+        (error "No previous match")))))
 
 (provide 'visual-replace)
 

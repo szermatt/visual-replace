@@ -28,6 +28,11 @@ More flags can be toggled, to control:
 If you leave `visual-replace` without confirming, with C-g, you can
 continue where you left off by going up in the history.
 
+While `visual-replace` is active, it scrolls the window to keep at
+least one example of matches visible. You can also press up and down
+to go through the matches. (`C-p` and `C-n` remain available to
+navigate through history.)
+
 ## Installation
 
 `visual-replace` requires Emacs 26.1.

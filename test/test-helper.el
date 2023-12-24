@@ -179,6 +179,15 @@ overlays are kept as text properties."
           (append test-visual-replace-snapshot
                   (list (visual-replace-test-content))))))
 
+(defun test-visual-replace-highlight-property (text property mark)
+  "Add MARK to TEXT where PROPERTY first turns non-nil."
+  (let ((pos (if (get-text-property 0 property text)
+                 0
+               (next-single-property-change 0 property text ))))
+    (if pos
+        (concat (substring text 0 pos) mark (substring text pos (length text)))
+      text)))
+
 (defun test-visual-replace-highlight-face (text face)
   "Return a copy of TEXT with FACE highlighted.
 
@@ -210,18 +219,12 @@ The region of text with FACE are surrounded with []."
   `(string-match ,a ,b))
 (put 'equal 'ert-explainer 'visual-replace-ert-explain-string-match)
 
-(defun visual-replace-test-window-content (&optional win highlight-face)
+(defun visual-replace-test-window-content (&optional win)
   "Return the visible portion of WIN.
 
 If WIN is unspecified or nil, return the content of the selected
-window.
-
-If HIGHLIGHT-FACE is specified, text that's displayed with this
-face set is written as <face-name>[...].
-
-Invisible text is skipped. If an overlay replaced some text using
-the display property, only the replacement is included in the
-text, surrounded by brackets.
+window. See `visual-replace-content' for details on the captured
+text.
 
 This requires `window-end' to be up-to-date. See
 `test-visual-window-end'."
