@@ -197,7 +197,7 @@ has been defined."
   :group 'visual-replace)
 
 (defface visual-replace-region
-  '((t :inherit secondary-selection))
+  '((t :inherit region))
   "Highlight for the region in which replacements occur."
   :group 'visual-replace)
 
@@ -378,7 +378,7 @@ This is an instance of the struct `visual-replace--scope'.")
 (defvar visual-replace--match-ovs nil
   "Overlays added for the preview in the calling buffer.")
 
-(defvar visual-replace--scope-ov nil
+(defvar visual-replace--scope-ovs nil
   "Overlay that highlight the replacement region.")
 
 (defvar visual-replace--incomplete nil
@@ -576,6 +576,7 @@ used as point for \\='from-point. By default, the scope is
     (save-excursion
       (unwind-protect
           (progn
+            (deactivate-mark)
             (when visual-replace-preview
               (setq timer (run-with-idle-timer
                            visual-replace-preview-delay
@@ -833,32 +834,41 @@ If unspecified, SCOPE defaults to the variable
 This must be called every time `visual-replace--scope' is
 changed."
   (let* ((scope (or scope visual-replace--scope))
-         (type (visual-replace--scope-type scope)))
+         (type (visual-replace--scope-type scope))
+         (buf visual-replace--calling-buffer))
     (dolist (s visual-replace--scope-types)
       (if (eq s type)
           (remove-from-invisibility-spec s)
         (add-to-invisibility-spec s)))
-    (if (eq 'from-point type)
-        ;; Highlight 'from-point only. 'region is already highlighted
-        ;; and 'full-buffer covers the whole buffer.
-        (let ((buf visual-replace--calling-buffer)
-              (ov visual-replace--scope-ov))
-          (unless (and ov (eq buf (overlay-buffer ov)))
-            (visual-replace--clear-scope)
-            (setq ov (make-overlay 1 1 buf)))
-          (with-current-buffer buf
-            (move-overlay ov (visual-replace--scope-point scope) (point-max)))
-          (overlay-put ov 'priority 1000)
-          (overlay-put ov 'face 'visual-replace-region)
-          (setq visual-replace--scope-ov ov))
-      (when visual-replace--scope-ov
-        (visual-replace--clear-scope)))))
+    (let ((ovs (delq nil
+                     (mapcar
+                      (lambda (ov)
+                        (if (and ov (eq buf (overlay-buffer ov)))
+                            ov
+                          (delete-overlay ov)))
+                      visual-replace--scope-ovs)))
+          (new-ovs nil)
+          ;; 'full doesn't need highlighting
+          (ranges (unless (eq 'full type)
+                    (visual-replace--scope-ranges scope))))
+      (with-current-buffer buf
+        (dolist (range ranges)
+          (let ((ov (or (car ovs) (make-overlay 1 1))))
+            (setq ovs (cdr ovs))
+            (overlay-put ov 'priority 1000)
+            (overlay-put ov 'face 'visual-replace-region)
+            (move-overlay ov (car range) (cdr range))
+            (push ov new-ovs))))
+      (dolist (ov ovs)
+        (delete-overlay ov))
+      (setq visual-replace--scope-ovs (nreverse new-ovs)))))
 
 (defun visual-replace--clear-scope ()
   "Get rid of any scope highlight overlay."
-  (when visual-replace--scope-ov
-    (delete-overlay visual-replace--scope-ov)
-    (setq visual-replace--scope-ov nil)))
+  (when visual-replace--scope-ovs
+    (dolist (ov visual-replace--scope-ovs)
+      (delete-overlay ov))
+    (setq visual-replace--scope-ovs nil)))
 
 (defun visual-replace--warn (from)
   "Warn if FROM contains \\n or \\t."
