@@ -90,6 +90,7 @@
 
 (require 'seq)
 (require 'thingatpt)
+(require 'rect)
 (eval-when-compile (require 'subr-x)) ;; if-let
 
 ;;; Code:
@@ -325,7 +326,27 @@ current value of regexp, call `visual-replace-args-lax-ws'.
                     (point (if (numberp initial-scope) initial-scope (point)))
                     (bounds (when (region-active-p)
                               (visual-replace--ranges-fix
-                               (region-bounds)))))))
+                               (region-bounds))))
+                    (left-col (when (and (region-active-p) rectangle-mark-mode)
+                                (apply #'min
+                                       (delq nil
+                                       (mapcar (lambda (range)
+                                                 (when (> (cdr range) (car range))
+                                                   (visual-replace--col (car range))))
+                                                 (region-bounds))))))
+                    (right-col (when (and (region-active-p) rectangle-mark-mode)
+                                (apply #'max
+                                       (delq nil
+                                       (mapcar (lambda (range)
+                                                 (when (> (cdr range) (car range))
+                                                   (visual-replace--col (cdr range))))
+                                                 (region-bounds))))))
+                    (topleft-edge (when (region-active-p)
+                                    (apply #'min (mapcar #'car bounds))))
+                    (line-count
+                     (if (region-active-p)
+                         (count-lines (region-beginning) (region-end))
+                       0)))))
   "Stores the current scope and all possible scopes and their ranges.
 
 The scope is tied to the buffer that was active when
@@ -335,7 +356,15 @@ The scope is tied to the buffer that was active when
   ;; value of (point) at creation time, for 'from-point
   (point nil :read-only t)
   ;; (region-bounds) at creation time, for 'region
-  (bounds nil :read-only t))
+  (bounds nil :read-only t)
+  ;; column of the left edge, if the region is a rectangle.
+  (left-col nil :read-only t)
+  ;; column of the right edge, if the region is a rectangle.
+  (right-col nil :read-only t)
+  ;; point containing the top/left edge of the region
+  (topleft-edge nil :read-only t)
+  ;; number of line the region contains or 0
+  (line-count 0 :read-only t))
 
 (defconst visual-replace--scope-types '(region from-point full)
   "Valid values for `visual-replace--scope-type'.")
@@ -794,22 +823,20 @@ TEXT is the textual content of the minibuffer, with properties."
 This returns text for all prompt, with different visibility
 spec. `visual-replace--show-scope' sets the appropriate
 spec for the current state."
-  (mapconcat (lambda (scope)
-               (let ((text (pcase scope
-                             ('region
-                              (format "in region (%sL)"
-                                      (if (mark)
-                                          (1+ (- (line-number-at-pos (max (point) (mark)))
-                                                 (line-number-at-pos (min (point) (mark)))))
-                                        0)))
-                             ('from-point "from point")
-                             ('full "in buffer"))))
-                 (add-text-properties 0 (length text)
-                                      (list 'invisible scope)
-                                      text)
-                 text))
-             visual-replace--scope-types
-             ""))
+  (mapconcat
+   (lambda (type)
+     (let ((text (pcase type
+                   ('region
+                    (format "in region (%sL)"
+                            (visual-replace--scope-line-count visual-replace--scope)))
+                   ('from-point "from point")
+                   ('full "in buffer"))))
+       (add-text-properties 0 (length text)
+                            (list 'invisible type)
+                            text)
+       text))
+   visual-replace--scope-types
+   ""))
 
 (defun visual-replace--scope-ranges (&optional scope)
   "Return the regions replacement with SCOPE should work on.
@@ -848,17 +875,54 @@ changed."
                           (delete-overlay ov)))
                       visual-replace--scope-ovs)))
           (new-ovs nil)
-          ;; 'full doesn't need highlighting
-          (ranges (unless (eq 'full type)
-                    (visual-replace--scope-ranges scope))))
+          (left-col (visual-replace--scope-left-col scope))
+          (right-col (visual-replace--scope-right-col scope)))
       (with-current-buffer buf
-        (dolist (range ranges)
-          (let ((ov (or (car ovs) (make-overlay 1 1))))
-            (setq ovs (cdr ovs))
-            (overlay-put ov 'priority 1000)
-            (overlay-put ov 'face 'visual-replace-region)
-            (move-overlay ov (car range) (cdr range))
-            (push ov new-ovs))))
+        (cond
+         ;; full doesn't need highlighting
+         ((eq 'full type))
+
+         ;; highlight a rectangular region
+         ((and (eq 'region type) left-col)
+          (save-excursion
+            (goto-char (visual-replace--scope-topleft-edge scope))
+            (dotimes (_ (visual-replace--scope-line-count scope))
+              (let ((ov (or (car ovs) (make-overlay 1 1)))
+                    (before "")
+                    (after "")
+                    left-point right-point)
+                (setq ovs (cdr ovs))
+                (push ov new-ovs)
+
+                (move-to-column left-col)
+                (setq left-point (point))
+                (if (< (current-column) left-col)
+                    (setq before (spaces-string (- left-col (current-column)))
+                          after (spaces-string (- right-col left-col))
+                          right-point left-point)
+                  (move-to-column right-col)
+                  (setq right-point (point))
+                  (when (< (current-column) right-col)
+                    (setq after (spaces-string (- right-col (current-column))))))
+                (put-text-property 0 (length before) 'face 'default before)
+                (put-text-property 0 (length after) 'face 'visual-replace-region after)
+                (forward-line)
+
+                (overlay-put ov 'priority 1000)
+                (overlay-put ov 'face 'visual-replace-region)
+                (overlay-put ov 'before-string before)
+                (overlay-put ov 'after-string after)
+                (move-overlay ov left-point right-point)))))
+
+         ;; highlight the scope ranges
+         (t
+           (dolist (range (visual-replace--scope-ranges scope))
+             (let ((ov (or (car ovs) (make-overlay 1 1))))
+               (setq ovs (cdr ovs))
+               (push ov new-ovs)
+               (overlay-put ov 'priority 1000)
+               (overlay-put ov 'face 'visual-replace-region)
+               (move-overlay ov (car range) (cdr range)))))))
       (dolist (ov ovs)
         (delete-overlay ov))
       (setq visual-replace--scope-ovs (nreverse new-ovs)))))
@@ -1265,6 +1329,12 @@ Also skips empty ranges."
       (if match
           (goto-char (car match))
         (error "No previous match")))))
+
+(defun visual-replace--col (pos)
+  "Return the column at POS."
+  (save-excursion
+    (goto-char pos)
+    (current-column)))
 
 (provide 'visual-replace)
 

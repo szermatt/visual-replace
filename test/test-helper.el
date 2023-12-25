@@ -256,13 +256,26 @@ text properties."
             (setq props (cdr (cdr props))))))
       (setq ov-props (delq 'invisible ov-props))
       (setq ov-props (delq 'display ov-props))
+      (setq ov-props (delq 'before-string ov-props))
+      (setq ov-props (delq 'after-string ov-props))
 
       (goto-char (point-min))
       (while (not (eobp))
         (setq last (point))
         (goto-char (next-char-property-change (point) (point-max)))
         (let* ((invisible (invisible-p last))
-               (display (get-char-property last 'display)))
+               (display (get-char-property last 'display))
+               (text (buffer-substring-no-properties (point) last))
+               (before-string (get-char-property last 'before-string))
+               (after-string (get-char-property last 'after-string)))
+          (dolist (ov (overlays-in last last))
+            (when (= (overlay-start ov) (overlay-end ov))
+              (when-let ((str (overlay-get ov 'before-string)))
+                (push str sections))
+              (when-let ((str (overlay-get ov 'after-string)))
+                (push str sections))))
+          (when before-string
+            (push before-string sections))
           (push (cond
                  (invisible "")
                  (display (concat "{" display "}"))
@@ -272,7 +285,9 @@ text properties."
                       (let ((val (get-char-property last ov-prop)))
                         (put-text-property 0 (length text) ov-prop val text)))
                     text)))
-                sections)))
+                sections)
+          (when after-string
+            (push after-string sections))))
       (apply 'concat (nreverse sections)))))
 
 ;;; test-helper.el ends here

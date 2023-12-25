@@ -570,6 +570,50 @@
                           "line 5.\n")))
                 (nreverse snapshots)))))))
 
+(ert-deftest test-visual-replace-highlight-scope-rect-region-with-gaps ()
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+     (delete-other-windows)
+     (should (>= (window-height) 6))
+     (let* ((snapshots)
+            (win (selected-window)))
+       (insert "line 1.\n")
+       (insert "     line 2.\n")
+       (insert "3.\n")
+       (insert "     line 4.\n")
+       (insert "line 5.\n")
+       (insert "line 6.\n")
+       (goto-char (point-min))
+       (search-forward "line 2.")
+       (goto-char (match-beginning 0))
+       (rectangle-mark-mode)
+       (next-line 3)
+       (rectangle-right-char 4)
+       (define-key
+        visual-replace-mode-map
+        (kbd "C-c t")
+        (lambda ()
+          (interactive)
+          (push
+           (test-visual-replace-highlight-face
+            (visual-replace-test-window-content win)
+            'visual-replace-region)
+           snapshots)))
+       (should-not visual-replace-default-to-full-scope)
+       (should (region-active-p))
+       (visual-replace-ert-simulate-keys (kbd "foo C-c t TAB bar RET")
+         (call-interactively 'visual-replace))
+
+       (should (equal
+                (list
+                 (concat "line 1.\n"
+                         "     [line] 2.\n"
+                         "3.   [    ]\n"
+                         "     [line] 4.\n"
+                         "line [5.  ]\n"
+                         "line 6.\n"))
+                snapshots))))))
+
 (ert-deftest test-visual-replace-prev-next-match ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))

@@ -191,9 +191,9 @@
                         (test-visual-replace-setup-region)
                         (visual-replace-read))
    (should (equal test-visual-replace-snapshot
-                  '("Replace in region (2L): hello → world[]"
+                  '("Replace in region (1L): hello → world[]"
                     "Replace in buffer: hello → world[]"
-                    "Replace in region (2L): hello → world[]")))))
+                    "Replace in region (1L): hello → world[]")))))
 
 (ert-deftest test-visual-replace-read-toggle-scope-with-region ()
   (test-visual-replace-env
