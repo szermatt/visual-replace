@@ -1,12 +1,12 @@
 # visual-replace  [![test](https://github.com/szermatt/visual-replace/workflows/test/badge.svg)](https://github.com/szermatt/visual-replace/actions)
 
-`visual-replace` provides a nicer interface
+`visual-replace` provides a nicer interface to
 [`query-replace`](https://www.gnu.org/software/emacs/manual/html_node/emacs/Query-Replace.html)
-and `string-replace` on Emacs. `visual-replace` lets see what is going
+and `string-replace` on Emacs. It lets you see what is going
 to be modified as you edit the query.
 
 The prompt of `visual-replace` includes both the text to be replaced
-and the replacement, make it easier to craft possibly complex regular
+and the replacement, to make it easier to craft possibly complex regular
 expression search and replace.
 
 The prompt also displays the mode of replacement:
@@ -26,7 +26,8 @@ More flags can be toggled, to control:
 * with or without `replace-lex-whitespace`
 
 If you leave `visual-replace` without confirming, with C-g, you can
-continue where you left off by going up in the history.
+continue where you left off next time by going up in the history, 
+with `C-p`.
 
 While `visual-replace` is active, it scrolls the window to keep at
 least one example of matches visible. You can also press up and down
