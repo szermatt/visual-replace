@@ -677,4 +677,33 @@
                          "line 5.\n"))
                 (nreverse snapshots)))))))
 
+(ert-deftest test-visual-replace-rect-replace ()
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+     (dotimes (i 6)
+       (insert (format "foo foo foo.\n" i)))
+     (goto-char (point-min))
+     (forward-line 2)
+     (right-char 4) ;; point at beginning of 2nd "foo"
+     (rectangle-mark-mode)
+     (next-line 2)
+     (rectangle-right-char 4)
+     (define-key
+      visual-replace-mode-map
+      (kbd "C-c r")
+      #'visual-replace-toggle-regexp)
+     (should-not visual-replace-default-to-full-scope)
+     (should (region-active-p))
+     (visual-replace-ert-simulate-keys
+         (kbd "foo TAB C-c r \\ # . bar RET")
+       (call-interactively 'visual-replace))
+     (should (equal (concat "foo foo foo.\n"
+                            "foo foo foo.\n"
+                            "foo 0.bar foo.\n"
+                            "foo 1.bar foo.\n"
+                            "foo 2.bar foo.\n"
+                            "foo foo foo.\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
 ;;; visual-replace-test.el ends here

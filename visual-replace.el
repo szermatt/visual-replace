@@ -327,21 +327,17 @@ current value of regexp, call `visual-replace-args-lax-ws'.
                     (bounds (when (region-active-p)
                               (visual-replace--ranges-fix
                                (region-bounds))))
-                    (left-col (when (and (region-active-p) rectangle-mark-mode)
+                    (left-col (when (and bounds rectangle-mark-mode)
                                 (apply #'min
-                                       (delq nil
                                        (mapcar (lambda (range)
-                                                 (when (> (cdr range) (car range))
-                                                   (visual-replace--col (car range))))
-                                                 (region-bounds))))))
-                    (right-col (when (and (region-active-p) rectangle-mark-mode)
+                                                 (visual-replace--col (car range)))
+                                               bounds))))
+                    (right-col (when (and bounds rectangle-mark-mode)
                                 (apply #'max
-                                       (delq nil
                                        (mapcar (lambda (range)
-                                                 (when (> (cdr range) (car range))
-                                                   (visual-replace--col (cdr range))))
-                                                 (region-bounds))))))
-                    (topleft-edge (when (region-active-p)
+                                                 (visual-replace--col (cdr range)))
+                                               bounds))))
+                    (topleft-edge (when bounds
                                     (apply #'min (mapcar #'car bounds))))
                     (line-count
                      (if (region-active-p)
@@ -665,7 +661,10 @@ of (start . end) as returned by `region-bounds'."
   (barf-if-buffer-read-only)
   (let* ((origin (make-marker))
          (args (visual-replace-preprocess args))
-         (from (visual-replace-args-from args)))
+         (from (visual-replace-args-from args))
+         (ranges (visual-replace--ranges-fix ranges)))
+    (unless ranges
+      (error "Empty range; nothing to replace"))
     (unwind-protect
         (progn
           (set-marker origin (point))
@@ -676,17 +675,28 @@ of (start . end) as returned by `region-bounds'."
                  (visual-replace-args-lax-ws-non-regexp args))
                 (replace-regexp-lax-whitespace
                  (visual-replace-args-lax-ws-regexp args))
-                (query-replace-skip-read-only t))
-            (dolist (range (visual-replace--ranges-fix ranges))
-              (perform-replace
-               from
-               (query-replace-compile-replacement
-                (visual-replace-args-to args)
-                (visual-replace-args-regexp args))
-               (visual-replace-args-query args)
-               (visual-replace-args-regexp args)
-               (visual-replace-args-word args)
-               nil nil (car range) (cdr range))))
+                (query-replace-skip-read-only t)
+                (start (apply #'min (mapcar #'car ranges)))
+                (end (apply #'max (mapcar #'cdr ranges)))
+                (noncontiguous-p (if (cdr ranges) t nil))
+
+                ;; when noncontiguous-p is non-nil, perform-replace
+                ;; calls region-extract-function to get the ranges to
+                ;; apply the searches on.
+                (region-extract-function
+                 (lambda (arg)
+                   (unless (eq arg 'bounds)
+                     (error "unsupported: (funcall region-extract-function %s)" arg))
+                   (visual-replace--ranges-fix ranges))))
+            (perform-replace
+             from
+             (query-replace-compile-replacement
+              (visual-replace-args-to args)
+              (visual-replace-args-regexp args))
+             (visual-replace-args-query args)
+             (visual-replace-args-regexp args)
+             (visual-replace-args-word args)
+             1 nil start end nil noncontiguous-p))
           (goto-char origin))
       (set-marker origin nil))))
 
