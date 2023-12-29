@@ -202,20 +202,6 @@ has been defined."
   "Highlight for the region in which replacements occur."
   :group 'visual-replace)
 
-(defvar visual-replace-secondary-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "r") 'visual-replace-toggle-regexp)
-    (define-key map (kbd "SPC") 'visual-replace-toggle-scope)
-    (define-key map (kbd "q") 'visual-replace-toggle-query)
-    (define-key map (kbd "w") 'visual-replace-toggle-word)
-    (define-key map (kbd "c") 'visual-replace-toggle-case-fold)
-    (define-key map (kbd "s") 'visual-replace-toggle-lax-ws)
-    map)
-  "Keyboard shortcuts specific to `visual-replace'.
-
-This map is, by default, bound to the prefix that corresponds to
-the shortcut that was used to trigger `visual-replace'.")
-
 (defvar visual-replace-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap isearch-toggle-regexp] 'visual-replace-toggle-regexp)
@@ -240,11 +226,25 @@ the shortcut that was used to trigger `visual-replace'.")
 "Map of minibuffer keyboard shortcuts available when editing a query.
 
 Note also the shortcuts bound to a prefix key that correspond to
-the shortcut used to start `visual-replace'. If, for example, you
-start `visual-replace' with \"C-c r\", then you'll be able to toggle
-regexp support with \"C-c r r\". See `visual-replace-secondary-mode-map'.
+the shortcut used to start `visual-replace'. See
+`visual-replace-secondary-mode-map'.
 
 Inherits from `minibuffer-mode-map'.")
+
+(defvar visual-replace-secondary-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "r") 'visual-replace-toggle-regexp)
+    (define-key map (kbd "SPC") 'visual-replace-toggle-scope)
+    (define-key map (kbd "q") 'visual-replace-toggle-query)
+    (define-key map (kbd "w") 'visual-replace-toggle-word)
+    (define-key map (kbd "c") 'visual-replace-toggle-case-fold)
+    (define-key map (kbd "s") 'visual-replace-toggle-lax-ws)
+    map)
+  "Keyboard shortcuts specific to `visual-replace'.
+
+This map is, by default, bound to the prefix that corresponds to
+the shortcut that was used to trigger `visual-replace'. It is
+Active while `visual-replace-read' is running on the minibuffer.")
 
 (define-minor-mode visual-replace-minibuffer-mode
   "Local minibuffer mode for `visual-replace'.
@@ -945,7 +945,7 @@ changed."
     (setq visual-replace--scope-ovs nil)))
 
 (defun visual-replace--warn (from)
-  "Warn if FROM contains \\n or \\t."
+  "Warn if \\n or \\t appear within FROM."
   (and (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\[nt]\\)" from)
        (let ((match (match-string 3 from)))
          (cond
@@ -1136,7 +1136,12 @@ REPLACEMENT, if non-nil, is its replacement."
   "Update the preview to reflect the content of the minibuffer.
 
 This is meant to be called from a timer. The result of this
-call is a set of overlays, stored in `visual-replace--match-ovs'."
+call is a set of overlays, stored in `visual-replace--match-ovs'.
+
+It looks for matches within the visible portions of the buffer
+and highlights them. If no matches can be found in the visible
+portion of the buffer, it triggers a search for some other
+matches to display unless NO-FIRST-MATCH is non-nil."
   (visual-replace--clear-preview)
   (when visual-replace--first-match-timer
     (cancel-timer visual-replace--first-match-timer)
