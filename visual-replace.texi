@@ -47,26 +47,61 @@ Copyright @copyright{} 2020-2024, Stephane Zermatten
 
 @c %**start of body
 @anchor{index doc}@anchor{0}
-TODO
+Visual Replace provides a nicer interface to Query-Replace@footnote{https://www.gnu.org/software/emacs/manual/html_node/emacs/Query-Replace.html}
+than the built-in one.
+
+The main improvements are:
+
+@quotation
+
+
+@itemize *
+
+@item 
+The prompt of Visual Replace includes both the text to be
+replaced and the replacement. This makes it easier to craft
+possibly complex regular expression search and replace.
+
+@item 
+You can modify the scope and type of the search-and-replace
+command.
+
+@item 
+You can see what is going to be modified as you edit the command
+arguments.
+@end itemize
+@end quotation
+
+Visual Replace is just an interface. The actual replacements are
+always done by the standard Emacs commands.
 
 @menu
+* Comparison with other packages:: 
 * Contents:: 
+* Index:: 
 
-@detailmenu
- --- The Detailed Node Listing ---
-
-Contents
-
-* Installation:: 
-* Usage:: 
-* FAQ:: 
-* Contributing:: 
-
-@end detailmenu
 @end menu
 
-@node Contents,,Top,Top
-@anchor{index contents}@anchor{1}@anchor{index visual-replace}@anchor{2}
+@node Comparison with other packages,Contents,Top,Top
+@anchor{index comparison-with-other-packages}@anchor{1}@anchor{index visual-replace}@anchor{2}
+@chapter Comparison with other packages
+
+
+What seems to be unique about Visual Replace is the ability to edit
+both the thing to be replacement and replacement at the same time. The
+other packages I’ve found make it a 2-step process.
+
+visual-regexp@footnote{https://github.com/benma/visual-regexp.el} also
+supports a preview, but uses its own search-and-replace mechanism and
+only supports a regexp mode.
+
+anzu@footnote{https://github.com/emacsorphanage/anzu} also supports a
+preview and supports a more powerful query-replace mechanism, and much
+more. It was abandoned for a long time, but has been recently taken up
+by a new maintainer.
+
+@node Contents,Index,Comparison with other packages,Top
+@anchor{index contents}@anchor{3}
 @chapter Contents
 
 
@@ -79,32 +114,312 @@ Contents
 @end menu
 
 @node Installation,Usage,,Contents
-@anchor{install doc}@anchor{3}@anchor{install installation}@anchor{4}
+@anchor{install doc}@anchor{4}@anchor{install installation}@anchor{5}
 @section Installation
 
 
-TODO
+Visual Replace requires Emacs 26.1 or later.
+
+To install Visual Replace, you can:
+
+
+@itemize *
+
+@item 
+On a recent version of Emacs (29 or later), install from the
+repository by doing @code{M-x package-vc-install
+https://github.com/szermatt/visual-replace}
+
+@item 
+Use an alternative package managers that support installing
+from source, such as straight@footnote{https://github.com/radian-software/straight.el}, shown here:
+
+@example
+(use-package visual-replace
+  :straight (:type git :repo "https://github.com/szermatt/visual-replace.git"))
+@end example
+
+@item 
+Install it the old-fashioned way, and copy visual-replace.el@footnote{https://raw.githubusercontent.com/szermatt/visual-replace/refs/heads/master/visual-replace.el}
+into your @code{.emacs.d} directory, but you’ll have to keep it
+up-to-date manually as well
+@end itemize
 
 @node Usage,FAQ,Installation,Contents
-@anchor{usage doc}@anchor{5}@anchor{usage usage}@anchor{6}
+@anchor{usage doc}@anchor{6}@anchor{usage usage}@anchor{7}
 @section Usage
 
 
-TODO
+Visual Replace needs to be bound to a key to be of any use.
+
+Choose a reasonably short key combination and bind
+@code{visual-replace} to it. It should be reasonably short, because
+@code{visual-replace}, by default, uses the key combination it’s
+called with as prefix for the commands available in the minibuffer.
+
+Here, for example, with @code{M-%} as key combination, since this is
+bound by default to @code{query-replace}, which Visual Replace then,
+well.., replaces:
+
+@example
+(use-package visual-replace
+  :defer t
+  :bind (("M-%" . visual-replace)
+         :map isearch-mode-map
+         ("M-%" . visual-replace-from-isearch)))
+@end example
+
+The above example also binds @code{M-%} in isearch, so you can just
+switch from isearch to Visual Replace.
+
+An alternative, which you might prefer to try things out, is to
+replace @code{query-replace} and others with Visual Replace. This
+then uses whatever shortcut you’ve already installed.
+
+@example
+(use-package visual-replace
+  :defer nil
+  :config
+  (visual-replace-global-mode 1))
+@end example
+
+Once this is done, launch :code:>>`<<visual-replace’ with the keybinding you chose.
+
+You’ll see, something like the following in the minibuffer @cite{Replace from point […]: ┃ →}, see also the example below.
+
+@quotation
+
+@image{visual-replace-figures/capture_blue,,,Screen grab showing Visual Replace in action,png}
+@end quotation
+
+The text before the arrow is the text to replace and the text after
+the arrow is the replacement. You can navigate back and forth with
+@code{TAB} or by moving the cursor. Once both fields are filled, press
+@code{RET} to call @code{string-replace} to execute the replacement.
+
+The prompt also displays the mode of replacement:
+
+
+@itemize *
+
+@item 
+`text' → `replacement' executes @cite{string-replace}
+
+@item 
+`text' →? `replacement' executes @cite{query-replace}
+
+@item 
+`text' →.* `replacement' executes @cite{replace-regexp}
+
+@item 
+`text' →?.* `replacement' executes @cite{query-replace-regexp}
+@end itemize
+
+While @cite{visual-replace} is active, it scrolls the window to keep at
+least one example of matches visible. You can also press up and down
+to go through the matches. Don’t worry, though the cursor goes back to
+the original position once you leave Visual Replace.
+
+In Visual Replace mode:
+
+
+@itemize *
+
+@item 
+@code{TAB} navigates between the text to replace and the
+replacement string
+
+@item 
+@code{RET} switches to the replacement string, the first time, then
+executes the replacement
+
+@item 
+@code{M-% r} toggles regexp mode on and off. You know this mode is
+on when a @code{.*} follows the arrow.
+
+@item 
+@code{M-% q} toggles query mode one and off, that is, it toggles
+between calling @code{replace-string} and @code{query-replace}.
+You know this mode is on when a @code{?} follows the arrow.
+
+@item 
+@code{M-% SPC} switches between different scopes: full buffer, from
+point, in region. The scope is indicated in the prompt.
+Additionally, for from point and in region, the region is
+highlighted.
+
+@item 
+@code{M-% w} toggle limiting search to whole words. You know this
+mode is on when a @code{w} follows the arrow.
+
+@item 
+@code{M-% c} toggle case-fold. You know this mode is on when a
+@code{c} follows the arrow.
+
+@item 
+@code{M-% s} toggle lax whitespace. You know this mode is on when
+@code{(lax ws)} follows the arrow.
+
+@item 
+@code{<up>} and @code{<down>} move the cursor to the next or
+previous match, scrolling if necessary.
+
+@item 
+As usual, @code{C-p} and @cite{C-n} go up and down the history, like on any prompt.
+@end itemize
+
+(Reminder: replace `M-%' with the keyboard shortcut you chose.)
+
+If you leave @code{visual-replace} without confirming, with @code{C-g}, you can
+continue where you left off next time by going up in the history.
+
+See @cite{Search <https://www.gnu.org/software/emacs/manual/html_node/emacs/Search.html>}
+in the Emacs manual for details of the different modes listed above.
+
+@menu
+* Commands:: 
+* Keymaps:: 
+* Hooks:: 
+
+@end menu
+
+@node Commands,Keymaps,,Usage
+@anchor{usage commands}@anchor{8}
+@subsection Commands
+
+
+@geindex command; visual-replace
+@geindex command; visual-replace-thing-at-point
+@geindex command; visual-replace-selected
+@geindex command; visual-replace-from-isearch
+
+
+@itemize *
+
+@item 
+@cite{visual-replace} is the main command that starts Visual Replace and
+then executes the search-and-replace. It can replace @cite{replace-string},
+@cite{query-replace}, @cite{replace-regexp} and @cite{query-replace-regexp}.
+
+@item 
+@cite{visual-replace-thing-at-point} starts a visual replace session with
+the symbol at point as text to replace.
+
+@item 
+@cite{visual-replace-selected} starts with the text within the current
+active region as text to replace.
+
+@item 
+@cite{visual-replace-from-isearch} switches from an active isearch
+session to @cite{visual-replace}, keeping the current search text and
+settings, such as regexp mode. This is meant to be called while
+isearch is in progress, and bound to >>:mode:`isearch-mode-map`<<.
+@end itemize
+
+@geindex command; visual-replace-toggle-regexp
+@geindex command; visual-replace-toggle-scope
+@geindex command; visual-replace-toggle-query
+@geindex command; visual-replace-toggle-word
+@geindex command; visual-replace-toggle-case-fold
+@geindex command; visual-replace-toggle-lax-ws
+
+The following commands are meant to be called while in Visual Replace
+mode, from @code{visual-mode-map}. By default, they’re bound in
+@code{visual-replace-secondary-mode-map}:
+
+
+@itemize *
+
+@item 
+@cite{visual-replace-toggle-regexp} toggles regexp mode on and off.
+
+@item 
+@cite{visual-replace-toggle-scope} changes the scope of the search.
+
+@item 
+@cite{visual-replace-toggle-query} toggles the query mode on and off.
+
+@item 
+@cite{visual-replace-toggle-word} toggles the word mode on and off.
+
+@item 
+@cite{visual-replace-toggle-case-fold} toggles the case fold mode on and off.
+
+@item 
+@cite{visual-replace-toggle-lax-ws} toggles the lax whitespace mode on and off.
+@end itemize
+
+@node Keymaps,Hooks,Commands,Usage
+@anchor{usage keymaps}@anchor{9}
+@subsection Keymaps
+
+
+@geindex variable; visual-replace-mode-map
+@geindex variable; visual-replace-secondary-mode-map
+
+@code{visual-replace-mode-map} is the map that is active in the
+minibuffer in Visual Replace mode. You can add your own keybindings to
+it.
+
+@code{visual-replace-secondary-mode-map} is the map that defines
+keyboard shortcuts for modifying the search mode, such as @code{r} to
+toggle regexp mode on or off. It is bound by default in
+@code{visual-replace-mode-map} to the shortcut that was used to
+launch Visual Replace, but you can bind it to whatever you want, or
+define custom shortcuts directly in @code{visual-replace-mode-map}.
+
+In the example below, @code{C-l} is bound to secondary mode map and
+@code{C-r} toggles the regexp mode, so it is possible to toggle the
+regexp mode using either @code{C-l r} or @code{C-r}.
+
+@example
+(use-package visual-replace
+  :defer t
+  :bind (("C-c l" . visual-replace)
+         :map visual-replace-mode-map
+         ("C-r" . visual-replace-toggle-regexp)
+         :map visual-replace-mode-map
+         ("C-l" . visual-replace-secondary-mode-map)))
+@end example
+
+@node Hooks,,Keymaps,Usage
+@anchor{usage hooks}@anchor{a}
+@subsection Hooks
+
+
+@geindex hook; visual-replace-mode-hook
+@geindex hook; visual-replace-functions
+
+@cite{visual-replace-mode-hook} is a normal hook that is run when entering
+the visual replace mode, so you can set things up just before Visual
+Replace starts.
+
+Functions in @cite{visual-replace-functions} are called just before
+executing the replacement or just before building the previews. They
+are passed a struct of type @code{visual-replace-args}, which they
+can modify. You can use it to customize the behavior of the search or
+modify the regexp language.
 
 @node FAQ,Contributing,Usage,Contents
-@anchor{faq doc}@anchor{7}@anchor{faq faq}@anchor{8}
+@anchor{faq doc}@anchor{b}@anchor{faq faq}@anchor{c}
 @section FAQ
 
 
 TODO
 
 @node Contributing,,FAQ,Contents
-@anchor{contrib doc}@anchor{9}@anchor{contrib contributing}@anchor{a}
+@anchor{contrib doc}@anchor{d}@anchor{contrib contributing}@anchor{e}
 @section Contributing
 
 
 TODO
+
+@node Index,,Contents,Top
+@unnumbered Index
+
+
+@printindex ge
+
 
 @c %**end of body
 @bye

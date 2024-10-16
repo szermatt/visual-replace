@@ -1,20 +1,23 @@
 # visual-replace  [![test](https://github.com/szermatt/visual-replace/workflows/test/badge.svg)](https://github.com/szermatt/visual-replace/actions)
 
-`visual-replace` provides a nicer interface to
-[`query-replace`](https://www.gnu.org/software/emacs/manual/html_node/emacs/Query-Replace.html)
-and `string-replace` on Emacs.
+Visual Replace provides a nicer interface to
+[Query-Replace](https://www.gnu.org/software/emacs/manual/html_node/emacs/Query-Replace.html)
+on Emacs than the built-in one.
 
-Main improvements:
+The main improvements are:
 
- * The prompt of `visual-replace` includes both the text to be
+ * The prompt of Visual Replace includes both the text to be
    replaced and the replacement. This makes it easier to craft
    possibly complex regular expression search and replace.
 
- * `visual-replace` lets you see what is going to be modified as you
-   edit the query.
+ * You can modify the scope and type of the search-and-replace
+   command.
 
-Note that `visual-replace` is just an interface. The actual
-replacement is always done by the standard Emacs commands.
+ * You can see what is going to be modified as you edit the command
+   arguments.
+
+Visual Replace is just an interface. The actual replacements are
+always done by the standard Emacs commands.
 
 The prompt also displays the mode of replacement:
 
@@ -33,7 +36,7 @@ More flags can be toggled, to control:
 * with or without `replace-lex-whitespace`
 
 If you leave `visual-replace` without confirming, with C-g, you can
-continue where you left off next time by going up in the history, 
+continue where you left off next time by going up in the history,
 with `C-p`.
 
 While `visual-replace` is active, it scrolls the window to keep at
@@ -85,9 +88,9 @@ In that mode:
 
 * "TAB" navigates between the text to replace and the replacement string
 * "RET" switches to the replacement string, the first time, then executes the replacement
+* "M-% SPC" modifies the scope of the search (full buffer, from point, region)
 * "M-% r" toggles regexp mode on and off
-* "M-% l" toggles query mode one and off
-* "M-% SPC" toggles query mode one and off
+* "M-% q" toggles query mode one and off
 * "M-% w" toggle limiting search to whole words
 * "M-% c" toggle case-fold
 * "M-% s" toggle lax whitespace
