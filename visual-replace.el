@@ -33,73 +33,9 @@
 ;; replacement at the same time and provide a preview of what the
 ;; replacement would look like in the current buffer.
 ;;
-;; It's possible to toggle options on an off while editing a
-;; query/replace query, including:
-;;
-;; - whether the search is a regexp, with `visual-replace-toggle-regexp',
-;; bound by default to M-% r or, more precisely, <visual-replace shortcut> r
-;
-;; - whether to ask for confirmation like `query-replace' does, with
-;; `visual-replace-toggle-query', bound by default to M-% q or, more
-;; precisely, <visual-replace shortcut> q
-;
-;; - whether to search for a word, with `visual-replace-toggle-word',
-;; bound by default to M-% w or, more precisely, <visual-replace shortcut>
-;; w
-;
-;; - whether to apply the replacement to the whole buffer with
-;; `visual-replace-toggle-scope', bound by default to M-% SPC or, more
-;;
-;; precisely, <visual-replace shortcut> SPC.
-;;
-;; While `visual-replace' is active, it scrolls the window to keep at
-;; least one example of matches visible. You can also press up and
-;; down to go through the matches. (C-p and C-n remain available to
-;; navigate through history.)
-;;
-;; Notable differences between `query-replace' and `visual-replace':
-;;  - `visual-replace' keeps the point where it was before the replacement
-;;  - `query-replace-skip-read-only' is always set
-;;
-;; This package also defines the command `visual-replace-from-isearch',
-;; which allows switching from isearch to `visual-replace', while keeping
-;; as much of the current isearch flags as possible.
-;;
-;; Additionally `visual-replace-thing-at-point` starts a visual
-;; replace session with the symbol at point - or another "thing"
-;; understood by `thing-at-point`.
-;;
-;; `visual-replace-selected` starts with the text within the current
-;; active region.
-
-
-;;; Installation
-;;
-;; To replace `query-replace' with `visual-replace' globally, do:
-;;
-;;   (require 'visual-replace)
-;;   (visual-replace-global-mode 1)
-;;
-;; With this setup, `visual-replace' replaces `query-replace', bound by
-;; default to M-%. While on the minibuffer M-% is used as prefix for
-;; toggling options, defined in `visual-replace-secondary-mode-map', so to
-;; toggle regexp on and off, type "M-% r".
-;;
-;; Here's an alternative example that uses
-;; https://github.com/jwiegley/use-package to initialize visual-replace
-;; and bound it to custom shortcuts:
-;;
-;; (use-package visual-replace
-;;   :defer t
-;;   :bind (("C-c l" . visual-replace)
-;;          :map isearch-mode-map
-;;          ("C-c l" . visual-replace-from-isearch)))
-;;
-;; With this setup, `visual-replace' is bound to "C-c l". While on the
-;; minibuffer "C-c l" is used as prefix for toggling options, defined
-;; in `visual-replace-secondary-mode-map', so to toggle regexp on and off,
-;; type "C-c l r".
-;;
+;; For details, see the documentation, at
+;; https://visual-replace.readthedocs.io/en/latest/ or in the Info
+;; node visual-replace, if it is installed.
 
 (require 'seq)
 (require 'thingatpt)
