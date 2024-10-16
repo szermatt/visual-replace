@@ -180,10 +180,10 @@ regexp mode using either :kbd:`C-l r` or :kbd:`C-r`.
     :defer t
     :bind (("C-c l" . visual-replace)
            :map visual-replace-mode-map
-           ("C-r" . visual-replace-toggle-regexp)
-           :map visual-replace-mode-map
-           ("C-l" . visual-replace-secondary-mode-map)))
-
+           ("C-r" . visual-replace-toggle-regexp))
+    :config
+    (define-key visual-replace-mode-map (kbd "C-l")
+        visual-replace-secondary-mode-map))
 
 Hooks
 -----
