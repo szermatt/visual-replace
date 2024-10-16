@@ -19,8 +19,15 @@ The main improvements are:
  * You can see what is going to be modified as you edit the command
    arguments.
 
-Visual Replace is just an interface. The actual replacements are
-always done by the standard Emacs commands.
+Visual Replace is only an interface for the existing query and 
+replace  mechanisms built into Emacs, that is, the actual 
+replacements are always done by the standard Emacs commands.
+
+![example](images/capture_blue.png)
+
+> **The following is just a quick introduction. Read the full
+> documentation at https://visual-replace.readthedocs.io/en/latest/ or,
+> if you have already installed Visual Replace, in the Emacs info reader**
 
 The prompt also displays the mode of replacement:
 
@@ -28,9 +35,7 @@ The prompt also displays the mode of replacement:
 * *text* →? *replacement* executes `query-replace`
 * *text* →.* *replacement* executes `replace-regexp`
 * *text* →?.* *replacement* executes `query-replace-regexp`
-
-![example](images/capture_blue.png)
-
+  
 More flags can be toggled, to control:
 
 * the scope of the replacement, region or whole buffer
@@ -46,9 +51,6 @@ While `visual-replace` is active, it scrolls the window to keep at
 least one example of matches visible. You can also press up and down
 to go through the matches. (`C-p` and `C-n` remain available to
 navigate through history.)
-
-> **The following is just a quick introduction. Read the full
-> documentation at https://visual-replace.readthedocs.io/en/latest/**
 
 ## COMPARISON
 
