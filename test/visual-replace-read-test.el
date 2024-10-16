@@ -276,6 +276,14 @@
    (should (equal test-visual-replace-snapshot
                   '("Replace from point: from → []")))))
 
+(ert-deftest test-visual-replace-yank-symbol-in-from- ()
+  (test-visual-replace-env
+   (save-excursion (insert "from-a buffer"))
+   (test-visual-replace-run "<F1> y TAB <F1> ! RET"
+                        (visual-replace-read))
+   (should (equal test-visual-replace-snapshot
+                  '("Replace from point: from-a → []")))))
+
 (ert-deftest test-visual-replace-multiple-yank-in-from ()
   (test-visual-replace-env
    (save-excursion (insert "from current buffer"))

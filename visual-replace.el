@@ -481,7 +481,7 @@ See also `visual-replace-yank-pop'."
      ;; in the original section
      (t (insert (with-current-buffer visual-replace--calling-buffer
                   (let ((start (point)))
-                    (forward-word)
+                    (forward-symbol 1)
                     (buffer-substring-no-properties start (point)))))))))
 
 (defun visual-replace-yank-pop ()
