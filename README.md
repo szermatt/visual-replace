@@ -50,7 +50,7 @@ navigate through history.)
 > **The following is just a quick introduction. Read the full
 > documentation at https://visual-replace.readthedocs.io/en/latest/**
 
-## Comparison
+## COMPARISON
 
 What seems to be unique about `visual-replace` is the ability to edit
 both the thing to be replacement and replacement at the same time. The
@@ -65,7 +65,7 @@ and supports a more powerful query-replace mechanism, and much more.
 It was abandoned for a long time, but has been recently taken up by a
 new maintainer.
 
-## Installation
+## INSTALLATION
 
 `visual-replace` requires Emacs 26.1.
 
@@ -86,7 +86,7 @@ With [use-package](https://github.com/jwiegley/use-package) and with a custom ke
           ("C-c r" . visual-replace-from-isearch)))
 ```
 
-## Usage
+## USAGE
 
 Launch `visual-replace' with the keybinding you chose when installing, "M-%" by default.
 
@@ -113,7 +113,7 @@ the symbol at point, or a specified thing as understood by
 `visual-replace-selected` starts with the text within the current
 active region.
 
-## Testing
+## TESTING
 
 Install [eldev](https://github.com/emacs-eldev/eldev#installation) and
 run tests with:
@@ -122,6 +122,16 @@ run tests with:
 eldev test
 ```
 
-## License
+## SOMETHING IS WRONG !
 
-This project is licensed under the GPLv2 - see the [license](license) file for details
+Please check the [doc](https://visual-replace.readthedocs.io/en/latest/)
+and, if that doesn't help, take the time to [file a bug report](https://visual-replace.readthedocs.io/en/latest/contrib.html#reporting-issues).
+
+## CONTRIBUTING
+
+See the [Contributing](https://visual-replace.readthedocs.io/en/latest/contrib.html)
+section of the documentation.
+
+## COMPATIBILITY
+
+Visual-Replace requires Emacs 26.1 or later.
