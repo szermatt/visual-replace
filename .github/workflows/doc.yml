@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '**.srt'
+      - '.github/workflows/doc.yml'
 
 jobs:
   test:
