@@ -63,8 +63,8 @@ The prompt also displays the mode of replacement:
 
 While `visual-replace` is active, it scrolls the window to keep at
 least one example of matches visible. You can also press up and down
-to go through the matches. Don't worry, though the cursor goes back to
-the original position once you leave Visual Replace.
+to go through the matches. Don't worry, though: the cursor goes back
+to the original position once you leave Visual Replace.
 
 In Visual Replace mode:
 
