@@ -34,6 +34,21 @@ least one example of matches visible. You can also press up and down
 to go through the matches. (`C-p` and `C-n` remain available to
 navigate through history.)
 
+## Comparison
+
+What seems to be unique about `visual-replace` is the ability to edit
+both the thing to be replacement and replacement at the same time. The
+other packages I've found make it a 2-step process.
+
+[visual-regexp](https://github.com/benma/visual-regexp.el) also
+supports a preview, but uses its own search-and-replace mechanism and
+only supports a regexp mode.
+
+[anzu](https://github.com/emacsorphanage/anzu) also supports a preview
+and supports a more powerful query-replace mechanism, and much more.
+It was abandoned for a long time, but has been recently taken up by a
+new maintainer.
+
 ## Installation
 
 `visual-replace` requires Emacs 26.1.
