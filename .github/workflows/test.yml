@@ -40,8 +40,8 @@ jobs:
       run: 'eldev build --force visual-replace.texi'
 
     - name: Update visual-replace.texi
-      # Only run on main branch push (e.g. after pull request merge).
-      if: github.event_name == 'push'
+      # Only run on main branch push (e.g. after pull request merge) in one matrix version.
+      if: ${{ github.event_name == 'push' && matrix.emacs_version }} === '26.1 }}
       run: |
         if git diff -s --exit-code visual-replace.texi; then
           echo "visual-replace.texi not modified by this commit"
