@@ -2,12 +2,19 @@
 
 `visual-replace` provides a nicer interface to
 [`query-replace`](https://www.gnu.org/software/emacs/manual/html_node/emacs/Query-Replace.html)
-and `string-replace` on Emacs. It lets you see what is going
-to be modified as you edit the query.
+and `string-replace` on Emacs.
 
-The prompt of `visual-replace` includes both the text to be replaced
-and the replacement, to make it easier to craft possibly complex regular
-expression search and replace.
+Main improvements:
+
+ * The prompt of `visual-replace` includes both the text to be
+   replaced and the replacement. This makes it easier to craft
+   possibly complex regular expression search and replace.
+
+ * `visual-replace` lets you see what is going to be modified as you
+   edit the query.
+
+Note that `visual-replace` is just an interface. The actual
+replacement is always done by the standard Emacs commands.
 
 The prompt also displays the mode of replacement:
 
