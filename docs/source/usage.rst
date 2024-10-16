@@ -125,7 +125,7 @@ Commands
 * `visual-replace-from-isearch` switches from an active isearch
   session to `visual-replace`, keeping the current search text and
   settings, such as regexp mode. This is meant to be called while
-  isearch is in progress, and bound to :mode:`isearch-mode-map`.
+  isearch is in progress, and bound to :code:`isearch-mode-map`.
 
 .. index::
    pair: command; visual-replace-toggle-regexp
@@ -203,7 +203,7 @@ Visual Replace avoids executing replacement in the whole buffer during
 preview; it just executes them in the parts of the buffer that are
 currently visible. This means that the preview can show incorrect
 replacement in some cases, such as when replacement uses `\\#`
-directly or within a `\\,' In such cases, the preview can be wrong but
+directly or within a `\\,` In such cases, the preview can be wrong but
 execution will be correct.
 
 Replacements that call stateful functions in `\\,` such as a function
