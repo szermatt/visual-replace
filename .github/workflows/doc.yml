@@ -7,14 +7,14 @@ on:
       - '.github/workflows/doc.yml'
 
 jobs:
-  test:
+  doc:
     runs-on: ubuntu-latest
 
     steps:
     - name: Install Nix and set up Emacs
       uses: jcs090218/setup-emacs@master
       with:
-        version: ${{matrix.emacs_version}}
+        version: 29.1
 
     - name: Install Eldev
       uses: emacs-eldev/setup-eldev@v1
