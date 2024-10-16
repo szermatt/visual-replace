@@ -1,4 +1,7 @@
-# visual-replace  [![test](https://github.com/szermatt/visual-replace/workflows/test/badge.svg)](https://github.com/szermatt/visual-replace/actions)
+# visual-replace
+
+[![test](https://github.com/szermatt/visual-replace/workflows/test/badge.svg)](https://github.com/szermatt/visual-replace/actions)
+[![Documentation Status](https://readthedocs.org/projects/visual-replace/badge/?version=latest)](https://visual-replace.readthedocs.io/en/latest/?badge=latest)
 
 Visual Replace provides a nicer interface to
 [Query-Replace](https://www.gnu.org/software/emacs/manual/html_node/emacs/Query-Replace.html)
@@ -43,6 +46,9 @@ While `visual-replace` is active, it scrolls the window to keep at
 least one example of matches visible. You can also press up and down
 to go through the matches. (`C-p` and `C-n` remain available to
 navigate through history.)
+
+> **The following is just a quick introduction. Read the full
+> documentation at https://visual-replace.readthedocs.io/en/latest/**
 
 ## Comparison
 
