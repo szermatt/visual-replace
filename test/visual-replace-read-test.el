@@ -16,6 +16,9 @@
 ;; along with this program.  If not, see
 ;; `http://www.gnu.org/licenses/'.
 
+(require 'visual-replace)
+(require 'visual-replace-test-helper)
+
 (ert-deftest test-visual-replace-read-RET-twice ()
   (test-visual-replace-env
    (let ((args (car (test-visual-replace-run "hello RET world RET" (visual-replace-read)))))
@@ -129,9 +132,9 @@
 (ert-deftest test-visual-replace-read-toggle-case-fold-off-by-default ()
   (test-visual-replace-env
    (let ((case-fold-search nil))
-     (equal (car (test-visual-replace-run
+     (should (equal (car (test-visual-replace-run
                   "hello TAB world <F1> c <F1> ! RET" (visual-replace-read)))
-            (visual-replace-make-args :from "hello" :to "world" :case-fold t)))
+                    (visual-replace-make-args :from "hello" :to "world" :case-fold t))))
    (should (equal test-visual-replace-snapshot
                   '("Replace from point: hello →i world[]")))))
 
@@ -366,7 +369,7 @@
 
 (ert-deftest test-visual-replace-default-but-no-history ()
   (test-visual-replace-env
-   (should-error (test-visual-replace-run "TAB RET" (visual-replace)))))
+   (should-error (test-visual-replace-run "TAB RET" (visual-replace-read)))))
 
 (ert-deftest test-visual-replace-history-by-default-despite-separator ()
   (test-visual-replace-env

@@ -127,28 +127,27 @@ This is meant to be called within `test-visual-replace-env`."
       result)))
 
 (defun test-visual-replace-snapshot ()
-  "Make a snapshot of the minibuffer and append it to `test-visual-replace-snapshot`."
+  "Make a snapshot of the minibuffer.
+
+The snapshot is appended to `test-visual-replace-snapshot`."
   (interactive)
-  (let ((display) (lastpos) (lastdisplay) (results))
-    (with-current-buffer (window-buffer (minibuffer-window))
-      (unwind-protect
-          (save-excursion
-            (insert "[]")
-            (goto-char (point-min))
-            (setq test-visual-replace-snapshot
-                  (append test-visual-replace-snapshot
-                          (list (test-visual-replace-buffer-substring
-                                 (point-min) (point-max))))))
-        (delete-region (point) (+ 2 (point)))))))
+  (with-current-buffer (window-buffer (minibuffer-window))
+    (unwind-protect
+        (save-excursion
+          (insert "[]")
+          (goto-char (point-min))
+          (setq test-visual-replace-snapshot
+                (append test-visual-replace-snapshot
+                        (list (test-visual-replace-buffer-content)))))
+      (delete-region (point) (+ 2 (point))))))
 
-(defun test-visual-replace-buffer-substring (start end)
-  "Returns the content of the buffer between START and END.
+(defun test-visual-replace-buffer-content ()
+  "Returns the content of the buffer.
 
-The returned string takes text properties 'display and 'invisible
-into account, to better match what's displayed."
-  (let ((display) (lastpos) (lastdisplay) (results))
+The returned string takes text properties \\='display and
+\\='invisible into account, to better match what's displayed."
+  (let (results)
     (save-excursion
-      (goto-char start)
       (dolist (part (test-visual-replace-split-by-properties
                      (point-min) (point-max)))
         (let ((invisible (get-text-property 0 'invisible part))
@@ -159,7 +158,10 @@ into account, to better match what's displayed."
       (apply 'concat (nreverse results)))))
 
 (defun test-visual-replace-split-by-properties (start end)
-  "Split the text between START and END by properties 'invisible and 'display."
+  "Split the text between START and END.
+
+The split is done by the properties \\='invisible and
+\\='display."
   (save-excursion
     (goto-char start)
     (let ((parts) (next-point))
@@ -171,8 +173,10 @@ into account, to better match what's displayed."
       (nreverse parts))))
 
 (defun test-visual-replace-next-properties-change (start end)
-  "Find next position between START and END with a change in property 'invisible
-and 'display."
+  "Find next position with a change in property.
+
+This applies to the text between START and END, looking for a
+change in the properties \\='invisible and \\='display."
   (let ((last-invisible (get-text-property start 'invisible))
         (last-display (get-text-property start 'display))
         (pos start))
@@ -187,8 +191,8 @@ and 'display."
   "Compute a preview for the current state.
 
 The preview is put into test-visual-replace-snapshot, after
-interpreting 'display and 'invisible. The face properties of the
-overlays are kept as text properties."
+interpreting \\='display and \\='invisible. The face properties
+of the overlays are kept as text properties."
   (with-current-buffer buf
     (visual-replace--update-preview)
     (setq test-visual-replace-snapshot
@@ -244,8 +248,7 @@ text.
 
 This requires `window-end' to be up-to-date. See
 `test-visual-window-end'."
-  (let ((win (or win (selected-window)))
-        (text))
+  (let ((win (or win (selected-window))))
     (with-current-buffer (window-buffer win)
       (save-restriction
         (narrow-to-region (window-start win) (window-end win))
@@ -256,8 +259,8 @@ This requires `window-end' to be up-to-date. See
 
 Sections that are invisible are not included into the text.
 
-Section with a 'display overlay property are included instead of
-the text, with the display text put within curly braces.
+Section with a \\='display overlay property are included instead
+of the text, with the display text put within curly braces.
 
 Other overlay properties are stored into the returned text as
 text properties."
@@ -281,7 +284,6 @@ text properties."
         (goto-char (next-char-property-change (point) (point-max)))
         (let* ((invisible (invisible-p last))
                (display (get-char-property last 'display))
-               (text (buffer-substring-no-properties (point) last))
                (before-string (get-char-property last 'before-string))
                (after-string (get-char-property last 'after-string)))
           (dolist (ov (overlays-in last last))
@@ -306,4 +308,6 @@ text properties."
             (push after-string sections))))
       (apply 'concat (nreverse sections)))))
 
-;;; test-helper.el ends here
+(provide 'visual-replace-test-helper)
+
+;;; visual-replace-test-helper.el ends here

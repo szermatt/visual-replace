@@ -19,6 +19,9 @@
 (require 'ert)
 (require 'ert-x)
 
+(require 'visual-replace)
+(require 'visual-replace-test-helper)
+
 ;; compatibility: ert-replace-simulate-keys is only available since
 ;; Emacs 28. It is provided here to make the tests pass under 26 and 27.
 (defmacro visual-replace-ert-simulate-keys (keys &rest body)

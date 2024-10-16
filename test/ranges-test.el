@@ -16,6 +16,8 @@
 ;; along with this program.  If not, see
 ;; `http://www.gnu.org/licenses/'.
 
+(require 'visual-replace)
+
 (ert-deftest test-visual-replace-merge-range ()
   (should (equal
            '((1 . 10) (20 . 30))

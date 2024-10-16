@@ -7,6 +7,7 @@
 (eldev-use-plugin 'autoloads)
 (eldev-use-plugin 'maintainer)
 (setq eldev-release-test-local t)
+(eldev-add-loading-roots 'test "test")
 
 ;; Exclude work and build files so Eldev doctor ignores them.
 (setf eldev-standard-excludes
