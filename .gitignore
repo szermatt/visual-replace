@@ -1,6 +1,7 @@
 *.elc
 .cask
 ert-profile
+dir
 /visual-replace-autoloads.el
 /dist
 /.eldev
