@@ -157,9 +157,9 @@ Choose a reasonably short key combination and bind
 @code{visual-replace}, by default, uses the key combination it’s
 called with as prefix for the commands available in the minibuffer.
 
-Here, for example, with @code{M-%} as key combination, since this is
-bound by default to @code{query-replace}, which Visual Replace then,
-well.., replaces:
+Here’s an example that uses @code{M-%} as key combination, since this
+is bound by default to @code{query-replace}, which Visual Replace
+then, well, replaces:
 
 @example
 (use-package visual-replace
@@ -183,7 +183,7 @@ then uses whatever shortcut you’ve already installed.
   (visual-replace-global-mode 1))
 @end example
 
-Once this is done, launch :code:>>`<<visual-replace’ with the keybinding you chose.
+Once this is done, launch @code{visual-replace} with the keybinding you chose.
 
 You’ll see, something like the following in the minibuffer @cite{Replace from point […]: ┃ →}, see also the example below.
 
@@ -273,13 +273,14 @@ As usual, @code{C-p} and @cite{C-n} go up and down the history, like on any prom
 If you leave @code{visual-replace} without confirming, with @code{C-g}, you can
 continue where you left off next time by going up in the history.
 
-See @cite{Search <https://www.gnu.org/software/emacs/manual/html_node/emacs/Search.html>}
+See Search@footnote{https://www.gnu.org/software/emacs/manual/html_node/emacs/Search.html}
 in the Emacs manual for details of the different modes listed above.
 
 @menu
 * Commands:: 
 * Keymaps:: 
 * Hooks:: 
+* Limitations:: 
 
 @end menu
 
@@ -382,7 +383,7 @@ regexp mode using either @code{C-l r} or @code{C-r}.
          ("C-l" . visual-replace-secondary-mode-map)))
 @end example
 
-@node Hooks,,Keymaps,Usage
+@node Hooks,Limitations,Keymaps,Usage
 @anchor{usage hooks}@anchor{a}
 @subsection Hooks
 
@@ -400,19 +401,139 @@ are passed a struct of type @code{visual-replace-args}, which they
 can modify. You can use it to customize the behavior of the search or
 modify the regexp language.
 
+@node Limitations,,Hooks,Usage
+@anchor{usage limitations}@anchor{b}
+@subsection Limitations
+
+
+Visual Replace avoids executing replacement in the whole buffer during
+preview; it just executes them in the parts of the buffer that are
+currently visible. This means that the preview can show incorrect
+replacement in some cases, such as when replacement uses @cite{\#}
+directly or within a >>`<<\,’ In such cases, the preview can be wrong but
+execution will be correct.
+
+Replacements that call stateful functions in @cite{\@comma{}} such as a function
+that increment an internal counter, will be executed too many times
+during preview, with unpredictable results.
+
+In all other cases, the preview should match what is eventually
+executed. If that’s not the case, please @ref{c,,report an issue}.
+
 @node FAQ,Contributing,Usage,Contents
-@anchor{faq doc}@anchor{b}@anchor{faq faq}@anchor{c}
+@anchor{faq doc}@anchor{d}@anchor{faq faq}@anchor{e}
 @section FAQ
 
 
 TODO
 
 @node Contributing,,FAQ,Contents
-@anchor{contrib doc}@anchor{d}@anchor{contrib contributing}@anchor{e}
+@anchor{contrib doc}@anchor{f}@anchor{contrib contributing}@anchor{10}
 @section Contributing
 
 
-TODO
+@menu
+* Reporting issues:: 
+* Suggesting features:: 
+* Asking questions:: 
+* Code contributions:: 
+* Documentation contributions:: 
+
+@end menu
+
+@node Reporting issues,Suggesting features,,Contributing
+@anchor{contrib reporting}@anchor{c}@anchor{contrib reporting-issues}@anchor{11}
+@subsection Reporting issues
+
+
+At this time, the most useful thing you can do to help is and useful
+bug reports to the Issue Tracker@footnote{https://github.com/szermatt/visual-replace/issues}
+
+In your report, please discuss what you wanted to happen as well as
+what happened. Also, please include enough information to reproduce
+the issue.
+
+Please include:
+
+
+@itemize -
+
+@item 
+the version of Emacs you’re running, taken, for example, from @code{M-x about-emacs}
+
+@item 
+whether you’re running Emacs in a window environment or a terminal
+
+@item 
+the OS you’re running
+
+@item 
+the replacement mode - a copy of what’s shown in the minibuffer.
+
+@item 
+the text you wanted to replace, the replacement text, the
+replacement modes - copying the content of minibuffer will do the
+trick.
+@end itemize
+
+@cartouche
+@quotation Tip 
+It’s a great idea to take a screenshot of the Emacs window in Visual
+Replace mode just before executing it, and then another one after
+executing it and attach that to the issue.
+@end quotation
+@end cartouche
+
+@node Suggesting features,Asking questions,Reporting issues,Contributing
+@anchor{contrib issue-tracker}@anchor{12}@anchor{contrib suggesting-features}@anchor{13}
+@subsection Suggesting features
+
+
+Please add feature suggestions to the Issue Tracker@footnote{https://github.com/szermatt/visual-replace/issues}.
+
+@node Asking questions,Code contributions,Suggesting features,Contributing
+@anchor{contrib asking-questions}@anchor{14}
+@subsection Asking questions
+
+
+Open an issue on the Issue Tracker@footnote{https://github.com/szermatt/visual-replace/issues} with your question.
+
+@node Code contributions,Documentation contributions,Asking questions,Contributing
+@anchor{contrib code-contributions}@anchor{15}
+@subsection Code contributions
+
+
+To contribute code to the project, open a Pull Request@footnote{https://github.com/szermatt/emacs-bash-completion/pulls}.
+
+Before you do that, please make sure the any new features is covered
+by tests and that the tests pass.
+
+To run the tests, install and setup eldev@footnote{https://github.com/emacs-eldev/eldev} then run @code{eldev
+test}.
+
+Tests can also be run from inside of Emacs, using @cite{M-x ert-run-tests-interactively} but when you do so, be aware that there
+might be unexpected interaction with your Emacs configurations. The
+tests passing reliably when run using @code{eldev test} is what
+matters.
+
+@node Documentation contributions,,Code contributions,Contributing
+@anchor{contrib documentation-contributions}@anchor{16}@anchor{contrib eldev}@anchor{17}
+@subsection Documentation contributions
+
+
+You don’t need to be a developer to contribute! Contribution to the
+documentation or code comments are very welcome. Please open a Pull Request@footnote{https://github.com/szermatt/emacs-bash-completion/pulls} with your proposed modifications.
+
+The documentation is written in reStructuredText. You’ll need to
+install Sphinx@footnote{https://www.sphinx-doc.org} to build it:
+
+@example
+python3 -m venv venv
+. venv/bin/activate # or activate.fish on fish
+pip3 install -r docs/requirements.txt
+@end example
+
+Then run @code{eldev html} to build the documentation.
 
 @node Index,,Contents,Top
 @unnumbered Index

@@ -195,3 +195,21 @@ executing the replacement or just before building the previews. They
 are passed a struct of type :code:`visual-replace-args`, which they
 can modify. You can use it to customize the behavior of the search or
 modify the regexp language.
+
+Limitations
+-----------
+
+Visual Replace avoids executing replacement in the whole buffer during
+preview; it just executes them in the parts of the buffer that are
+currently visible. This means that the preview can show incorrect
+replacement in some cases, such as when replacement uses `\\#`
+directly or within a `\\,' In such cases, the preview can be wrong but
+execution will be correct.
+
+Replacements that call stateful functions in `\\,` such as a function
+that increment an internal counter, will be executed too many times
+during preview, with unpredictable results.
+
+In all other cases, the preview should match what is eventually
+executed. If that's not the case, please :ref:`report an issue
+<reporting>`.
