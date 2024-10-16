@@ -5,3 +5,6 @@
 (setq sentence-end-double-space nil)
 
 (eldev-use-plugin 'autoloads)
+
+(eldev-use-plugin 'maintainer)
+(setq eldev-release-test-local t)
