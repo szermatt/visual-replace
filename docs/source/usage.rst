@@ -37,16 +37,22 @@ then uses whatever shortcut you've already installed.
 Once this is done, launch :code:`visual-replace` with the keybinding you chose.
 
 You'll see, something like the following in the minibuffer `Replace
-from point [...]: ┃ →`, see also the example below.
+from point [...]: ┃ →`. The text before the arrow is the text to
+replace and the text after the arrow is the replacement. You can
+navigate back and forth with :kbd:`TAB` or by moving the cursor.
+
+See also the example below.
 
   .. image:: ../../images/capture_blue.png
     :width: 600
     :alt: Screen grab showing Visual Replace in action
 
-The text before the arrow is the text to replace and the text after
-the arrow is the replacement. You can navigate back and forth with
-:kbd:`TAB` or by moving the cursor. Once both fields are filled, press
-:kbd:`RET` to call :code:`string-replace` to execute the replacement.
+Once both fields are filled, press :kbd:`RET` to execute the
+replacement.
+
+When there's no replacement :kbd:`RET` instead moves the cursor to the
+replacement, in case muscle memory kicks in and you type: *text to
+replace* :kbd:`RET` *replacement* :kbd:`RET`. That'll work.
 
 The prompt also displays the mode of replacement:
 
