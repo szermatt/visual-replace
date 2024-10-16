@@ -42,5 +42,4 @@ Contents
 
    install
    usage
-   faq
    contrib
