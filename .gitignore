@@ -5,3 +5,6 @@ ert-profile
 /dist
 /.eldev
 /Eldev-local
+/docs/build
+/visual-replace.info
+/venv
