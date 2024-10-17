@@ -700,7 +700,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (dotimes (i 6)
-       (insert (format "foo foo foo.\n" i)))
+       (insert "foo foo foo.\n"))
      (goto-char (point-min))
      (forward-line 2)
      (right-char 4) ;; point at beginning of 2nd "foo"
