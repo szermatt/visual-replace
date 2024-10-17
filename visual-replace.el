@@ -427,7 +427,7 @@ The first time it's called, executes a `yank', then a `yank-pop'."
   (interactive)
   (if (memq last-command '(yank yank-pop))
       (progn  (setq this-command 'yank-pop)
-              (call-interactively 'yank-pop))
+              (call-interactively #'yank-pop))
     ;; If previous command was not a yank, call yank. This gives
     ;; access to yank for the modified test.
     (setq this-command 'yank)
@@ -535,7 +535,7 @@ used as point for \\='from-point. By default, the scope is
         (visual-replace--calling-window (selected-window))
         (visual-replace--scope (visual-replace--make-scope initial-scope))
         (minibuffer-allow-text-properties t) ; separator uses text-properties
-        (minibuffer-history (mapcar 'visual-replace-args--text visual-replace-read-history))
+        (minibuffer-history (mapcar #'visual-replace-args--text visual-replace-read-history))
         (initial-input (let* ((args (or initial-args (visual-replace-make-args)))
                               (text (visual-replace-args--text args))
                               (from (visual-replace-args-from args)))
@@ -554,11 +554,11 @@ used as point for \\='from-point. By default, the scope is
             (when visual-replace-preview
               (setq timer (run-with-idle-timer
                            visual-replace-preview-delay
-                           'repeat 'visual-replace--update-preview)))
+                           #'repeat #'visual-replace--update-preview)))
             (minibuffer-with-setup-hook
                 (lambda ()
                   (when visual-replace-keep-incomplete
-                    (add-hook 'after-change-functions 'visual-replace--after-change 0 'local))
+                    (add-hook 'after-change-functions #'visual-replace--after-change 0 'local))
                   (when trigger
                     (local-set-key trigger visual-replace-secondary-mode-map))
                   (visual-replace-minibuffer-mode t)
@@ -672,7 +672,7 @@ for `visual-replace'. Replacement starts at the current point."
         (setf (visual-replace-args-lax-ws-non-regexp args)
               isearch-lax-whitespace)))
     (isearch-exit)
-    (apply 'visual-replace (visual-replace-read args))))
+    (apply #'visual-replace (visual-replace-read args))))
 
 ;;;###autoload
 (defun visual-replace-thing-at-point (&optional thing)
@@ -685,7 +685,7 @@ THING defaults to symbol. It can be set to anything that
     (unless bounds
       (error "No %s at point" (symbol-name thing)))
     (apply
-     'visual-replace
+     #'visual-replace
      (visual-replace-read
       (visual-replace-make-args
        :from (buffer-substring-no-properties
@@ -702,7 +702,7 @@ not active."
   (interactive)
   (if (region-active-p)
       (apply
-       'visual-replace
+       #'visual-replace
        (visual-replace-read
         (visual-replace-make-args
          :from (buffer-substring-no-properties
