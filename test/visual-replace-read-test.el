@@ -259,7 +259,7 @@
 (ert-deftest test-visual-replace-kill-whole-line ()
   (test-visual-replace-env
    (test-visual-replace-run
-    "hello TAB world TAB <right> <F1> K <F1> ! TAB <right> <F1> K <F1> ! RET"
+    "hello TAB world TAB <right> <F1> K <F1> ! TAB <right> <F1> K <F1> ! <F1> g"
     (visual-replace-read))
    (should (equal test-visual-replace-snapshot
                   '("Replace from point: [] → world"
@@ -267,7 +267,7 @@
 
 (ert-deftest test-visual-replace-kill-whole-line-no-separator ()
   (test-visual-replace-env
-   (test-visual-replace-run "hello <F1> K <F1> ! RET"
+   (test-visual-replace-run "hello <F1> K <F1> ! <F1> g"
                         (visual-replace-read))
    (should (equal test-visual-replace-snapshot '("Replace from point: []")))))
 
@@ -550,14 +550,14 @@
 (ert-deftest test-visual-replace-initial-input ()
   (test-visual-replace-env
    (test-visual-replace-run
-    "<F1> ! <F1> x" (visual-replace-read (visual-replace-make-args :from "initial")))
+    "<F1> ! <F1> g" (visual-replace-read (visual-replace-make-args :from "initial")))
    (should (equal test-visual-replace-snapshot
                   '("Replace from point: initial[]")))))
 
 (ert-deftest test-visual-replace-initial-input-complete ()
   (test-visual-replace-env
    (test-visual-replace-run
-    "<F1> ! <F1> x"
+    "<F1> ! <F1> g"
     (visual-replace-read (visual-replace-make-args :from "foo" :to "bar")))
    (should (equal test-visual-replace-snapshot
                   '("Replace from point: foo → bar[]")))))
@@ -565,7 +565,7 @@
 (ert-deftest test-visual-replace-initial-word ()
   (test-visual-replace-env
    (test-visual-replace-run
-    "<F1> ! <F1> x"
+    "<F1> ! <F1> g"
     (visual-replace-read (visual-replace-make-args :word t)))
    (should (equal test-visual-replace-snapshot
                   '("Replace from point: [] →w ")))))
@@ -573,7 +573,7 @@
 (ert-deftest test-visual-replace-initial-regexp ()
   (test-visual-replace-env
    (test-visual-replace-run
-    "<F1> ! <F1> x"
+    "<F1> ! <F1> g"
     (visual-replace-read (visual-replace-make-args :regexp t)))
    (should (equal test-visual-replace-snapshot
                   '("Replace from point: [] →.* ")))))
@@ -581,7 +581,7 @@
 (ert-deftest test-visual-replace-initial-query ()
   (test-visual-replace-env
    (test-visual-replace-run
-    "<F1> ! <F1> x"
+    "<F1> ! <F1> g"
     (visual-replace-read (visual-replace-make-args :query t)))
    (should (equal test-visual-replace-snapshot
                   '("Replace from point: [] →? ")))))
@@ -590,7 +590,7 @@
   (test-visual-replace-env
    (let ((case-fold-search nil))
      (test-visual-replace-run
-      "<F1> ! <F1> x"
+      "<F1> ! <F1> g"
       (visual-replace-read (visual-replace-make-args :case-fold t)))
      (should (equal test-visual-replace-snapshot
                     '("Replace from point: [] →i "))))))
@@ -598,7 +598,7 @@
 (ert-deftest test-visual-replace-initial-case-fold-disable ()
   (test-visual-replace-env
    (test-visual-replace-run
-    "<F1> ! <F1> x"
+    "<F1> ! <F1> g"
     (visual-replace-read (visual-replace-make-args :case-fold nil)))
    (should (equal test-visual-replace-snapshot
                   '("Replace from point: [] →c ")))))
@@ -606,7 +606,7 @@
 (ert-deftest test-visual-replace-initial-case-fold-matches-default ()
   (test-visual-replace-env
    (test-visual-replace-run
-    "<F1> ! <F1> x"
+    "<F1> ! <F1> g"
     (visual-replace-read (visual-replace-make-args :case-fold t)))
    (should (equal test-visual-replace-snapshot
                   '("Replace from point: []")))))

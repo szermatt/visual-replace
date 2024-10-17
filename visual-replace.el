@@ -585,7 +585,9 @@ used as point for \\='from-point. By default, the scope is
        ((or quit-flag (null to) nil)
         (setq final-args (visual-replace-make-args)))
        ((and (zerop (length from)) (zerop (length to)))
-        (setq final-args (car visual-replace-read-history)))
+        (setq final-args (car visual-replace-read-history))
+        (unless final-args
+          (error "Nothing to replace")))
        (t
         (when (visual-replace-args-regexp final-args)
           (visual-replace--warn from))
