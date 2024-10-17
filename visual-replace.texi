@@ -20,7 +20,7 @@
 
 @copying
 @quotation
-Visual-Replace 0.1
+Visual-Replace
 
 Stephane Zermatten
 
@@ -88,8 +88,8 @@ always done by the standard Emacs commands.
 
 
 What seems to be unique about Visual Replace is the ability to edit
-both the thing to be replacement and replacement at the same time. The
-other packages I’ve found make it a 2-step process.
+both the thing to be replaced and the replacement at the same time.
+The other packages I’ve found make it a 2-step process.
 
 visual-regexp@footnote{https://github.com/benma/visual-regexp.el} also
 supports a preview, but uses its own search-and-replace mechanism and
@@ -184,17 +184,23 @@ then uses whatever shortcut you’ve already installed.
 
 Once this is done, launch @code{visual-replace} with the keybinding you chose.
 
-You’ll see, something like the following in the minibuffer @cite{Replace from point […]: ┃ →}, see also the example below.
+You’ll see, something like the following in the minibuffer @cite{Replace from point […]: ┃ →}. The text before the arrow is the text to
+replace and the text after the arrow is the replacement. You can
+navigate back and forth with @code{TAB} or by moving the cursor.
+
+See also the example below.
 
 @quotation
 
 @image{visual-replace-figures/capture_blue,,,Screen grab showing Visual Replace in action,png}
 @end quotation
 
-The text before the arrow is the text to replace and the text after
-the arrow is the replacement. You can navigate back and forth with
-@code{TAB} or by moving the cursor. Once both fields are filled, press
-@code{RET} to call @code{string-replace} to execute the replacement.
+Once both fields are filled, press @code{RET} to execute the
+replacement.
+
+When there’s no replacement @code{RET} instead moves the cursor to the
+replacement, in case muscle memory kicks in and you type: `text to
+replace' @code{RET} `replacement' @code{RET}. That’ll work.
 
 The prompt also displays the mode of replacement:
 
@@ -216,8 +222,8 @@ The prompt also displays the mode of replacement:
 
 While @cite{visual-replace} is active, it scrolls the window to keep at
 least one example of matches visible. You can also press up and down
-to go through the matches. Don’t worry, though the cursor goes back to
-the original position once you leave Visual Replace.
+to go through the matches. Don’t worry, though: the cursor goes back
+to the original position once you leave Visual Replace.
 
 In Visual Replace mode:
 
@@ -313,7 +319,7 @@ active region as text to replace.
 @cite{visual-replace-from-isearch} switches from an active isearch
 session to @cite{visual-replace}, keeping the current search text and
 settings, such as regexp mode. This is meant to be called while
-isearch is in progress, and bound to >>:mode:`isearch-mode-map`<<.
+isearch is in progress, and bound to @code{isearch-mode-map}.
 @end itemize
 
 @geindex command; visual-replace-toggle-regexp
@@ -377,9 +383,10 @@ regexp mode using either @code{C-l r} or @code{C-r}.
   :defer t
   :bind (("C-c l" . visual-replace)
          :map visual-replace-mode-map
-         ("C-r" . visual-replace-toggle-regexp)
-         :map visual-replace-mode-map
-         ("C-l" . visual-replace-secondary-mode-map)))
+         ("C-r" . visual-replace-toggle-regexp))
+  :config
+  (define-key visual-replace-mode-map (kbd "C-l")
+      visual-replace-secondary-mode-map))
 @end example
 
 @node Hooks,Limitations,Keymaps,Usage
@@ -409,7 +416,7 @@ Visual Replace avoids executing replacement in the whole buffer during
 preview; it just executes them in the parts of the buffer that are
 currently visible. This means that the preview can show incorrect
 replacement in some cases, such as when replacement uses @cite{\#}
-directly or within a >>`<<\,’ In such cases, the preview can be wrong but
+directly or within a @cite{\@comma{}} In such cases, the preview can be wrong but
 execution will be correct.
 
 Replacements that call stateful functions in @cite{\@comma{}} such as a function
