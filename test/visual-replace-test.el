@@ -701,7 +701,7 @@
 (ert-deftest test-visual-replace-rect-replace ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
-     (dotimes (i 6)
+     (dotimes (_ 6)
        (insert "foo foo foo.\n"))
      (goto-char (point-min))
      (forward-line 2)
