@@ -606,7 +606,9 @@
        (search-forward "line 2.")
        (goto-char (match-beginning 0))
        (rectangle-mark-mode)
-       (next-line 3)
+       (let ((col (current-column)))
+         (forward-line 3)
+         (goto-char (+ (point) col)))
        (rectangle-right-char 4)
        (define-key
         visual-replace-mode-map
@@ -705,7 +707,9 @@
      (forward-line 2)
      (right-char 4) ;; point at beginning of 2nd "foo"
      (rectangle-mark-mode)
-     (next-line 2)
+     (let ((col (current-column)))
+       (forward-line 2)
+       (goto-char (+ (point) col)))
      (rectangle-right-char 4)
      (define-key
       visual-replace-mode-map
