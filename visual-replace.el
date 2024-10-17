@@ -682,6 +682,8 @@ THING defaults to symbol. It can be set to anything that
  `thing-at-point` understands."
   (interactive)
   (let ((bounds (bounds-of-thing-at-point (or thing 'symbol))))
+    (unless bounds
+      (error "No %s at point" (symbol-name thing)))
     (apply
      'visual-replace
      (visual-replace-read
