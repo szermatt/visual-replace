@@ -125,18 +125,18 @@ Commands
    pair: command; visual-replace-selected
    pair: command; visual-replace-from-isearch
 
-* `visual-replace` is the main command that starts Visual Replace and
-  then executes the search-and-replace. It can replace `replace-string`,
-  `query-replace`, `replace-regexp` and `query-replace-regexp`.
+* :code:`visual-replace` is the main command that starts Visual Replace and
+  then executes the search-and-replace. It can replace :code:`replace-string`,
+  :code:`query-replace`, :code:`replace-regexp` and :code:`query-replace-regexp`.
 
-* `visual-replace-thing-at-point` starts a visual replace session with
+* :code:`visual-replace-thing-at-point` starts a visual replace session with
   the symbol at point as text to replace.
 
-* `visual-replace-selected` starts with the text within the current
+* :code:`visual-replace-selected` starts with the text within the current
   active region as text to replace.
 
-* `visual-replace-from-isearch` switches from an active isearch
-  session to `visual-replace`, keeping the current search text and
+* :code:`visual-replace-from-isearch` switches from an active isearch
+  session to :code:`visual-replace`, keeping the current search text and
   settings, such as regexp mode. This is meant to be called while
   isearch is in progress, and bound to :code:`isearch-mode-map`.
 
@@ -156,28 +156,28 @@ The following commands are meant to be called while in Visual Replace
 mode, from :code:`visual-mode-map`. By default, they're bound in
 :code:`visual-replace-secondary-mode-map`:
 
-* `visual-replace-toggle-regexp` toggles regexp mode on and off.
-* `visual-replace-toggle-scope` changes the scope of the search.
-* `visual-replace-toggle-query` toggles the query mode on and off.
-* `visual-replace-toggle-word` toggles the word mode on and off.
-* `visual-replace-toggle-case-fold` toggles the case fold mode on and off.
-* `visual-replace-toggle-lax-ws` toggles the lax whitespace mode on and off.
-* `visual-replace-next-match` moves cursor to the next match
-* `visual-replace-prev-match` moves cursor to the previous match
-* `visual-replace-apply-one` applies a single replacement, to the
+* :code:`visual-replace-toggle-regexp` toggles regexp mode on and off.
+* :code:`visual-replace-toggle-scope` changes the scope of the search.
+* :code:`visual-replace-toggle-query` toggles the query mode on and off.
+* :code:`visual-replace-toggle-word` toggles the word mode on and off.
+* :code:`visual-replace-toggle-case-fold` toggles the case fold mode on and off.
+* :code:`visual-replace-toggle-lax-ws` toggles the lax whitespace mode on and off.
+* :code:`visual-replace-next-match` moves cursor to the next match
+* :code:`visual-replace-prev-match` moves cursor to the previous match
+* :code:`visual-replace-apply-one` applies a single replacement, to the
   match at or after the cursor, then moves on to the next match.
 
-  This command, used together with `visual-replace-next-match` and
-  `visual-replace-prev-match` is in many cases functionally equivalent
-  to using the query mode, but with a different interface that the
-  possibility of changing the query as you go.
+  This command, used together with :code:`visual-replace-next-match`
+  and :code:`visual-replace-prev-match` is in many cases functionally
+  equivalent to using the query mode, but with a different interface
+  that the possibility of changing the query as you go.
 
   One difference is that if you use :code:`\\#` in the replacement
   string, its value is always just 1. This is because each such
   replacement is executed separately.
-* `visual-replace-undo` reverts one call to
-  `visual-replace-apply-one`. This just executes `undo` in the
-  original buffer.
+* :code:`visual-replace-undo` reverts one call to
+  :code:`visual-replace-apply-one`. This just executes :code:`undo`
+  in the original buffer.
 
 Keymaps
 -------
