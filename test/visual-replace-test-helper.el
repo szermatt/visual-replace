@@ -109,6 +109,7 @@ This is meant to be called within `test-visual-replace-env`."
             (define-key visual-replace-mode-map (kbd "<F1> K") 'visual-replace-kill-whole-line)
             (define-key visual-replace-mode-map (kbd "<F1> y") 'visual-replace-yank)
             (define-key visual-replace-mode-map (kbd "<F1> Y") 'visual-replace-yank-pop)
+            (define-key visual-replace-mode-map (kbd "<F1> u") 'visual-replace-undo)
             (define-key visual-replace-mode-map (kbd "<F1> h") 'previous-history-element)
             (define-key visual-replace-mode-map (kbd "<F1> x") 'exit-minibuffer)
             (define-key visual-replace-mode-map (kbd "<F1> g") ;; simulates a quit

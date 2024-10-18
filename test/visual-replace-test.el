@@ -729,4 +729,63 @@
                     (buffer-substring-no-properties
                      (point-min) (point-max)))))))
 
+(ert-deftest test-visual-replace-apply-one ()
+  (test-visual-replace-env
+   (dotimes (i 4)
+     (insert (format "this is text %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (define-key visual-replace-mode-map (kbd "<down>") #'visual-replace-next-match)
+     (define-key visual-replace-mode-map (kbd "<F1> a") #'visual-replace-apply-one)
+     (visual-replace-ert-simulate-keys (kbd "text TAB r e p l a c e d <F1> a <down> <F1> a C-g")
+       (condition-case _
+           (call-interactively 'visual-replace)
+         (minibuffer-quit)))
+     (should (equal (concat "this is replaced 0\n"
+                            "this is text 1\n"
+                            "this is replaced 2\n"
+                            "this is text 3\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
+(ert-deftest test-visual-replace-undo ()
+  (test-visual-replace-env
+   (dotimes (i 4)
+     (insert (format "this is text %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (define-key visual-replace-mode-map (kbd "<down>") #'visual-replace-next-match)
+     (define-key visual-replace-mode-map (kbd "<F1> a") #'visual-replace-apply-one)
+     (define-key visual-replace-mode-map (kbd "<F1> u") #'visual-replace-undo)
+     (visual-replace-ert-simulate-keys (kbd "text TAB r e p l a c e d <F1> a <F1> a <F1> u C-g")
+       (condition-case _
+           (call-interactively 'visual-replace)
+         (minibuffer-quit)))
+     (should (equal (concat "this is replaced 0\n"
+                            "this is text 1\n"
+                            "this is text 2\n"
+                            "this is text 3\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
+(ert-deftest test-visual-replace-undo-multiple ()
+  (test-visual-replace-env
+   (dotimes (i 4)
+     (insert (format "this is text %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (define-key visual-replace-mode-map (kbd "<down>") #'visual-replace-next-match)
+     (define-key visual-replace-mode-map (kbd "<F1> a") #'visual-replace-apply-one)
+     (define-key visual-replace-mode-map (kbd "<F1> u") #'visual-replace-undo)
+     (visual-replace-ert-simulate-keys (kbd "text TAB r e p l a c e d <F1> a <F1> a <F1> a <F1> u <F1> u C-g")
+       (condition-case _
+           (call-interactively 'visual-replace)
+         (minibuffer-quit)))
+     (should (equal (concat "this is replaced 0\n"
+                            "this is text 1\n"
+                            "this is text 2\n"
+                            "this is text 3\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
 ;;; visual-replace-test.el ends here

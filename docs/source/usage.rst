@@ -98,6 +98,13 @@ In Visual Replace mode:
 * :kbd:`<up>` and :kbd:`<down>` move the cursor to the next or
   previous match, scrolling if necessary.
 
+* :kbd:`M-% a` applies a single replacement, to the match right under
+  the cursor or following the cursor, then move on to the next match.
+  This is an alternative to using the query mode for replacing only
+  some matches.
+
+* :kbd:`M-% u` reverts the last replacement that was applied.
+
 * As usual, :kbd:`C-p` and `C-n` go up and down the history, like on any prompt.
 
 (Reminder: replace *M-%* with the keyboard shortcut you chose.)
@@ -140,6 +147,10 @@ Commands
    pair: command; visual-replace-toggle-word
    pair: command; visual-replace-toggle-case-fold
    pair: command; visual-replace-toggle-lax-ws
+   pair: command; visual-replace-next-match
+   pair: command; visual-replace-prev-match
+   pair: command; visual-replace-apply-one
+   pair: command; visual-replace-undo
 
 The following commands are meant to be called while in Visual Replace
 mode, from :code:`visual-mode-map`. By default, they're bound in
@@ -151,6 +162,22 @@ mode, from :code:`visual-mode-map`. By default, they're bound in
 * `visual-replace-toggle-word` toggles the word mode on and off.
 * `visual-replace-toggle-case-fold` toggles the case fold mode on and off.
 * `visual-replace-toggle-lax-ws` toggles the lax whitespace mode on and off.
+* `visual-replace-next-match` moves cursor to the next match
+* `visual-replace-prev-match` moves cursor to the previous match
+* `visual-replace-apply-one` applies a single replacement, to the
+  match at or after the cursor, then moves on to the next match.
+
+  This command, used together with `visual-replace-next-match` and
+  `visual-replace-prev-match` is in many cases functionally equivalent
+  to using the query mode, but with a different interface that the
+  possibility of changing the query as you go.
+
+  One difference is that if you use :code:`\\#` in the replacement
+  string, its value is always just 1. This is because each such
+  replacement is executed separately.
+* `visual-replace-undo` reverts one call to
+  `visual-replace-apply-one`. This just executes `undo` in the
+  original buffer.
 
 Keymaps
 -------

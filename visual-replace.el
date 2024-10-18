@@ -188,6 +188,8 @@ Inherits from `minibuffer-mode-map'.")
     (define-key map (kbd "w") 'visual-replace-toggle-word)
     (define-key map (kbd "c") 'visual-replace-toggle-case-fold)
     (define-key map (kbd "s") 'visual-replace-toggle-lax-ws)
+    (define-key map (kbd "a") 'visual-replace-apply-one)
+    (define-key map (kbd "u") 'visual-replace-undo)
     map)
   "Keyboard shortcuts specific to `visual-replace'.
 
@@ -360,6 +362,9 @@ This is an instance of the struct `visual-replace--scope'.")
 
 (defvar visual-replace--first-match-timer nil
   "Timer scheduled to search for a first match to display.")
+
+(defvar visual-replace--apply-count nil
+  "Number of replacements already applied in this session.")
 
 (defun visual-replace-enter ()
   "Confirm the current text to replace.
@@ -534,6 +539,7 @@ used as point for \\='from-point. By default, the scope is
         (visual-replace--calling-buffer (current-buffer))
         (visual-replace--calling-window (selected-window))
         (visual-replace--scope (visual-replace--make-scope initial-scope))
+        (visual-replace--apply-count 0)
         (minibuffer-allow-text-properties t) ; separator uses text-properties
         (minibuffer-history (mapcar #'visual-replace-args--text visual-replace-read-history))
         (initial-input (let* ((args (or initial-args (visual-replace-make-args)))
@@ -1303,6 +1309,40 @@ Also skips empty ranges."
   (save-excursion
     (goto-char pos)
     (current-column)))
+
+(defun visual-replace-apply-one ()
+  "Apply the replacement at or following point, when in preview mode."
+  (interactive)
+  (with-selected-window visual-replace--calling-window
+    (let* ((args (visual-replace-args--from-minibuffer))
+           (match (car (visual-replace--search
+                        args
+                        (visual-replace--range-intersect-sorted
+                         (visual-replace--scope-ranges)
+                         `((,(point) . ,(point-max))))
+                        nil 1))))
+      (unless match
+        (error "No match"))
+      (visual-replace args (list (cons (car match) (nth 1 match))))
+      (cl-incf visual-replace--apply-count)
+      (when-let ((next (car (visual-replace--search
+                             args
+                             (visual-replace--range-intersect-sorted
+                              (visual-replace--scope-ranges)
+                              `((,(point) . ,(point-max))))
+                             nil 1))))
+        (goto-char (car next))))))
+
+(defun visual-replace-undo ()
+  "Undo the last replacement applied by `visual-replace-apply-one'"
+  (interactive)
+  (unless (and visual-replace--apply-count
+               (>= visual-replace--apply-count 1))
+    (error "No replacement to undo"))
+  (with-selected-window visual-replace--calling-window
+    (undo))
+  (cl-decf visual-replace--apply-count)
+  (visual-replace--update-preview 'no-first-match))
 
 (provide 'visual-replace)
 

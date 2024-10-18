@@ -270,6 +270,15 @@ mode is on when a @code{w} follows the arrow.
 previous match, scrolling if necessary.
 
 @item 
+@code{M-% a} applies a single replacement, to the match right under
+the cursor or following the cursor, then move on to the next match.
+This is an alternative to using the query mode for replacing only
+some matches.
+
+@item 
+@code{M-% u} reverts the last replacement that was applied.
+
+@item 
 As usual, @code{C-p} and @cite{C-n} go up and down the history, like on any prompt.
 @end itemize
 
@@ -353,6 +362,30 @@ mode, from @code{visual-mode-map}. By default, they’re bound in
 
 @item 
 @cite{visual-replace-toggle-lax-ws} toggles the lax whitespace mode on and off.
+
+@item 
+@cite{visual-replace-next-match} moves cursor to the next match
+
+@item 
+@cite{visual-replace-prev-match} moves cursor to the previous match
+
+@item 
+@cite{visual-replace-apply-one} applies a single replacement, to the
+match at or after the cursor, then moves on to the next match.
+
+This command, used together with @cite{visual-replace-next-match} and
+@cite{visual-replace-prev-match} is in many cases functionally equivalent
+to using the query mode, but with a different interface that the
+possibility of changing the query as you go.
+
+One difference is that if you use @code{\#} in the replacement
+string, its value is always just 1. This is because each such
+replacement is executed separately.
+
+@item 
+@cite{visual-replace-apply-undo} reverts one call to
+@cite{visual-replace-apply-one}. This just executes @cite{undo} in the
+original buffer.
 @end itemize
 
 @node Keymaps,Hooks,Commands,Usage
