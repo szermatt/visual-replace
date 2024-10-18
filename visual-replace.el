@@ -153,24 +153,20 @@ has been defined."
 
 (defvar visual-replace-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [remap isearch-toggle-regexp] 'visual-replace-toggle-regexp)
-    (define-key map [remap isearch-toggle-word] 'visual-replace-toggle-word)
-    (define-key map [remap isearch-toggle-case-fold] 'visual-replace-toggle-case-fold)
-    (define-key map [remap isearch-toggle-lax-whitespace] 'visual-replace-toggle-lax-ws)
-
-    (define-key map (kbd "RET") 'visual-replace-enter)
-    (define-key map (kbd "<return>") 'visual-replace-enter)
-
-    (define-key map (kbd "TAB") 'visual-replace-tab)
-    (define-key map (kbd "<tab>") 'visual-replace-tab)
-
-    (define-key map (kbd "<up>") 'visual-replace-prev-match)
-    (define-key map (kbd "<down>") 'visual-replace-next-match)
-
-    (define-key map [remap yank] 'visual-replace-yank)
-    (define-key map [remap yank-pop] 'visual-replace-yank-pop)
-    (define-key map [remap kill] 'visual-replace-kill)
-    (define-key map [remap kill-whole-line] 'visual-replace-kill-whole-line)
+    (define-key map [remap isearch-toggle-regexp] #'visual-replace-toggle-regexp)
+    (define-key map [remap isearch-toggle-word] #'visual-replace-toggle-word)
+    (define-key map [remap isearch-toggle-case-fold] #'visual-replace-toggle-case-fold)
+    (define-key map [remap isearch-toggle-lax-whitespace] #'visual-replace-toggle-lax-ws)
+    (define-key map (kbd "RET") #'visual-replace-enter)
+    (define-key map (kbd "<return>") #'visual-replace-enter)
+    (define-key map (kbd "TAB") #'visual-replace-tab)
+    (define-key map (kbd "<tab>") #'visual-replace-tab)
+    (define-key map (kbd "<up>") #'visual-replace-prev-match)
+    (define-key map (kbd "<down>") #'visual-replace-next-match)
+    (define-key map [remap yank] #'visual-replace-yank)
+    (define-key map [remap yank-pop] #'visual-replace-yank-pop)
+    (define-key map [remap kill] #'visual-replace-kill)
+    (define-key map [remap kill-whole-line] #'visual-replace-kill-whole-line)
     map)
 "Map of minibuffer keyboard shortcuts available when editing a query.
 
@@ -182,14 +178,14 @@ Inherits from `minibuffer-mode-map'.")
 
 (defvar visual-replace-secondary-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "r") 'visual-replace-toggle-regexp)
-    (define-key map (kbd "SPC") 'visual-replace-toggle-scope)
-    (define-key map (kbd "q") 'visual-replace-toggle-query)
-    (define-key map (kbd "w") 'visual-replace-toggle-word)
-    (define-key map (kbd "c") 'visual-replace-toggle-case-fold)
-    (define-key map (kbd "s") 'visual-replace-toggle-lax-ws)
-    (define-key map (kbd "a") 'visual-replace-apply-one)
-    (define-key map (kbd "u") 'visual-replace-undo)
+    (define-key map (kbd "r") #'visual-replace-toggle-regexp)
+    (define-key map (kbd "SPC") #'visual-replace-toggle-scope)
+    (define-key map (kbd "q") #'visual-replace-toggle-query)
+    (define-key map (kbd "w") #'visual-replace-toggle-word)
+    (define-key map (kbd "c") #'visual-replace-toggle-case-fold)
+    (define-key map (kbd "s") #'visual-replace-toggle-lax-ws)
+    (define-key map (kbd "a") #'visual-replace-apply-one)
+    (define-key map (kbd "u") #'visual-replace-undo)
     map)
   "Keyboard shortcuts specific to `visual-replace'.
 
@@ -205,10 +201,10 @@ Not normally turned on manually."
 
 (defvar visual-replace-global-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [remap query-replace] 'visual-replace)
-    (define-key map [remap replace-string] 'visual-replace)
-    (define-key map [remap isearch-query-replace] 'visual-replace-from-isearch)
-    (define-key map [remap isearch-query-replace-regexp] 'visual-replace-from-isearch)
+    (define-key map [remap query-replace] #'visual-replace)
+    (define-key map [remap replace-string] #'visual-replace)
+    (define-key map [remap isearch-query-replace] #'visual-replace-from-isearch)
+    (define-key map [remap isearch-query-replace-regexp] #'visual-replace-from-isearch)
     map))
 
 ;;;###autoload
