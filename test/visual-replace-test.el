@@ -748,6 +748,25 @@
                     (buffer-substring-no-properties
                      (point-min) (point-max)))))))
 
+(ert-deftest test-visual-replace-apply-multiple ()
+  (test-visual-replace-env
+   (dotimes (i 4)
+     (insert (format "this is text %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (define-key visual-replace-mode-map (kbd "<down>") #'visual-replace-next-match)
+     (define-key visual-replace-mode-map (kbd "<F1> a") #'visual-replace-apply-one)
+     (visual-replace-ert-simulate-keys (kbd "text TAB r e p l ESC 3 <F1> a C-g")
+       (condition-case _
+           (call-interactively 'visual-replace)
+         (minibuffer-quit)))
+     (should (equal (concat "this is repl 0\n"
+                            "this is repl 1\n"
+                            "this is repl 2\n"
+                            "this is text 3\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
 (ert-deftest test-visual-replace-undo ()
   (test-visual-replace-env
    (dotimes (i 4)
@@ -757,11 +776,11 @@
      (define-key visual-replace-mode-map (kbd "<down>") #'visual-replace-next-match)
      (define-key visual-replace-mode-map (kbd "<F1> a") #'visual-replace-apply-one)
      (define-key visual-replace-mode-map (kbd "<F1> u") #'visual-replace-undo)
-     (visual-replace-ert-simulate-keys (kbd "text TAB r e p l a c e d <F1> a <F1> a <F1> u C-g")
+     (visual-replace-ert-simulate-keys (kbd "text TAB r e p l <F1> a <F1> a <F1> u C-g")
        (condition-case _
            (call-interactively 'visual-replace)
          (minibuffer-quit)))
-     (should (equal (concat "this is replaced 0\n"
+     (should (equal (concat "this is repl 0\n"
                             "this is text 1\n"
                             "this is text 2\n"
                             "this is text 3\n")
@@ -777,11 +796,74 @@
      (define-key visual-replace-mode-map (kbd "<down>") #'visual-replace-next-match)
      (define-key visual-replace-mode-map (kbd "<F1> a") #'visual-replace-apply-one)
      (define-key visual-replace-mode-map (kbd "<F1> u") #'visual-replace-undo)
-     (visual-replace-ert-simulate-keys (kbd "text TAB r e p l a c e d <F1> a <F1> a <F1> a <F1> u <F1> u C-g")
+     (visual-replace-ert-simulate-keys (kbd "text TAB r e p l <F1> a <F1> a <F1> a ESC 2 <F1> u C-g")
        (condition-case _
            (call-interactively 'visual-replace)
          (minibuffer-quit)))
-     (should (equal (concat "this is replaced 0\n"
+     (should (equal (concat "this is repl 0\n"
+                            "this is text 1\n"
+                            "this is text 2\n"
+                            "this is text 3\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
+(ert-deftest test-visual-replace-undo-everything ()
+  (test-visual-replace-env
+   (dotimes (i 4)
+     (insert (format "this is text %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (define-key visual-replace-mode-map (kbd "<down>") #'visual-replace-next-match)
+     (define-key visual-replace-mode-map (kbd "<F1> a") #'visual-replace-apply-one)
+     (define-key visual-replace-mode-map (kbd "<F1> u") #'visual-replace-undo)
+     (visual-replace-ert-simulate-keys (kbd "text TAB r e p l <F1> a ESC 1 0 0 <F1> u C-g")
+       (condition-case _
+           (call-interactively 'visual-replace)
+         (minibuffer-quit)))
+     ;; Undo should not have reverted past visual-replace; the text should still be there.
+     (should (equal (concat "this is text 0\n"
+                            "this is text 1\n"
+                            "this is text 2\n"
+                            "this is text 3\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
+(ert-deftest test-visual-replace-apply-multiple-undo-once ()
+  (test-visual-replace-env
+   (dotimes (i 4)
+     (insert (format "this is text %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (define-key visual-replace-mode-map (kbd "<down>") #'visual-replace-next-match)
+     (define-key visual-replace-mode-map (kbd "<F1> a") #'visual-replace-apply-one)
+     (define-key visual-replace-mode-map (kbd "<F1> u") #'visual-replace-undo)
+     (visual-replace-ert-simulate-keys (kbd "text TAB r e p l <F1> a ESC 2 <F1> a <F1> u C-g")
+       (condition-case _
+           (call-interactively 'visual-replace)
+         (minibuffer-quit)))
+     ;; The 2nd call to apply was undone fully, even though it did two
+     ;; replacements. Only the effect of the 1st call to apply remain.
+     (should (equal (concat "this is repl 0\n"
+                            "this is text 1\n"
+                            "this is text 2\n"
+                            "this is text 3\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
+(ert-deftest test-visual-replace-apply-undo-everything-then-redo ()
+  (test-visual-replace-env
+   (dotimes (i 4)
+     (insert (format "this is text %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (define-key visual-replace-mode-map (kbd "<down>") #'visual-replace-next-match)
+     (define-key visual-replace-mode-map (kbd "<F1> a") #'visual-replace-apply-one)
+     (define-key visual-replace-mode-map (kbd "<F1> u") #'visual-replace-undo)
+     (visual-replace-ert-simulate-keys (kbd "text TAB r e p l <F1> a <F1> u <F1> a <F1> a <F1> u C-g")
+       (condition-case _
+           (call-interactively 'visual-replace)
+         (minibuffer-quit)))
+     (should (equal (concat "this is repl 0\n"
                             "this is text 1\n"
                             "this is text 2\n"
                             "this is text 3\n")

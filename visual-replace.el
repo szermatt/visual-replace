@@ -359,8 +359,12 @@ This is an instance of the struct `visual-replace--scope'.")
 (defvar visual-replace--first-match-timer nil
   "Timer scheduled to search for a first match to display.")
 
-(defvar visual-replace--apply-count nil
-  "Number of replacements already applied in this session.")
+(defvar visual-replace--undo-marker nil
+  "A marker put into the undo list.
+
+This marker is added to `buffer-undo-list' by the first call to
+`visual-replace-apply-one' to mark the beginning of history for
+`visual-replace-undo'.")
 
 (defun visual-replace-enter ()
   "Confirm the current text to replace.
@@ -535,7 +539,7 @@ used as point for \\='from-point. By default, the scope is
         (visual-replace--calling-buffer (current-buffer))
         (visual-replace--calling-window (selected-window))
         (visual-replace--scope (visual-replace--make-scope initial-scope))
-        (visual-replace--apply-count 0)
+        (visual-replace--undo-marker nil)
         (minibuffer-allow-text-properties t) ; separator uses text-properties
         (minibuffer-history (mapcar #'visual-replace-args--text visual-replace-read-history))
         (initial-input (let* ((args (or initial-args (visual-replace-make-args)))
@@ -1306,21 +1310,29 @@ Also skips empty ranges."
     (goto-char pos)
     (current-column)))
 
-(defun visual-replace-apply-one ()
-  "Apply the replacement at or following point, when in preview mode."
-  (interactive)
+(defun visual-replace-apply-one (&optional num)
+  "Apply the replacement at or following point, when in preview mode.
+
+With a prefix argument NUM, repeat the replacement that many times."
+  (interactive "p")
   (with-selected-window visual-replace--calling-window
+    (when (null visual-replace--undo-marker)
+      (setq visual-replace--undo-marker (cl-gensym))
+      (visual-replace--add-undo-marker))
     (let* ((args (visual-replace-args--from-minibuffer))
-           (match (car (visual-replace--search
-                        args
-                        (visual-replace--range-intersect-sorted
-                         (visual-replace--scope-ranges)
-                         `((,(point) . ,(point-max))))
-                        nil 1))))
-      (unless match
+           (num (or num 1))
+           (matches (visual-replace--search
+                     args
+                     (visual-replace--range-intersect-sorted
+                      (visual-replace--scope-ranges)
+                      `((,(point) . ,(point-max))))
+                     nil num))
+           (first-match (car matches))
+           (last-match (car (last matches))))
+      (unless first-match
         (error "No match"))
-      (visual-replace args (list (cons (car match) (nth 1 match))))
-      (cl-incf visual-replace--apply-count)
+      (visual-replace args (list (cons (car first-match)
+                                       (nth 1 last-match))))
       (when-let ((next (car (visual-replace--search
                              args
                              (visual-replace--range-intersect-sorted
@@ -1330,15 +1342,80 @@ Also skips empty ranges."
         (goto-char (car next))))))
 
 (defun visual-replace-undo ()
-  "Undo the last replacement applied by `visual-replace-apply-one'"
+  "Execute undo in the original buffer.
+
+This command is meant to undo replacements applied by
+`visual-replace-apply-one'.
+
+It just executes `undo' in the original buffer. Its behavior and
+arguments is identical to `undo', which see. The single different
+is that it'll refuse to undo past the beginning of the current
+visual replace session.
+
+A prefix argument serves as a repeat count for `undo'."
   (interactive)
-  (unless (and visual-replace--apply-count
-               (>= visual-replace--apply-count 1))
-    (error "No replacement to undo"))
   (with-selected-window visual-replace--calling-window
-    (undo))
-  (cl-decf visual-replace--apply-count)
-  (visual-replace--update-preview 'no-first-match))
+    (let ((marker-cell (visual-replace--find-undo-marker-cell)))
+      (unless marker-cell
+        (error "No replacement to undo"))
+      (unwind-protect
+          ;; Temporarily truncate the undo history to avoid going past
+          ;; the first call to visual-replace-apply-one and execute
+          ;; undo.
+          (let ((buffer-undo-rest (cdr marker-cell)))
+            (unwind-protect
+                (progn
+                  ;; Cut buffer-undo-list after the marker
+                  (setcdr marker-cell nil)
+                  (call-interactively #'undo))
+              ;; Restore the full undo list, minus the part that was
+              ;; just undone.
+              (setq marker-cell (visual-replace--find-undo-marker-cell))
+              (if marker-cell
+                  (setcdr marker-cell buffer-undo-rest)
+                ;; Everything was undone including the marker, put it
+                ;; back.
+                (setq buffer-undo-list buffer-undo-rest)
+                (visual-replace--add-undo-marker)))))
+        (visual-replace--update-preview 'no-first-match))))
+
+(defun visual-replace--marker (&rest _)
+  "A no-op function, to hold the marker in an undo list.")
+
+(defun visual-replace--add-undo-marker ()
+  "Add a no-op marker to the undo list of the current buffer.
+
+The marker is added to the current buffer `buffer-undo-list'
+unless undo is disabled. It can be read back by
+`visual-replace--find-undo-marker-cell'.
+
+The marker `visual-replace--undo-marker' must have been created
+beforehand."
+  (cl-assert visual-replace--undo-marker)
+  (when (listp buffer-undo-list)
+    (push `(apply visual-replace--marker ,visual-replace--undo-marker)
+          buffer-undo-list)))
+
+(defun visual-replace--find-undo-marker-cell ()
+  "Find the marker inserted by `visual-replace--add-undo-marker.'
+
+This returns a cell containing a marker with the same value of
+`visual-replace--undo-marker', that is, the marker must have been
+added by the same visual replace session.
+
+Return nil if the marker doesn't exist, wasn't found or if undo
+is disabled."
+  (when (and visual-replace--undo-marker
+             (listp buffer-undo-list))
+    (let ((rest buffer-undo-list))
+      (while
+          (and rest
+               (not
+                (equal (car rest)
+                       `(apply visual-replace--marker
+                               ,visual-replace--undo-marker))))
+        (setq rest (cdr rest)))
+      rest)))
 
 (provide 'visual-replace)
 

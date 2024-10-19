@@ -101,15 +101,16 @@ In Visual Replace mode:
 * :kbd:`M-% a` applies a single replacement, to the match right under
   the cursor or following the cursor, then move on to the next match.
   This is an alternative to using the query mode for replacing only
-  some matches.
+  some matches. With a prefix argument N, apply N replacements.
 
-* :kbd:`M-% u` reverts the last replacement that was applied.
+* :kbd:`M-% u` calls :code:`undo` on the original buffer, to revert a
+  previous replacement. With a prefix argument N, repeat undo N times.
 
 * As usual, :kbd:`C-p` and `C-n` go up and down the history, like on any prompt.
 
 (Reminder: replace *M-%* with the keyboard shortcut you chose.)
 
-If you leave :code:`visual-replace` without confirming, with :code:`C-g`, you can
+If you leave :code:`visual-replace` without confirming, with :kbd:`C-g`, you can
 continue where you left off next time by going up in the history.
 
 See `Search
@@ -165,7 +166,8 @@ mode, from :code:`visual-mode-map`. By default, they're bound in
 * :code:`visual-replace-next-match` moves cursor to the next match
 * :code:`visual-replace-prev-match` moves cursor to the previous match
 * :code:`visual-replace-apply-one` applies a single replacement, to the
-  match at or after the cursor, then moves on to the next match.
+  match at or after the cursor, then moves on to the next match. With a
+  prefix argument N, apply N replacements instead of just one.
 
   This command, used together with :code:`visual-replace-next-match`
   and :code:`visual-replace-prev-match` is in many cases functionally
@@ -175,9 +177,10 @@ mode, from :code:`visual-mode-map`. By default, they're bound in
   One difference is that if you use :code:`\\#` in the replacement
   string, its value is always just 1. This is because each such
   replacement is executed separately.
-* :code:`visual-replace-undo` reverts one call to
-  :code:`visual-replace-apply-one`. This just executes :code:`undo`
-  in the original buffer.
+* :code:`visual-replace-undo` reverts the last call to
+  :code:`visual-replace-apply-one`. This just executes :code:`undo` in
+  the original buffer. With a prefix argument N, call undo N times
+  instead of just one.
 
 Keymaps
 -------
