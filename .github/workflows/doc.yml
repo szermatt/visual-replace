@@ -3,7 +3,7 @@ name: doc
 on:
   push:
     paths:
-      - '**.srt'
+      - '**.rst'
       - '.github/workflows/doc.yml'
 
 jobs:
