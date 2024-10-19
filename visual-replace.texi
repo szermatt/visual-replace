@@ -273,10 +273,11 @@ previous match, scrolling if necessary.
 @code{M-% a} applies a single replacement, to the match right under
 the cursor or following the cursor, then move on to the next match.
 This is an alternative to using the query mode for replacing only
-some matches.
+some matches. With a prefix argument N, apply N replacements.
 
 @item 
-@code{M-% u} reverts the last replacement that was applied.
+@code{M-% u} calls @code{undo} on the original buffer, to revert a
+previous replacement. With a prefix argument N, repeat undo N times.
 
 @item 
 As usual, @code{C-p} and @cite{C-n} go up and down the history, like on any prompt.
@@ -312,21 +313,21 @@ in the Emacs manual for details of the different modes listed above.
 @itemize *
 
 @item 
-@cite{visual-replace} is the main command that starts Visual Replace and
-then executes the search-and-replace. It can replace @cite{replace-string},
-@cite{query-replace}, @cite{replace-regexp} and @cite{query-replace-regexp}.
+@code{visual-replace} is the main command that starts Visual Replace and
+then executes the search-and-replace. It can replace @code{replace-string},
+@code{query-replace}, @code{replace-regexp} and @code{query-replace-regexp}.
 
 @item 
-@cite{visual-replace-thing-at-point} starts a visual replace session with
+@code{visual-replace-thing-at-point} starts a visual replace session with
 the symbol at point as text to replace.
 
 @item 
-@cite{visual-replace-selected} starts with the text within the current
+@code{visual-replace-selected} starts with the text within the current
 active region as text to replace.
 
 @item 
-@cite{visual-replace-from-isearch} switches from an active isearch
-session to @cite{visual-replace}, keeping the current search text and
+@code{visual-replace-from-isearch} switches from an active isearch
+session to @code{visual-replace}, keeping the current search text and
 settings, such as regexp mode. This is meant to be called while
 isearch is in progress, and bound to @code{isearch-mode-map}.
 @end itemize
@@ -337,6 +338,10 @@ isearch is in progress, and bound to @code{isearch-mode-map}.
 @geindex command; visual-replace-toggle-word
 @geindex command; visual-replace-toggle-case-fold
 @geindex command; visual-replace-toggle-lax-ws
+@geindex command; visual-replace-next-match
+@geindex command; visual-replace-prev-match
+@geindex command; visual-replace-apply-one
+@geindex command; visual-replace-undo
 
 The following commands are meant to be called while in Visual Replace
 mode, from @code{visual-mode-map}. By default, they’re bound in
@@ -346,46 +351,48 @@ mode, from @code{visual-mode-map}. By default, they’re bound in
 @itemize *
 
 @item 
-@cite{visual-replace-toggle-regexp} toggles regexp mode on and off.
+@code{visual-replace-toggle-regexp} toggles regexp mode on and off.
 
 @item 
-@cite{visual-replace-toggle-scope} changes the scope of the search.
+@code{visual-replace-toggle-scope} changes the scope of the search.
 
 @item 
-@cite{visual-replace-toggle-query} toggles the query mode on and off.
+@code{visual-replace-toggle-query} toggles the query mode on and off.
 
 @item 
-@cite{visual-replace-toggle-word} toggles the word mode on and off.
+@code{visual-replace-toggle-word} toggles the word mode on and off.
 
 @item 
-@cite{visual-replace-toggle-case-fold} toggles the case fold mode on and off.
+@code{visual-replace-toggle-case-fold} toggles the case fold mode on and off.
 
 @item 
-@cite{visual-replace-toggle-lax-ws} toggles the lax whitespace mode on and off.
+@code{visual-replace-toggle-lax-ws} toggles the lax whitespace mode on and off.
 
 @item 
-@cite{visual-replace-next-match} moves cursor to the next match
+@code{visual-replace-next-match} moves cursor to the next match
 
 @item 
-@cite{visual-replace-prev-match} moves cursor to the previous match
+@code{visual-replace-prev-match} moves cursor to the previous match
 
 @item 
-@cite{visual-replace-apply-one} applies a single replacement, to the
-match at or after the cursor, then moves on to the next match.
+@code{visual-replace-apply-one} applies a single replacement, to the
+match at or after the cursor, then moves on to the next match. With a
+prefix argument N, apply N replacements instead of just one.
 
-This command, used together with @cite{visual-replace-next-match} and
-@cite{visual-replace-prev-match} is in many cases functionally equivalent
-to using the query mode, but with a different interface that the
-possibility of changing the query as you go.
+This command, used together with @code{visual-replace-next-match}
+and @code{visual-replace-prev-match} is in many cases functionally
+equivalent to using the query mode, but with a different interface
+that the possibility of changing the query as you go.
 
 One difference is that if you use @code{\#} in the replacement
 string, its value is always just 1. This is because each such
 replacement is executed separately.
 
 @item 
-@cite{visual-replace-apply-undo} reverts one call to
-@cite{visual-replace-apply-one}. This just executes @cite{undo} in the
-original buffer.
+@code{visual-replace-undo} reverts the last call to
+@code{visual-replace-apply-one}. This just executes @code{undo} in
+the original buffer. With a prefix argument N, call undo N times
+instead of just one.
 @end itemize
 
 @node Keymaps,Hooks,Commands,Usage
