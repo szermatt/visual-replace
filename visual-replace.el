@@ -215,8 +215,8 @@ Inherits from `minibuffer-mode-map'.")
                 (if (eval-when-compile (>= emacs-major-version 29))
                     ;; not using #' to avoid by-compilation error,
                     ;; because of the version-specific availability.
-                    'visual-replace-apply-one-repeat)
-                #'visual-replace-apply-one)
+                    'visual-replace-apply-one-repeat
+                #'visual-replace-apply-one))
     (define-key map (kbd "u") #'visual-replace-undo)
     map)
   "Keyboard shortcuts specific to `visual-replace'.
