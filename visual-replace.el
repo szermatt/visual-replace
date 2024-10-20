@@ -139,16 +139,43 @@ has been defined."
   :group 'visual-replace)
 
 (defface visual-replace-replacement
-  '((t :inherit match))
+  '((t (:inherit (match))))
   "How to display the replacement string.
 
-This is the face that's used to show the replacement string, once a replacement
-has been defined."
+This is the face that's used to show the replacement string, once
+a replacement has been defined."
+  :group 'visual-replace)
+
+(defface visual-replace-delete-match-highlight
+  '((t (:weight bold :inherit (visual-replace-delete-match))))
+  "How to display the string to be replaced, in a highlighted match.
+
+This is the face that's used to show the replacement string when
+the pointer is currently inside the match."
+  :group 'visual-replace)
+
+(defface visual-replace-replacement-highlight
+  '((t (:weight bold :inherit (visual-replace-replacement))))
+  "How to display the replacement string, in a highlighted match.
+
+This is the face that's used to show the replacement string, when
+the pointer is currently inside the match."
   :group 'visual-replace)
 
 (defface visual-replace-region
   '((t :inherit region))
   "Highlight for the region in which replacements occur."
+  :group 'visual-replace)
+
+(defcustom visual-replace-highlight-match-at-point t
+  "If non-nil, highlight match at point in the preview.
+
+Visual replace normally the highlight match at point, to make it
+easier to see the current match when navigating with
+`visual-replace-next' and `visual-replace-prev'.
+
+Set this to nil to turn it off."
+  :type 'boolean
   :group 'visual-replace)
 
 (defvar visual-replace-mode-map
@@ -1071,11 +1098,23 @@ REPLACEMENT, if non-nil, is its replacement."
           (overlay-put ov 'face 'visual-replace-match)
 
         ;; show text and replacement, highlight if necessary
-        (overlay-put ov 'face 'visual-replace-delete-match)
-        (when replacement
-          (overlay-put
-           ov 'after-string
-           (propertize replacement 'face 'visual-replace-replacement))))
+        (let* ((highlight
+                (and visual-replace-highlight-match-at-point
+                     (>= (point) start)
+                     (< (point) end)))
+               (match-face
+                (if highlight
+                    'visual-replace-delete-match-highlight
+                  'visual-replace-delete-match))
+               (repl-face
+                (if highlight
+                    'visual-replace-replacement-highlight
+                  'visual-replace-replacement)))
+          (overlay-put ov 'face match-face)
+          (when replacement
+            (overlay-put
+             ov 'after-string
+             (propertize replacement 'face repl-face)))))
       ov)))
 
 (defun visual-replace--update-preview (&optional no-first-match)

@@ -118,6 +118,9 @@ This is meant to be called within `test-visual-replace-env`."
                 (interactive)
                 (setq quit-flag t)
                 (exit-minibuffer)))
+            (define-key visual-replace-mode-map (kbd "<down>") 'visual-replace-next-match)
+            (define-key visual-replace-mode-map (kbd "<up>") 'visual-replace-prev-match)
+
 
             ;; The binding for the first <F1> is taken from launch-map and
             ;; starts visual-replace-read, after, when running visual-replace-read,

@@ -740,4 +740,21 @@
    (read-only-mode)
    (should-error (visual-replace-read))))
 
+(ert-deftest test-visual-replace-preview-highlight-match-at-point ()
+  (test-visual-replace-env
+   (let ((visual-replace-highlight-match-at-point t))
+     (insert "hello, world, hello, hello!")
+     (goto-char (point-min))
+     (set-window-buffer (selected-window) (current-buffer))
+     (test-visual-replace-run "hel TAB hu <F1> _ <down> <F1> _ <up> F1 _ <F1> x" (visual-replace-read))
+     (should (equal (test-visual-replace-highlight-face
+                     (nth 0 test-visual-replace-snapshot) 'visual-replace-delete-match-highlight)
+                    "[hel]hulo, world, helhulo, helhulo!"))
+     (should (equal (test-visual-replace-highlight-face
+                     (nth 1 test-visual-replace-snapshot) 'visual-replace-delete-match-highlight)
+                    "helhulo, world, [hel]hulo, helhulo!"))
+     (should (equal (test-visual-replace-highlight-face
+                     (nth 0 test-visual-replace-snapshot) 'visual-replace-delete-match-highlight)
+                    "[hel]hulo, world, helhulo, helhulo!")))))
+
 ;;; visual-replace-test.el ends here
