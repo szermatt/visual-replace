@@ -340,6 +340,7 @@
                      (point-min) (point-max)))))))
 
 (ert-deftest test-visual-replace-jump-forward-to-first-match ()
+  (skip-unless (>= emacs-major-version 29))
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (let* ((snapshots)
@@ -376,6 +377,7 @@
        (should (equal 4 (line-number-at-pos (point))))))))
 
 (ert-deftest test-visual-replace-jump-backward-to-first-match ()
+  (skip-unless (>= emacs-major-version 29))
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (let* ((snapshots)
@@ -735,6 +737,7 @@
                      (point-min) (point-max)))))))
 
 (ert-deftest test-visual-replace-apply-one ()
+  (skip-unless (>= emacs-major-version 29))
   (test-visual-replace-env
    (dotimes (i 4)
      (insert (format "this is text %d\n" i)))
@@ -754,6 +757,7 @@
                      (point-min) (point-max)))))))
 
 (ert-deftest test-visual-replace-apply-multiple ()
+  (skip-unless (>= emacs-major-version 29))
   (test-visual-replace-env
    (dotimes (i 4)
      (insert (format "this is text %d\n" i)))
@@ -773,6 +777,7 @@
                      (point-min) (point-max)))))))
 
 (ert-deftest test-visual-replace-undo ()
+  (skip-unless (>= emacs-major-version 29))
   (test-visual-replace-env
    (dotimes (i 4)
      (insert (format "this is text %d\n" i)))
@@ -793,6 +798,7 @@
                      (point-min) (point-max)))))))
 
 (ert-deftest test-visual-replace-undo-multiple ()
+  (skip-unless (>= emacs-major-version 29))
   (test-visual-replace-env
    (dotimes (i 4)
      (insert (format "this is text %d\n" i)))
@@ -813,6 +819,7 @@
                      (point-min) (point-max)))))))
 
 (ert-deftest test-visual-replace-undo-everything ()
+  (skip-unless (>= emacs-major-version 29))
   (test-visual-replace-env
    (dotimes (i 4)
      (insert (format "this is text %d\n" i)))
@@ -834,6 +841,7 @@
                      (point-min) (point-max)))))))
 
 (ert-deftest test-visual-replace-apply-multiple-undo-once ()
+  (skip-unless (>= emacs-major-version 29))
   (test-visual-replace-env
    (dotimes (i 4)
      (insert (format "this is text %d\n" i)))
@@ -856,6 +864,7 @@
                      (point-min) (point-max)))))))
 
 (ert-deftest test-visual-replace-apply-undo-everything-then-redo ()
+  (skip-unless (>= emacs-major-version 29))
   (test-visual-replace-env
    (dotimes (i 4)
      (insert (format "this is text %d\n" i)))
@@ -875,6 +884,7 @@
                     (buffer-substring-no-properties
                      (point-min) (point-max)))))))
 
+(when (eval-when-compile (>= emacs-major-version 29))
 (ert-deftest test-visual-replace-apply-one-repeat ()
   (test-visual-replace-env
    (dotimes (i 4)
@@ -911,7 +921,6 @@
                     (buffer-substring-no-properties
                      (point-min) (point-max)))))))
 
-(when (eval-when-compile (>= emacs-major-version 29))
   (ert-deftest test-visual-replace-apply-one-repeat-continue ()
     (test-visual-replace-env
      (dotimes (i 4)
