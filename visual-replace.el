@@ -268,28 +268,6 @@ Not normally turned on manually."
     map)
   "Call `visual-replace-on-click' when a match is clicked.")
 
-;; Setup categories for the different states of match preview.
-;; This is used in visual-replace--overlay.
-
-(setplist 'visual-replace-match
-          '(face visual-replace-match))
-(setplist 'visual-replace-delete-match
-          `(face visual-replace-delete-match
-            help-echo "mouse-1: apply"
-            keymap ,visual-replace--on-click-map))
-(setplist 'visual-replace-delete-match-highlight
-          `(face visual-replace-delete-match-highlight
-            help-echo "mouse-1: apply"
-            keymap ,visual-replace--on-click-map))
-(setplist 'visual-replace-replacement
-          `(face visual-replace-replacement
-            help-echo "mouse-1: apply"
-            keymap ,visual-replace--on-click-map))
-(setplist 'visual-replace-replacement-highlight
-          `(face visual-replace-replacement-highlight
-            help-echo "mouse-1: apply"
-            keymap ,visual-replace--on-click-map))
-
 (defvar visual-replace-functions nil
   "Hooks that modify a `visual-replace-args' instance, just before execution.
 
@@ -1151,19 +1129,24 @@ REPLACEMENT, if non-nil, is its replacement."
                 (and visual-replace-highlight-match-at-point
                      (>= (point) start)
                      (< (point) end)))
-               (match-category
+               (match-face
                 (if highlight
                     'visual-replace-delete-match-highlight
                   'visual-replace-delete-match))
-               (repl-category
+               (repl-face
                 (if highlight
                     'visual-replace-replacement-highlight
                   'visual-replace-replacement)))
-          (overlay-put ov 'category match-category)
+          (overlay-put ov 'face match-face)
+          (overlay-put ov 'help-echo "mouse-1: apply")
+          (overlay-put ov 'keymap visual-replace--on-click-map)
           (when replacement
             (overlay-put
              ov 'after-string
-             (propertize replacement 'category repl-category)))))
+             (propertize replacement
+                         'face repl-face
+                         'help-echo "mouse-1: apply"
+                         'keymap visual-replace--on-click-map)))))
       ov)))
 
 (defun visual-replace--update-preview (&optional no-first-match)
