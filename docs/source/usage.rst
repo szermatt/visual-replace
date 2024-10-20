@@ -142,10 +142,10 @@ If you want to replace only *some* matches within the scope, you can:
 * navigate to the replacements you want to apply with :kbd:`<up>` and
   :kbd:`<down>`, the call :kbd:`M-% a` to apply one replacement.
 
-  This enters a mode that allows applying replacement with :kbd:`a`,
-  the last part of the key sequence, and also moving through the
-  matches with :kbd:`<down>` or :kbd:`<up>`. :kbd:`u` reverts the last
-  replacement.
+  On Emacs 29.1 or later, this enters a mode that allows applying
+  replacement with :kbd:`a`, the last part of the key sequence, and
+  also moving through the matches with :kbd:`<down>` or :kbd:`<up>`.
+  :kbd:`u` reverts the last replacement.
 
 .. _commands:
 
@@ -223,6 +223,8 @@ mode, from :code:`visual-mode-map`. By default, they're bound in
   Typing anything else deactivates the transient map.
 
   This can be configured by modifying the map :code:`visual-replace-transient-map`.
+
+  This command is available on Emacs 29.1 or later.
 
 * :code:`visual-replace-undo` reverts the last call to
   :code:`visual-replace-apply-one`. This just executes :code:`undo` in

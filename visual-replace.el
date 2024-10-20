@@ -211,7 +211,12 @@ Inherits from `minibuffer-mode-map'.")
     (define-key map (kbd "w") #'visual-replace-toggle-word)
     (define-key map (kbd "c") #'visual-replace-toggle-case-fold)
     (define-key map (kbd "s") #'visual-replace-toggle-lax-ws)
-    (define-key map (kbd "a") #'visual-replace-apply-one-repeat)
+    (define-key map (kbd "a")
+                (if (eval-when-compile (>= emacs-major-version 29))
+                    ;; not using #' to avoid by-compilation error,
+                    ;; because of the version-specific availability.
+                    'visual-replace-apply-one-repeat)
+                #'visual-replace-apply-one)
     (define-key map (kbd "u") #'visual-replace-undo)
     map)
   "Keyboard shortcuts specific to `visual-replace'.
@@ -258,10 +263,10 @@ Not normally turned on manually."
   :group 'visual-replace)
 
 (defvar visual-replace--on-click-map
-  "Call `visual-replace-on-click' when a match is clicked."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "<mouse-1>") 'visual-replace-on-click)
-    map))
+    map)
+  "Call `visual-replace-on-click' when a match is clicked.")
 
 ;; Setup categories for the different states of match preview.
 ;; This is used in visual-replace--overlay.
@@ -1380,8 +1385,9 @@ Also skips empty ranges."
     (goto-char pos)
     (current-column)))
 
-(defun visual-replace-apply-one-repeat (&optional num)
-  "Apply the replacement at or after point, then set a transient map.
+(when (eval-when-compile (>= emacs-major-version 29))
+  (defun visual-replace-apply-one-repeat (&optional num)
+    "Apply the replacement at or after point, then set a transient map.
 
 With a prefix argument NUM, repeat the replacement that many times.
 
@@ -1391,12 +1397,12 @@ triggered by M-% a, pressing a again replace the next match,
 pressing <down> allows skipping matches, pressing <up> allows
 going to a previous match. Anything else leaves the transient
 map."
-  (interactive "p")
-  (visual-replace-apply-one num)
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map visual-replace-transient-map)
-    (define-key map (vector last-input-event) #'visual-replace-apply-one)
-    (set-transient-map map t nil "Apply replacements: %k")))
+    (interactive "p")
+    (visual-replace-apply-one num)
+    (let ((map (make-sparse-keymap)))
+      (set-keymap-parent map visual-replace-transient-map)
+      (define-key map (vector last-input-event) #'visual-replace-apply-one)
+      (set-transient-map map t nil "Apply replacements: %k"))))
 
 (defun visual-replace-apply-one (&optional num)
   "Apply the replacement at or after point, when in preview mode.
@@ -1464,8 +1470,8 @@ A prefix argument serves as a repeat count for `undo'."
                 ;; Everything was undone including the marker, put it
                 ;; back.
                 (setq buffer-undo-list buffer-undo-rest)
-                (visual-replace--add-undo-marker)))))
-        (visual-replace--update-preview 'no-first-match))))
+                (visual-replace--add-undo-marker))))
+        (visual-replace--update-preview 'no-first-match)))))
 
 (defun visual-replace--marker (&rest _)
   "A no-op function, to hold the marker in an undo list.")
