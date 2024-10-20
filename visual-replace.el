@@ -220,6 +220,22 @@ This map is, by default, bound to the prefix that corresponds to
 the shortcut that was used to trigger `visual-replace'. It is
 Active while `visual-replace-read' is running on the minibuffer.")
 
+(defvar visual-replace-transient-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<down>") #'visual-replace-next-match)
+    (define-key map (kbd "<up>") #'visual-replace-prev-match)
+    (define-key map (kbd "u") #'visual-replace-undo)
+    map)
+  "Keyboard shortcuts installed by `visual-replace-apply-on-repeat'.
+
+The keys defined here are installed in a transient map installed after
+applying one replacement. This allows applying or skipping other replacements.
+
+Visual replace adds to this the last key of the key sequence used
+to call `visual-replace-apply-one-repeat', to easily repeat the command.
+
+To leave the map, type anything that's not on the map.")
+
 (define-minor-mode visual-replace-minibuffer-mode
   "Local minibuffer mode for `visual-replace'.
 
@@ -1378,9 +1394,8 @@ map."
   (interactive "p")
   (visual-replace-apply-one num)
   (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map visual-replace-transient-map)
     (define-key map (vector last-input-event) #'visual-replace-apply-one)
-    (define-key map (kbd "<down>") #'visual-replace-next-match)
-    (define-key map (kbd "<up>") #'visual-replace-prev-match)
     (set-transient-map map t nil "Apply replacements: %k")))
 
 (defun visual-replace-apply-one (&optional num)

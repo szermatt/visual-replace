@@ -144,7 +144,8 @@ If you want to replace only *some* matches within the scope, you can:
 
   This enters a mode that allows applying replacement with :kbd:`a`,
   the last part of the key sequence, and also moving through the
-  matches with :kbd:`<down>` or :kbd:`<up>`.
+  matches with :kbd:`<down>` or :kbd:`<up>`. :kbd:`u` reverts the last
+  replacement.
 
 .. _commands:
 
@@ -184,6 +185,7 @@ Commands
    pair: command; visual-replace-apply-one
    pair: command; visual-replace-apply-one-repeat
    pair: command; visual-replace-undo
+   pair: variable; visual-replace-transient-map
 
 The following commands are meant to be called while in Visual Replace
 mode, from :code:`visual-mode-map`. By default, they're bound in
@@ -216,7 +218,11 @@ mode, from :code:`visual-mode-map`. By default, they're bound in
 
     * going up the match previews with :kbd:`<up>`, which calls :code:`visual-replace-prev-match`
 
+    * undoing the last replacement with :kbd:`u`
+
   Typing anything else deactivates the transient map.
+
+  This can be configured by modifying the map :code:`visual-replace-transient-map`.
 
 * :code:`visual-replace-undo` reverts the last call to
   :code:`visual-replace-apply-one`. This just executes :code:`undo` in

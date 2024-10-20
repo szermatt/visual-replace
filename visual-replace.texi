@@ -340,7 +340,8 @@ navigate to the replacements you want to apply with @code{<up>} and
 
 This enters a mode that allows applying replacement with @code{a},
 the last part of the key sequence, and also moving through the
-matches with @code{<down>} or @code{<up>}.
+matches with @code{<down>} or @code{<up>}. @code{u} reverts the last
+replacement.
 @end itemize
 
 @node Commands,Keymaps,Single replacements,Usage
@@ -387,6 +388,7 @@ isearch is in progress, and bound to @code{isearch-mode-map}.
 @geindex command; visual-replace-apply-one
 @geindex command; visual-replace-apply-one-repeat
 @geindex command; visual-replace-undo
+@geindex variable; visual-replace-transient-map
 
 The following commands are meant to be called while in Visual Replace
 mode, from @code{visual-mode-map}. By default, they’re bound in
@@ -448,10 +450,15 @@ skipping matches with @code{<down>}, which calls @code{visual-replace-next-match
 
 @item 
 going up the match previews with @code{<up>}, which calls @code{visual-replace-prev-match}
+
+@item 
+undoing the last replacement with @code{u}
 @end itemize
 @end quotation
 
 Typing anything else deactivates the transient map.
+
+This can be configured by modifying the map @code{visual-replace-transient-map}.
 
 @item 
 @code{visual-replace-undo} reverts the last call to
