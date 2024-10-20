@@ -211,7 +211,7 @@ Inherits from `minibuffer-mode-map'.")
     (define-key map (kbd "w") #'visual-replace-toggle-word)
     (define-key map (kbd "c") #'visual-replace-toggle-case-fold)
     (define-key map (kbd "s") #'visual-replace-toggle-lax-ws)
-    (define-key map (kbd "a") #'visual-replace-apply-one)
+    (define-key map (kbd "a") #'visual-replace-apply-one-repeat)
     (define-key map (kbd "u") #'visual-replace-undo)
     map)
   "Keyboard shortcuts specific to `visual-replace'.
@@ -1364,8 +1364,27 @@ Also skips empty ranges."
     (goto-char pos)
     (current-column)))
 
+(defun visual-replace-apply-one-repeat (&optional num)
+  "Apply the replacement at or after point, then set a transient map.
+
+With a prefix argument NUM, repeat the replacement that many times.
+
+This command set a transient map that allows repeating the
+replacement by typing the last key, so if this command is
+triggered by M-% a, pressing a again replace the next match,
+pressing <down> allows skipping matches, pressing <up> allows
+going to a previous match. Anything else leaves the transient
+map."
+  (interactive "p")
+  (visual-replace-apply-one num)
+  (let ((map (make-sparse-keymap)))
+    (define-key map (vector last-input-event) #'visual-replace-apply-one)
+    (define-key map (kbd "<down>") #'visual-replace-next-match)
+    (define-key map (kbd "<up>") #'visual-replace-prev-match)
+    (set-transient-map map t nil "Apply replacements: %k")))
+
 (defun visual-replace-apply-one (&optional num)
-  "Apply the replacement at or following point, when in preview mode.
+  "Apply the replacement at or after point, when in preview mode.
 
 With a prefix argument NUM, repeat the replacement that many times."
   (interactive "p")

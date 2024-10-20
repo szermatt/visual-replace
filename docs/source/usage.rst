@@ -1,6 +1,9 @@
 Usage
 =====
 
+Calling Visual Replace
+----------------------
+
 Visual Replace needs to be bound to a key to be of any use.
 
 Choose a reasonably short key combination and bind
@@ -36,10 +39,14 @@ then uses whatever shortcut you've already installed.
 
 Once this is done, launch :code:`visual-replace` with the keybinding you chose.
 
-You'll see, something like the following in the minibuffer `Replace
-from point [...]: ┃ →`. The text before the arrow is the text to
-replace and the text after the arrow is the replacement. You can
-navigate back and forth with :kbd:`TAB` or by moving the cursor.
+Visual Replace Mode
+-------------------
+
+When Visual Replace is running, you'll see, something like the
+following in the minibuffer `Replace from point [...]: ┃ →`. The text
+before the arrow is the text to replace and the text after the arrow
+is the replacement. You can navigate back and forth with :kbd:`TAB` or
+by moving the cursor.
 
 See also the example below.
 
@@ -79,7 +86,9 @@ In Visual Replace mode:
 
 * :kbd:`M-% q` toggles query mode one and off, that is, it toggles
   between calling :code:`replace-string` and :code:`query-replace`.
-  You know this mode is on when a :code:`?` follows the arrow.
+  You know this mode is on when a :code:`?` follows the arrow. See
+  also :ref:`single` for an alternative way of replacing only some
+  matches.
 
 * :kbd:`M-% SPC` switches between different scopes: full buffer, from
   point, in region. The scope is indicated in the prompt.
@@ -100,8 +109,7 @@ In Visual Replace mode:
 
 * :kbd:`M-% a` applies a single replacement, to the match right under
   the cursor or following the cursor, then move on to the next match.
-  This is an alternative to using the query mode for replacing only
-  some matches. With a prefix argument N, apply N replacements.
+  With a prefix argument N, apply N replacements. See also :ref:`single`.
 
 * :kbd:`M-% u` calls :code:`undo` on the original buffer, to revert a
   previous replacement. With a prefix argument N, repeat undo N times.
@@ -116,6 +124,29 @@ continue where you left off next time by going up in the history.
 See `Search
 <https://www.gnu.org/software/emacs/manual/html_node/emacs/Search.html>`_
 in the Emacs manual for details of the different modes listed above.
+
+.. _single:
+
+Single replacements
+-------------------
+
+If you want to replace only *some* matches within the scope, you can:
+
+* use the :code:`query-replace` UI to go through all matches using
+  :kbd:`M-% q`, then typing :kbd:`RET` to enter Query Replace mode. `
+
+* in preview mode, click on the replacements you want to apply. You
+  can scroll the buffer as needed, normally or, from the minibufer
+  with :kbd:`<up>` and :kbd:`<down>`.
+
+* navigate to the replacements you want to apply with :kbd:`<up>` and
+  :kbd:`<down>`, the call :kbd:`M-% a` to apply one replacement.
+
+  This enters a mode that allows applying replacement with :kbd:`a`,
+  the last part of the key sequence, and also moving through the
+  matches with :kbd:`<down>` or :kbd:`<up>`.
+
+.. _commands:
 
 Commands
 --------
@@ -151,6 +182,7 @@ Commands
    pair: command; visual-replace-next-match
    pair: command; visual-replace-prev-match
    pair: command; visual-replace-apply-one
+   pair: command; visual-replace-apply-one-repeat
    pair: command; visual-replace-undo
 
 The following commands are meant to be called while in Visual Replace
@@ -173,10 +205,19 @@ mode, from :code:`visual-mode-map`. By default, they're bound in
   and :code:`visual-replace-prev-match` is in many cases functionally
   equivalent to using the query mode, but with a different interface
   that the possibility of changing the query as you go.
+* :code:`visual-replace-apply-one-repeat` executes
+  :code:`visual-replace-apply-one`, then install a transient map that
+  allows:
 
-  One difference is that if you use :code:`\\#` in the replacement
-  string, its value is always just 1. This is because each such
-  replacement is executed separately.
+    * repeating :code:`visual-replace-apply-one` by typing the last part
+      of the key sequence used to call :code:`visual-replace-apply-one-repeat`
+
+    * skipping matches with :kbd:`<down>`, which calls :code:`visual-replace-next-match`
+
+    * going up the match previews with :kbd:`<up>`, which calls :code:`visual-replace-prev-match`
+
+  Typing anything else deactivates the transient map.
+
 * :code:`visual-replace-undo` reverts the last call to
   :code:`visual-replace-apply-one`. This just executes :code:`undo` in
   the original buffer. With a prefix argument N, call undo N times
@@ -235,17 +276,21 @@ modify the regexp language.
 Limitations
 -----------
 
-Visual Replace avoids executing replacement in the whole buffer during
-preview; it just executes them in the parts of the buffer that are
-currently visible. This means that the preview can show incorrect
-replacement in some cases, such as when replacement uses `\\#`
-directly or within a `\\,` In such cases, the preview can be wrong but
-execution will be correct.
+* Visual Replace avoids executing replacement in the whole buffer
+  during preview; it just executes them in the parts of the buffer
+  that are currently visible. This means that the preview can show
+  incorrect replacement in some cases, such as when replacement uses
+  `\\#` directly or within a `\\,` In such cases, the preview can be
+  wrong but execution will be correct.
 
-Replacements that call stateful functions in `\\,` such as a function
-that increment an internal counter, will be executed too many times
-during preview, with unpredictable results.
+  Replacements that call stateful functions in `\\,` such as a
+  function that increment an internal counter, will be executed too
+  many times during preview, with unpredictable results.
 
-In all other cases, the preview should match what is eventually
-executed. If that's not the case, please :ref:`report an issue
-<reporting>`.
+  In all other cases, the preview should match what is eventually
+  executed. If that's not the case, please :ref:`report an issue
+  <reporting>`.
+
+* If you use :code:`visual-replace-apply-one` to replace single
+  matches, :code:`\\#` in the replacement is always 1, because single
+  matches are applied separately.

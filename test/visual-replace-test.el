@@ -875,4 +875,60 @@
                     (buffer-substring-no-properties
                      (point-min) (point-max)))))))
 
+(ert-deftest test-visual-replace-apply-one-repeat ()
+  (test-visual-replace-env
+   (dotimes (i 4)
+     (insert (format "this is text %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (define-key visual-replace-mode-map (kbd "<F1> a") #'visual-replace-apply-one-repeat)
+     (visual-replace-ert-simulate-keys (kbd "text TAB r e p l <F1> a a a C-g")
+       (condition-case _
+           (call-interactively 'visual-replace)
+         (minibuffer-quit)))
+     (should (equal (concat "this is repl 0\n"
+                            "this is repl 1\n"
+                            "this is repl 2\n"
+                            "this is text 3\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
+(ert-deftest test-visual-replace-apply-one-repeat-up-down ()
+  (test-visual-replace-env
+   (dotimes (i 4)
+     (insert (format "this is text %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (define-key visual-replace-mode-map (kbd "<F1> a") #'visual-replace-apply-one-repeat)
+     (visual-replace-ert-simulate-keys (kbd "text TAB r e p l <F1> a <down> <down> <up> a C-g")
+       (condition-case _
+           (call-interactively 'visual-replace)
+         (minibuffer-quit)))
+     (should (equal (concat "this is repl 0\n"
+                            "this is text 1\n"
+                            "this is repl 2\n"
+                            "this is text 3\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
+(ert-deftest test-visual-replace-apply-one-repeat-continue ()
+  (test-visual-replace-env
+   (dotimes (i 4)
+     (insert (format "this is text %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+     (define-key visual-replace-mode-map (kbd "<F1> a") #'visual-replace-apply-one-repeat)
+     ;; Anything but a/<up>/<down> ends the transient map, so just
+     ;; typing "lace" leaves the mode.
+     (visual-replace-ert-simulate-keys (kbd "text TAB r e p <F1> a a l a c e RET")
+       (condition-case _
+           (call-interactively 'visual-replace)
+         (minibuffer-quit)))
+     (should (equal (concat "this is rep 0\n"
+                            "this is rep 1\n"
+                            "this is replace 2\n"
+                            "this is replace 3\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
 ;;; visual-replace-test.el ends here

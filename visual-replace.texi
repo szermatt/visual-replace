@@ -149,6 +149,22 @@ up-to-date manually as well
 @section Usage
 
 
+@menu
+* Calling Visual Replace:: 
+* Visual Replace Mode:: 
+* Single replacements:: 
+* Commands:: 
+* Keymaps:: 
+* Hooks:: 
+* Limitations:: 
+
+@end menu
+
+@node Calling Visual Replace,Visual Replace Mode,,Usage
+@anchor{usage calling-visual-replace}@anchor{8}
+@subsection Calling Visual Replace
+
+
 Visual Replace needs to be bound to a key to be of any use.
 
 Choose a reasonably short key combination and bind
@@ -184,9 +200,16 @@ then uses whatever shortcut you’ve already installed.
 
 Once this is done, launch @code{visual-replace} with the keybinding you chose.
 
-You’ll see, something like the following in the minibuffer @cite{Replace from point […]: ┃ →}. The text before the arrow is the text to
-replace and the text after the arrow is the replacement. You can
-navigate back and forth with @code{TAB} or by moving the cursor.
+@node Visual Replace Mode,Single replacements,Calling Visual Replace,Usage
+@anchor{usage visual-replace-mode}@anchor{9}
+@subsection Visual Replace Mode
+
+
+When Visual Replace is running, you’ll see, something like the
+following in the minibuffer @cite{Replace from point […]: ┃ →}. The text
+before the arrow is the text to replace and the text after the arrow
+is the replacement. You can navigate back and forth with @code{TAB} or
+by moving the cursor.
 
 See also the example below.
 
@@ -245,7 +268,9 @@ on when a @code{.*} follows the arrow.
 @item 
 @code{M-% q} toggles query mode one and off, that is, it toggles
 between calling @code{replace-string} and @code{query-replace}.
-You know this mode is on when a @code{?} follows the arrow.
+You know this mode is on when a @code{?} follows the arrow. See
+also @ref{a,,Single replacements} for an alternative way of replacing only some
+matches.
 
 @item 
 @code{M-% SPC} switches between different scopes: full buffer, from
@@ -272,8 +297,7 @@ previous match, scrolling if necessary.
 @item 
 @code{M-% a} applies a single replacement, to the match right under
 the cursor or following the cursor, then move on to the next match.
-This is an alternative to using the query mode for replacing only
-some matches. With a prefix argument N, apply N replacements.
+With a prefix argument N, apply N replacements. See also @ref{a,,Single replacements}.
 
 @item 
 @code{M-% u} calls @code{undo} on the original buffer, to revert a
@@ -291,16 +315,36 @@ continue where you left off next time by going up in the history.
 See Search@footnote{https://www.gnu.org/software/emacs/manual/html_node/emacs/Search.html}
 in the Emacs manual for details of the different modes listed above.
 
-@menu
-* Commands:: 
-* Keymaps:: 
-* Hooks:: 
-* Limitations:: 
+@node Single replacements,Commands,Visual Replace Mode,Usage
+@anchor{usage single}@anchor{a}@anchor{usage single-replacements}@anchor{b}
+@subsection Single replacements
 
-@end menu
 
-@node Commands,Keymaps,,Usage
-@anchor{usage commands}@anchor{8}
+If you want to replace only `some' matches within the scope, you can:
+
+
+@itemize *
+
+@item 
+use the @code{query-replace} UI to go through all matches using
+@code{M-% q}, then typing @code{RET} to enter Query Replace mode. `
+
+@item 
+in preview mode, click on the replacements you want to apply. You
+can scroll the buffer as needed, normally or, from the minibufer
+with @code{<up>} and @code{<down>}.
+
+@item 
+navigate to the replacements you want to apply with @code{<up>} and
+@code{<down>}, the call @code{M-% a} to apply one replacement.
+
+This enters a mode that allows applying replacement with @code{a},
+the last part of the key sequence, and also moving through the
+matches with @code{<down>} or @code{<up>}.
+@end itemize
+
+@node Commands,Keymaps,Single replacements,Usage
+@anchor{usage commands}@anchor{c}@anchor{usage id1}@anchor{d}
 @subsection Commands
 
 
@@ -341,6 +385,7 @@ isearch is in progress, and bound to @code{isearch-mode-map}.
 @geindex command; visual-replace-next-match
 @geindex command; visual-replace-prev-match
 @geindex command; visual-replace-apply-one
+@geindex command; visual-replace-apply-one-repeat
 @geindex command; visual-replace-undo
 
 The following commands are meant to be called while in Visual Replace
@@ -384,9 +429,29 @@ and @code{visual-replace-prev-match} is in many cases functionally
 equivalent to using the query mode, but with a different interface
 that the possibility of changing the query as you go.
 
-One difference is that if you use @code{\#} in the replacement
-string, its value is always just 1. This is because each such
-replacement is executed separately.
+@item 
+@code{visual-replace-apply-one-repeat} executes
+@code{visual-replace-apply-one}, then install a transient map that
+allows:
+
+@quotation
+
+
+@itemize *
+
+@item 
+repeating @code{visual-replace-apply-one} by typing the last part
+of the key sequence used to call @code{visual-replace-apply-one-repeat}
+
+@item 
+skipping matches with @code{<down>}, which calls @code{visual-replace-next-match}
+
+@item 
+going up the match previews with @code{<up>}, which calls @code{visual-replace-prev-match}
+@end itemize
+@end quotation
+
+Typing anything else deactivates the transient map.
 
 @item 
 @code{visual-replace-undo} reverts the last call to
@@ -396,7 +461,7 @@ instead of just one.
 @end itemize
 
 @node Keymaps,Hooks,Commands,Usage
-@anchor{usage keymaps}@anchor{9}
+@anchor{usage keymaps}@anchor{e}
 @subsection Keymaps
 
 
@@ -430,7 +495,7 @@ regexp mode using either @code{C-l r} or @code{C-r}.
 @end example
 
 @node Hooks,Limitations,Keymaps,Usage
-@anchor{usage hooks}@anchor{a}
+@anchor{usage hooks}@anchor{f}
 @subsection Hooks
 
 
@@ -448,26 +513,36 @@ can modify. You can use it to customize the behavior of the search or
 modify the regexp language.
 
 @node Limitations,,Hooks,Usage
-@anchor{usage limitations}@anchor{b}
+@anchor{usage limitations}@anchor{10}
 @subsection Limitations
 
 
-Visual Replace avoids executing replacement in the whole buffer during
-preview; it just executes them in the parts of the buffer that are
-currently visible. This means that the preview can show incorrect
-replacement in some cases, such as when replacement uses @cite{\#}
-directly or within a @cite{\@comma{}} In such cases, the preview can be wrong but
-execution will be correct.
 
-Replacements that call stateful functions in @cite{\@comma{}} such as a function
-that increment an internal counter, will be executed too many times
-during preview, with unpredictable results.
+@itemize *
+
+@item 
+Visual Replace avoids executing replacement in the whole buffer
+during preview; it just executes them in the parts of the buffer
+that are currently visible. This means that the preview can show
+incorrect replacement in some cases, such as when replacement uses
+@cite{\#} directly or within a @cite{\@comma{}} In such cases, the preview can be
+wrong but execution will be correct.
+
+Replacements that call stateful functions in @cite{\@comma{}} such as a
+function that increment an internal counter, will be executed too
+many times during preview, with unpredictable results.
 
 In all other cases, the preview should match what is eventually
-executed. If that’s not the case, please @ref{c,,report an issue}.
+executed. If that’s not the case, please @ref{11,,report an issue}.
+
+@item 
+If you use @code{visual-replace-apply-one} to replace single
+matches, @code{\#} in the replacement is always 1, because single
+matches are applied separately.
+@end itemize
 
 @node Contributing,,Usage,Contents
-@anchor{contrib doc}@anchor{d}@anchor{contrib contributing}@anchor{e}
+@anchor{contrib doc}@anchor{12}@anchor{contrib contributing}@anchor{13}
 @section Contributing
 
 
@@ -481,7 +556,7 @@ executed. If that’s not the case, please @ref{c,,report an issue}.
 @end menu
 
 @node Reporting issues,Suggesting features,,Contributing
-@anchor{contrib reporting}@anchor{c}@anchor{contrib reporting-issues}@anchor{f}
+@anchor{contrib reporting}@anchor{11}@anchor{contrib reporting-issues}@anchor{14}
 @subsection Reporting issues
 
 
@@ -524,21 +599,21 @@ executing it and attach that to the issue.
 @end cartouche
 
 @node Suggesting features,Asking questions,Reporting issues,Contributing
-@anchor{contrib issue-tracker}@anchor{10}@anchor{contrib suggesting-features}@anchor{11}
+@anchor{contrib issue-tracker}@anchor{15}@anchor{contrib suggesting-features}@anchor{16}
 @subsection Suggesting features
 
 
 Please add feature suggestions to the Issue Tracker@footnote{https://github.com/szermatt/visual-replace/issues}.
 
 @node Asking questions,Code contributions,Suggesting features,Contributing
-@anchor{contrib asking-questions}@anchor{12}
+@anchor{contrib asking-questions}@anchor{17}
 @subsection Asking questions
 
 
 Open an issue on the Issue Tracker@footnote{https://github.com/szermatt/visual-replace/issues} with your question.
 
 @node Code contributions,Documentation contributions,Asking questions,Contributing
-@anchor{contrib code-contributions}@anchor{13}
+@anchor{contrib code-contributions}@anchor{18}
 @subsection Code contributions
 
 
@@ -556,7 +631,7 @@ tests passing reliably when run using @code{eldev test} is what
 matters.
 
 @node Documentation contributions,,Code contributions,Contributing
-@anchor{contrib documentation-contributions}@anchor{14}@anchor{contrib eldev}@anchor{15}
+@anchor{contrib documentation-contributions}@anchor{19}@anchor{contrib eldev}@anchor{1a}
 @subsection Documentation contributions
 
 
