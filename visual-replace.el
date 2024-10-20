@@ -178,6 +178,17 @@ Set this to nil to turn it off."
   :type 'boolean
   :group 'visual-replace)
 
+(setplist 'visual-replace-match
+          '(face visual-replace-match))
+(setplist 'visual-replace-delete-match
+          '(face visual-replace-delete-match))
+(setplist 'visual-replace-delete-match-highlight
+          '(face visual-replace-delete-match-highlight))
+(setplist 'visual-replace-replacement
+          '(face visual-replace-replacement))
+(setplist 'visual-replace-replacement-highlight
+          '(face visual-replace-replacement-highlight))
+
 (defvar visual-replace-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap isearch-toggle-regexp] #'visual-replace-toggle-regexp)
@@ -1102,19 +1113,19 @@ REPLACEMENT, if non-nil, is its replacement."
                 (and visual-replace-highlight-match-at-point
                      (>= (point) start)
                      (< (point) end)))
-               (match-face
+               (match-category
                 (if highlight
                     'visual-replace-delete-match-highlight
                   'visual-replace-delete-match))
-               (repl-face
+               (repl-category
                 (if highlight
                     'visual-replace-replacement-highlight
                   'visual-replace-replacement)))
-          (overlay-put ov 'face match-face)
+          (overlay-put ov 'category match-category)
           (when replacement
             (overlay-put
              ov 'after-string
-             (propertize replacement 'face repl-face)))))
+             (propertize replacement 'category repl-category)))))
       ov)))
 
 (defun visual-replace--update-preview (&optional no-first-match)
