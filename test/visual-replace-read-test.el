@@ -615,7 +615,7 @@
   (test-visual-replace-env
    (insert "hello, world, hello, hello!")
    (goto-char (point-min))
-   (display-buffer (current-buffer))
+   (set-window-buffer (selected-window) (current-buffer))
    (test-visual-replace-run "hel <F1> _ l <F1> _ <F1> x" (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
                    (nth 0 test-visual-replace-snapshot) 'visual-replace-match)
@@ -628,7 +628,7 @@
   (test-visual-replace-env
    (insert "Hello, world, hello, heLLO!")
    (goto-char (point-min))
-   (display-buffer (current-buffer))
+   (set-window-buffer (selected-window) (current-buffer))
    (test-visual-replace-run "hello <F1> _ <F1> c <F1> _ <F1> x" (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
                    (nth 0 test-visual-replace-snapshot) 'visual-replace-match)
@@ -641,7 +641,7 @@
   (test-visual-replace-env
    (insert "Hello, world, hello, HELLO!")
    (goto-char (point-min))
-   (display-buffer (current-buffer))
+   (set-window-buffer (selected-window) (current-buffer))
    (test-visual-replace-run "HELLO <F1> _ <F1> c <F1> _ <F1> x" (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
                    (nth 0 test-visual-replace-snapshot) 'visual-replace-match)
@@ -654,7 +654,7 @@
   (test-visual-replace-env
    (insert "hello, world, hello, hello!")
    (goto-char (point-min))
-   (display-buffer (current-buffer))
+   (set-window-buffer (selected-window) (current-buffer))
    (test-visual-replace-run "hell TAB <F1> _ <F1> x" (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
                    (car test-visual-replace-snapshot) 'visual-replace-delete-match)
@@ -664,7 +664,7 @@
   (test-visual-replace-env
    (insert "hello, world, hello, hello!")
    (goto-char (point-min))
-   (display-buffer (current-buffer))
+   (set-window-buffer (selected-window) (current-buffer))
    (test-visual-replace-run "hell TAB hul <F1> _ <F1> x" (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
                    (car test-visual-replace-snapshot) 'visual-replace-delete-match)
@@ -677,7 +677,7 @@
   (test-visual-replace-env
    (insert "hello, world, hello, hello!")
    (goto-char (point-min))
-   (display-buffer (current-buffer))
+   (set-window-buffer (selected-window) (current-buffer))
    (test-visual-replace-run "hel+ <F1> r <F1> _ <F1> x" (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
                    (car test-visual-replace-snapshot) 'visual-replace-delete-match)
@@ -687,7 +687,7 @@
   (test-visual-replace-env
    (insert "hello   world!")
    (goto-char (point-min))
-   (display-buffer (current-buffer))
+   (set-window-buffer (selected-window) (current-buffer))
    (test-visual-replace-run "hello SPC world <F1> l <F1> _ <F1> x" (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
                    (car test-visual-replace-snapshot) 'visual-replace-delete-match)
@@ -697,7 +697,7 @@
   (test-visual-replace-env
    (insert "hello, world, hello, hello!")
    (goto-char (point-min))
-   (display-buffer (current-buffer))
+   (set-window-buffer (selected-window) (current-buffer))
    ;; This is just a smoke test. \b\b\b matches empty strings, which
    ;; cannot be displayed and might cause some implementations to
    ;; enter an infinite loop.
@@ -707,7 +707,7 @@
   (test-visual-replace-env
    (insert "hello, world, hello")
    (goto-char (point-min))
-   (display-buffer (current-buffer))
+   (set-window-buffer (selected-window) (current-buffer))
    (test-visual-replace-run "h\\(el+\\) TAB \\#\\,(upcase SPC \\1) <F1> r <F1> _ <F1> x"
                             (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
@@ -724,7 +724,7 @@
      (insert ", hello!")
      (set-text-properties start-read-only end-read-only '(read-only t)))
    (goto-char (point-min))
-   (display-buffer (current-buffer))
+   (set-window-buffer (selected-window) (current-buffer))
    (test-visual-replace-run "hel TAB hol <F1> _ RET"
                         (call-interactively 'visual-replace))
    (should (equal (test-visual-replace-highlight-face
