@@ -1485,7 +1485,7 @@ beforehand."
           buffer-undo-list)))
 
 (defun visual-replace--find-undo-marker-cell ()
-  "Find the marker inserted by `visual-replace--add-undo-marker.'
+  "Find the marker inserted by `visual-replace--add-undo-marker'.
 
 This returns a cell containing a marker with the same value of
 `visual-replace--undo-marker', that is, the marker must have been
@@ -1507,6 +1507,10 @@ is disabled."
 
 (defun visual-replace-on-click (ev)
   "React to a click on a match preview.
+
+EV is the event that triggered the command. It must be a mouse
+event containing a buffer position for this command to work
+properly.
 
 This calls `visual-replace-apply-one' for the match that was
 clicked."
