@@ -178,17 +178,6 @@ Set this to nil to turn it off."
   :type 'boolean
   :group 'visual-replace)
 
-(setplist 'visual-replace-match
-          '(face visual-replace-match))
-(setplist 'visual-replace-delete-match
-          '(face visual-replace-delete-match))
-(setplist 'visual-replace-delete-match-highlight
-          '(face visual-replace-delete-match-highlight))
-(setplist 'visual-replace-replacement
-          '(face visual-replace-replacement))
-(setplist 'visual-replace-replacement-highlight
-          '(face visual-replace-replacement-highlight))
-
 (defvar visual-replace-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap isearch-toggle-regexp] #'visual-replace-toggle-regexp)
@@ -251,6 +240,34 @@ Not normally turned on manually."
   :keymap visual-replace-global-mode-map
   :global t
   :group 'visual-replace)
+
+(defvar visual-replace--on-click-map
+  "Call `visual-replace-on-click' when a match is clicked."
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "<mouse-1>") 'visual-replace-on-click)
+    map))
+
+;; Setup categories for the different states of match preview.
+;; This is used in visual-replace--overlay.
+
+(setplist 'visual-replace-match
+          '(face visual-replace-match))
+(setplist 'visual-replace-delete-match
+          `(face visual-replace-delete-match
+            help-echo "mouse-1: apply"
+            keymap ,visual-replace--on-click-map))
+(setplist 'visual-replace-delete-match-highlight
+          `(face visual-replace-delete-match-highlight
+            help-echo "mouse-1: apply"
+            keymap ,visual-replace--on-click-map))
+(setplist 'visual-replace-replacement
+          `(face visual-replace-replacement
+            help-echo "mouse-1: apply"
+            keymap ,visual-replace--on-click-map))
+(setplist 'visual-replace-replacement-highlight
+          `(face visual-replace-replacement-highlight
+            help-echo "mouse-1: apply"
+            keymap ,visual-replace--on-click-map))
 
 (defvar visual-replace-functions nil
   "Hooks that modify a `visual-replace-args' instance, just before execution.
@@ -1453,6 +1470,29 @@ is disabled."
                                ,visual-replace--undo-marker))))
         (setq rest (cdr rest)))
       rest)))
+
+(defun visual-replace-on-click (ev)
+  "React to a click on a match preview.
+
+This calls `visual-replace-apply-one' for the match that was
+clicked."
+  (interactive "e")
+  (let* ((pos (posn-point (nth 1 ev)))
+         (ov (cl-find-if
+              (lambda (ov)
+                (overlay-get ov 'visual-replace))
+              (append (overlays-at pos)
+                      ;; if clicked on the after-string, the pos
+                      ;; might be just after the match overlay.
+                      (overlays-at (1- pos))))))
+    (unless ov
+      (error "No match at this position"))
+    (save-excursion
+      (goto-char (overlay-start ov))
+      (visual-replace-apply-one))
+    (select-window
+     (or (active-minibuffer-window)
+         (minibuffer-window)))))
 
 (provide 'visual-replace)
 
