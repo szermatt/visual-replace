@@ -367,7 +367,10 @@
        (should (equal 1 (length snapshots)))
 
        ;; The replacement was highlighted, even though it required scrolling the window.
-       (should (string-match (regexp-quote (format "{text %d.repl}" to-replace)) (car snapshots)))
+       (should (string-match
+                (regexp-quote (format "[text %d.]repl" to-replace))
+                (test-visual-replace-highlight-face
+                 (car snapshots) 'visual-replace-delete-match)))
 
        ;; We're now back at the original position.
        (should (equal 4 (line-number-at-pos (point))))))))
@@ -400,7 +403,9 @@
        (should (equal 1 (length snapshots)))
 
        ;; The replacement was highlighted, even though it required scrolling the window.
-       (should (string-match (regexp-quote "{text 5.repl}") (car snapshots)))
+       (should (string-match (regexp-quote "[text 5.]repl")
+                             (test-visual-replace-highlight-face
+                              (car snapshots) 'visual-replace-delete-match)))
 
        ;; We're now back at the original position.
        (should (equal (- (line-number-at-pos (point-max)) 3) (line-number-at-pos (point))))))))

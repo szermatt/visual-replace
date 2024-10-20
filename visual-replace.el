@@ -1061,35 +1061,22 @@ Returned ranges are sorted and non-overlapping."
 
 The text between START and END is the text being replacement.
 REPLACEMENT, if non-nil, is its replacement."
-  (let ((ov (make-overlay start end)))
-    (overlay-put ov 'priority 1000)
-    (overlay-put ov 'visual-replace t)
-    (cond
+  (unless (text-property-not-all start end 'read-only nil)
+    (let ((ov (make-overlay start end)))
+      (overlay-put ov 'priority 1000)
+      (overlay-put ov 'visual-replace t)
+      (overlay-put ov 'visual-replace-replacement replacement)
+      (if (null replacement)
+          ;; no replacement yet
+          (overlay-put ov 'face 'visual-replace-match)
 
-     ;; skip read-only text
-     ((text-property-not-all start end 'read-only nil))
-
-     ;; no replacement
-     ((null replacement)
-      (overlay-put ov 'face 'visual-replace-match))
-
-     ;; replaced with the empty string
-     ((zerop (length replacement))
-      (overlay-put ov 'face 'visual-replace-delete-match))
-
-     ;; show text and replacement
-     (t (let ((match-len (- end start))
-              (display-string
-               (concat (buffer-substring start end)
-                       (or replacement ""))))
-          (put-text-property
-           0 match-len
-           'face 'visual-replace-delete-match display-string)
-          (put-text-property
-           match-len (length display-string)
-           'face 'visual-replace-replacement display-string)
-          (overlay-put ov 'display display-string))))
-    ov))
+        ;; show text and replacement, highlight if necessary
+        (overlay-put ov 'face 'visual-replace-delete-match)
+        (when replacement
+          (overlay-put
+           ov 'after-string
+           (propertize replacement 'face 'visual-replace-replacement))))
+      ov)))
 
 (defun visual-replace--update-preview (&optional no-first-match)
   "Update the preview to reflect the content of the minibuffer.
