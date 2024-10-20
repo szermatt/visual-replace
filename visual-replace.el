@@ -1273,9 +1273,9 @@ Also skips empty ranges."
                         (visual-replace--scope-ranges)
                         `((,(1+ (point)) . ,(point-max))))
                        nil 1))))
-      (if match
-          (goto-char (car match))
-        (error "No next match")))))
+      (unless match
+        (error "No next match"))
+      (goto-char (car match)))))
 
 (defun visual-replace-prev-match ()
   "Move the point to the previous match."
@@ -1287,9 +1287,9 @@ Also skips empty ranges."
                         (visual-replace--scope-ranges)
                         `((,(point-min) . ,(point))))
                        nil 1 'backward))))
-      (if match
-          (goto-char (car match))
-        (error "No previous match")))))
+      (unless match
+        (error "No previous match"))
+      (goto-char (car match)))))
 
 (defun visual-replace--col (pos)
   "Return the column at POS."
