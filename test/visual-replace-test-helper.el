@@ -273,8 +273,9 @@ text properties."
   (save-excursion
     (let ((last (point-min))
           (sections)
-          (ov-props))
-      (dolist (ov (car (overlay-lists)))
+          (ov-props)
+          (ov-lists (overlay-lists)))
+      (dolist (ov (append (car ov-lists) (cdr ov-lists)))
         (let ((props (overlay-properties ov)))
           (while props
             (cl-pushnew (car props) ov-props)

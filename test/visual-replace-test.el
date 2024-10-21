@@ -340,7 +340,6 @@
                      (point-min) (point-max)))))))
 
 (ert-deftest test-visual-replace-jump-forward-to-first-match ()
-  (skip-unless (>= emacs-major-version 29))
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (let* ((snapshots)
@@ -377,7 +376,6 @@
        (should (equal 4 (line-number-at-pos (point))))))))
 
 (ert-deftest test-visual-replace-jump-backward-to-first-match ()
-  (skip-unless (>= emacs-major-version 29))
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (let* ((snapshots)
