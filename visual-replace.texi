@@ -331,7 +331,7 @@ use the @code{query-replace} UI to go through all matches using
 
 @item 
 in preview mode, click on the replacements you want to apply. You
-can scroll the buffer as needed, normally or, from the minibufer
+can scroll the buffer as needed, normally or, from the minibuffer
 with @code{<up>} and @code{<down>}.
 
 @item 

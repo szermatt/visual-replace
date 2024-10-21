@@ -136,7 +136,7 @@ If you want to replace only *some* matches within the scope, you can:
   :kbd:`M-% q`, then typing :kbd:`RET` to enter Query Replace mode. `
 
 * in preview mode, click on the replacements you want to apply. You
-  can scroll the buffer as needed, normally or, from the minibufer
+  can scroll the buffer as needed, normally or, from the minibuffer
   with :kbd:`<up>` and :kbd:`<down>`.
 
 * navigate to the replacements you want to apply with :kbd:`<up>` and
