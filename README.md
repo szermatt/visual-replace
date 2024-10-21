@@ -19,6 +19,9 @@ The main improvements are:
  * You can see what is going to be modified as you edit the command
    arguments.
 
+ * You can go through the replacements and apply only some of them,
+   using keyboard shortcuts, or by clicking on the preview.
+
 Visual Replace is only an interface for the existing query and 
 replace  mechanisms built into Emacs, that is, the actual 
 replacements are always done by the standard Emacs commands.
