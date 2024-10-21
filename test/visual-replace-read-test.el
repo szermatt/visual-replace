@@ -757,4 +757,99 @@
                      (nth 0 test-visual-replace-snapshot) 'visual-replace-delete-match-highlight)
                     "[hel]hulo, world, helhulo, helhulo!")))))
 
+(ert-deftest test-visual-replace-read-apply-one ()
+  (test-visual-replace-env
+   (insert "Fee fi fo fum!")
+   (goto-char (point-min))
+   (set-window-buffer (selected-window) (current-buffer))
+   (test-visual-replace-run
+    "f TAB l <F1> a <F1> _ <down> <F1> a <F1> a <F1> _ <F1> x"
+    (visual-replace-read))
+   (should (equal (nth 0 test-visual-replace-snapshot)
+                  "Lee fi fo fum!"))
+   (should (equal (nth 1 test-visual-replace-snapshot)
+                  "Lee fi lo lum!"))))
+
+(ert-deftest test-visual-replace-read-apply-multiple ()
+  (test-visual-replace-env
+   (insert "Fee fi fo fum!")
+   (goto-char (point-min))
+   (set-window-buffer (selected-window) (current-buffer))
+   (test-visual-replace-run
+    "f TAB l ESC 3 <F1> a <F1> _ <F1> x"
+    (visual-replace-read))
+   (should (equal (nth 0 test-visual-replace-snapshot)
+                  "Lee li lo fum!"))))
+
+(ert-deftest test-visual-replace-read-undo ()
+  (test-visual-replace-env
+   (insert "Fee fi fo fum!")
+   (goto-char (point-min))
+   (set-window-buffer (selected-window) (current-buffer))
+   (test-visual-replace-run
+    "f TAB l <F1> a <F1> a <F1> u <F1> _ <F1> x"
+    (visual-replace-read))
+   (should (equal (car test-visual-replace-snapshot)
+                  "Lee fi fo fum!"))))
+
+(ert-deftest test-visual-replace-read-undo-further ()
+  (test-visual-replace-env
+   (insert "Fee fi fo fum!")
+   (goto-char (point-min))
+   (set-window-buffer (selected-window) (current-buffer))
+   (test-visual-replace-run
+    "f TAB l <F1> a <F1> a <F1> u <F1> u <F1> _ <F1> x"
+    (visual-replace-read))
+   (should (equal (car test-visual-replace-snapshot)
+                  "Fee fi fo fum!"))))
+
+(ert-deftest test-visual-replace-read-undo-multiple ()
+  (test-visual-replace-env
+   (insert "Fee fi fo fum!")
+   (goto-char (point-min))
+   (set-window-buffer (selected-window) (current-buffer))
+   (test-visual-replace-run
+    "f TAB l <F1> a <F1> a <F1> a ESC 2 <F1> u <F1> _ <F1> x"
+    (visual-replace-read))
+   (should (equal (car test-visual-replace-snapshot)
+                  "Lee fi fo fum!"))))
+
+(ert-deftest test-visual-replace-read-undo-everything ()
+  (test-visual-replace-env
+   (insert "Fee fi fo fum!")
+   (goto-char (point-min))
+   (set-window-buffer (selected-window) (current-buffer))
+   (test-visual-replace-run
+    "f TAB l <F1> a <F1> a <F1> a <F1> a ESC 1000 <F1> u <F1> _ <F1> x"
+    (visual-replace-read))
+   ;; Undo should not have reverted past visual-replace; the text should still be there.
+   (should (equal (car test-visual-replace-snapshot)
+                  "Fee fi fo fum!"))))
+
+(ert-deftest test-visual-replace-read-apply-multiple-undo-once ()
+  (test-visual-replace-env
+   (insert "Fee fi fo fum!")
+   (goto-char (point-min))
+   (set-window-buffer (selected-window) (current-buffer))
+   (test-visual-replace-run
+    "f TAB l <F1> a ESC 2 <F1> a <F1> u <F1> _<F1> x"
+    (visual-replace-read))
+   ;; Undo undoes 2 of the 3 replacements executed, because they were
+   ;; executed in one command.
+   (should (equal (car test-visual-replace-snapshot)
+                  "Lee fi fo fum!"))))
+
+(ert-deftest test-visual-replace-read-apply-undo-everything-then-redo ()
+  (test-visual-replace-env
+   (insert "Fee fi fo fum!")
+   (goto-char (point-min))
+   (set-window-buffer (selected-window) (current-buffer))
+   (test-visual-replace-run
+    "f TAB l <F1> a <F1> u <F1> _ <F1> a <F1> a <F1> u <F1> _<F1> x"
+    (visual-replace-read))
+   (should (equal test-visual-replace-snapshot
+                  (list
+                   "Fee fi fo fum!"
+                   "Lee fi fo fum!")))))
+
 ;;; visual-replace-test.el ends here
