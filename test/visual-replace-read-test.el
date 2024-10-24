@@ -852,4 +852,39 @@
                    "Fee fi fo fum!"
                    "Lee fi fo fum!")))))
 
+(ert-deftest test-visual-replace-read-apply-one-repeat ()
+  (test-visual-replace-env
+   (insert "Fee fi fo fum!")
+   (goto-char (point-min))
+   (set-window-buffer (selected-window) (current-buffer))
+   (test-visual-replace-run
+    "f TAB l <F1> a a a <F1> _ <F1> x"
+    (visual-replace-read))
+   (should (equal (car test-visual-replace-snapshot)
+                  "Lee li lo fum!"))))
+
+(ert-deftest test-visual-replace-read-apply-one-repeat-up-down ()
+  (test-visual-replace-env
+   (insert "Fee fi fo fum!")
+   (goto-char (point-min))
+   (set-window-buffer (selected-window) (current-buffer))
+   (test-visual-replace-run
+    "f TAB l <F1> a <down> <down> <up> a <F1> _ <F1> x"
+    (visual-replace-read))
+   (should (equal (car test-visual-replace-snapshot)
+                  "Lee fi lo fum!"))))
+
+(ert-deftest test-visual-replace-read-apply-one-repeat-continue ()
+  (test-visual-replace-env
+   (insert "Fee fi fo fum!")
+   (goto-char (point-min))
+   (set-window-buffer (selected-window) (current-buffer))
+   ;; Anything but a/<up>/<down> ends the transient map, so just
+   ;; typing "ia" leaves the mode.
+   (test-visual-replace-run
+    "f TAB l <F1> a <down> i a <F1> a a <F1> _ <F1> x"
+    (visual-replace-read))
+   (should (equal (car test-visual-replace-snapshot)
+                  "Lee fi liao liaum!"))))
+
 ;;; visual-replace-test.el ends here

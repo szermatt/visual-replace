@@ -112,7 +112,7 @@ This is meant to be called within `test-visual-replace-env`."
             (define-key visual-replace-mode-map (kbd "<F1> Y") 'visual-replace-yank-pop)
             (define-key visual-replace-mode-map (kbd "<F1> u") 'visual-replace-undo)
             (define-key visual-replace-mode-map (kbd "<F1> h") 'previous-history-element)
-            (define-key visual-replace-mode-map (kbd "<F1> a") 'visual-replace-apply-one)
+            (define-key visual-replace-mode-map (kbd "<F1> a") 'visual-replace-apply-one-repeat)
             (define-key visual-replace-mode-map (kbd "<F1> x") 'exit-minibuffer)
             (define-key visual-replace-mode-map (kbd "<F1> g") ;; simulates a quit
               (lambda ()
