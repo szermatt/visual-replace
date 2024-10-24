@@ -4,6 +4,7 @@
 (setf eldev-project-loading-mode 'byte-compiled)
 (setq sentence-end-double-space nil)
 
+(eldev-use-package-archive 'gnu)
 (eldev-use-plugin 'autoloads)
 (eldev-use-plugin 'maintainer)
 (setq eldev-release-test-local t)
