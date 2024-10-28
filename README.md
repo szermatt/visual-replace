@@ -74,7 +74,9 @@ new maintainer.
 
 ## INSTALLATION
 
-`visual-replace` requires Emacs 26.1.
+You can install Visual Replace:
+- from [MELPA](https://melpa.org/#/getting-started), by typing `M-x package-install visual-replace`
+- from source, by executing `(package-vc-install "https://github.com/szermatt/visual-replace")`
 
 To replace `query-replace' with `visual-replace' globally, do:
 
