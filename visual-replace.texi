@@ -117,21 +117,21 @@ by a new maintainer.
 @section Installation
 
 
-Visual Replace requires Emacs 26.1 or later.
-
-To install Visual Replace, you can:
+Install Visual Replace:
 
 
-@itemize *
+@itemize -
 
 @item 
-On a recent version of Emacs (29 or later), install from the
-repository by doing @code{M-x package-vc-install
+from MELPA or MELPA Stable@footnote{https://melpa.org/#/getting-started} using @code{M-x package-install visual-replace}
+
+@item 
+on a recent version of Emacs (29 or later), from the
+github repository by doing @code{M-x package-vc-install
 https://github.com/szermatt/visual-replace}
 
 @item 
-Use an alternative package managers that support installing
-from source, such as straight@footnote{https://github.com/radian-software/straight.el}, shown here:
+from source, using an alternative package managers, such as straight@footnote{https://github.com/radian-software/straight.el}, shown here:
 
 @example
 (use-package visual-replace
@@ -139,10 +139,11 @@ from source, such as straight@footnote{https://github.com/radian-software/straig
 @end example
 
 @item 
-Install it the old-fashioned way, and copy visual-replace.el@footnote{https://raw.githubusercontent.com/szermatt/visual-replace/refs/heads/master/visual-replace.el}
-into your @code{.emacs.d} directory, but you’ll have to keep it
-up-to-date manually as well
+the old-fashioned way, copying visual-replace.el@footnote{https://raw.githubusercontent.com/szermatt/visual-replace/refs/heads/master/visual-replace.el}
+into your @code{.emacs.d} directory.
 @end itemize
+
+Visual Replace requires Emacs 26.1 or later.
 
 @node Usage,Contributing,Installation,Contents
 @anchor{usage doc}@anchor{6}@anchor{usage usage}@anchor{7}
