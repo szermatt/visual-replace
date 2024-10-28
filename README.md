@@ -2,6 +2,8 @@
 
 [![test](https://github.com/szermatt/visual-replace/workflows/test/badge.svg)](https://github.com/szermatt/visual-replace/actions)
 [![Documentation Status](https://readthedocs.org/projects/visual-replace/badge/?version=latest)](https://visual-replace.readthedocs.io/en/latest/?badge=latest)
+[![MELPA stable](https://stable.melpa.org/packages/visual-replace-badge.svg)](https://stable.melpa.org/#/visual-replace)
+[![MELPA](https://melpa.org/packages/visual-replace-badge.svg)](https://melpa.org/#/visual-replace)
 
 Visual Replace provides a nicer interface to
 [Query-Replace](https://www.gnu.org/software/emacs/manual/html_node/emacs/Query-Replace.html)
