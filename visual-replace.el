@@ -731,7 +731,8 @@ for `visual-replace'. Replacement starts at the current point."
                 isearch-regexp-lax-whitespace)
         (setf (visual-replace-args-lax-ws-non-regexp args)
               isearch-lax-whitespace)))
-    (isearch-exit)
+    (isearch-done nil t)
+    (isearch-clean-overlays)
     (apply #'visual-replace (visual-replace-read args))))
 
 ;;;###autoload
