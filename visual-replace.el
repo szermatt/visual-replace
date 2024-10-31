@@ -619,9 +619,12 @@ used as point for \\='from-point. By default, the scope is
                 (lambda ()
                   (when visual-replace-keep-incomplete
                     (add-hook 'after-change-functions #'visual-replace--after-change 0 'local))
-                  (when trigger
-                    (local-set-key trigger visual-replace-secondary-mode-map))
                   (visual-replace-minibuffer-mode t)
+                  (when trigger
+                    (let ((mapping (lookup-key (current-active-maps) trigger)))
+                      (when (or (eq mapping #'visual-replace)
+                                (eq (command-remapping mapping) #'visual-replace))
+                        (local-set-key trigger visual-replace-secondary-mode-map))))
                   (visual-replace--show-scope)
                   (setq-local yank-excluded-properties (append '(separator display face) yank-excluded-properties))
                   (setq-local text-property-default-nonsticky
