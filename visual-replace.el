@@ -420,6 +420,12 @@ This marker is added to `buffer-undo-list' by the first call to
 `visual-replace-apply-one' to mark the beginning of history for
 `visual-replace-undo'.")
 
+(defvar-local visual-replace-last-tab-marker nil
+  "Marker on where the cursor was at when TAB was last called.
+
+This is a local variable in the minibuffer in visual replace
+mode.")
+
 (defun visual-replace-enter ()
   "Confirm the current text to replace.
 
@@ -450,10 +456,31 @@ See also `visual-replace-enter'."
   (interactive)
   (visual-replace--update-separator (visual-replace-args--from-minibuffer))
   (let ((separator-start (visual-replace--separator-start))
-        (separator-end (visual-replace--separator-end)))
+        (separator-end (visual-replace--separator-end))
+        (marker visual-replace-last-tab-marker)
+        (start-pos (point))
+        (goal-area))
+
     (if (<= (point) separator-start)
-        (goto-char separator-end)
-     (goto-char (minibuffer-prompt-end)))))
+        ;; search string -> replacement
+        (setq goal-area (cons separator-end (point-max)))
+      ;; replacement -> search string
+      (setq goal-area (cons (minibuffer-prompt-end)
+                            separator-start)))
+
+    ;; go to the beginning of the goal area or to the position
+    ;; the cursor was previously.
+    (if (and (markerp marker)
+             (>= marker (car goal-area))
+             (<= marker (cdr goal-area)))
+        (goto-char marker)
+      (goto-char (car goal-area)))
+
+    ;; remember the position TAB was called for next time.
+    (unless (markerp marker)
+      (setq marker (make-marker))
+      (setq visual-replace-last-tab-marker marker))
+    (move-marker marker start-pos)))
 
 (defun visual-replace-yank ()
   "Replacement for `yank' while building args for `visual-replace'.
