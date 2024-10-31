@@ -45,16 +45,16 @@
                         (visual-replace-read))
    (should (equal test-visual-replace-snapshot
                   '("Replace from point: hello → []"
-                    "Replace from point: []hello → world"
-                    "Replace from point: hello → []world")))))
+                    "Replace from point: hello[] → world"
+                    "Replace from point: hello → world[]")))))
 
-(ert-deftest test-visual-replace-read-TAB-navigation-while-whitin-section ()
+(ert-deftest test-visual-replace-read-TAB-remember-pos ()
   (test-visual-replace-env
-   (test-visual-replace-run "hello TAB world <left> TAB <F1> ! <right> TAB <F1> ! RET"
+   (test-visual-replace-run "hello TAB world <left> TAB <left> TAB <F1> ! TAB <F1> ! RET"
                         (visual-replace-read))
    (should (equal test-visual-replace-snapshot
-                  '("Replace from point: []hello → world"
-                    "Replace from point: hello → []world")))))
+                  '("Replace from point: hello → worl[]d"
+                    "Replace from point: hell[]o → world")))))
 
 (ert-deftest test-visual-replace-read-toggle-regexp ()
   (test-visual-replace-env
@@ -176,7 +176,7 @@
    (test-visual-replace-run
     "hello TAB world <F1> r <F1> q TAB <F1> ! RET" (visual-replace-read))
    (should (equal test-visual-replace-snapshot
-                  '("Replace from point: []hello →?.* world")))))
+                  '("Replace from point: hello[] →?.* world")))))
 
 (ert-deftest test-visual-replace-read-toggle-scope-display ()
   (test-visual-replace-env
@@ -244,7 +244,7 @@
 (ert-deftest test-visual-replace-kill ()
   (test-visual-replace-env
    (test-visual-replace-run
-    "hello TAB world TAB <right> <F1> k <F1> ! TAB <right> <F1> k <F1> ! RET"
+    "hello TAB world C-a <right> <F1> k <F1> ! <right> <right> <F1> k <F1> ! RET"
     (visual-replace-read))
    (should (equal test-visual-replace-snapshot
                   '("Replace from point: h[] → world"
@@ -259,7 +259,7 @@
 (ert-deftest test-visual-replace-kill-whole-line ()
   (test-visual-replace-env
    (test-visual-replace-run
-    "hello TAB world TAB <right> <F1> K <F1> ! TAB <right> <F1> K <F1> ! <F1> g"
+    "hello TAB world C-a <right> <F1> K <F1> ! <right> <right> <F1> K <F1> ! <F1> g"
     (visual-replace-read))
    (should (equal test-visual-replace-snapshot
                   '("Replace from point: [] → world"
@@ -536,7 +536,7 @@
 
 (ert-deftest test-visual-replace-kill-and-yank-separator ()
   (test-visual-replace-env
-   (test-visual-replace-run "hello TAB TAB <F1> q <F1> ! <F1> u <F1> ! TAB <F1> ! RET"
+   (test-visual-replace-run "hello TAB C-a <F1> q <F1> ! <F1> u <F1> ! TAB <F1> ! RET"
                         (define-key visual-replace-mode-map (kbd "<F1> q")
                           (lambda () (interactive) (call-interactively 'kill-line)))
                         (define-key visual-replace-mode-map (kbd "<F1> u")
