@@ -21,10 +21,16 @@ then, well, replaces:
     :defer t
     :bind (("M-%" . visual-replace)
            :map isearch-mode-map
-           ("M-%" . visual-replace-from-isearch)))
+           ("M-%" . visual-replace-from-isearch))
+    :config
+    (define-key visual-replace-mode-map (kbd "M-%")
+                visual-replace-secondary-mode-map))
 
 The above example also binds :kbd:`M-%` in isearch, so you can just
-switch from isearch to Visual Replace.
+switch from isearch to Visual Replace. Additionally, while Visual
+Replace is active :kbd:`M-%` is the prefix for Visual Replace
+commands, so, for example, toggling regexp mode on and off is
+:kbd:`M-% r`.
 
 An alternative, which you might prefer to try things out, is to
 replace :code:`query-replace` and others with Visual Replace. This
