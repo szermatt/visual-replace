@@ -621,7 +621,15 @@ used as point for \\='from-point. By default, the scope is
                     (add-hook 'after-change-functions #'visual-replace--after-change 0 'local))
                   (visual-replace-minibuffer-mode t)
                   (when trigger
-                    (let ((mapping (lookup-key (current-active-maps) trigger)))
+                    (let ((mapping
+                           ;; Emacs 26 lookup-key cannot take a list
+                           ;; of keymaps, using this code for backward
+                           ;; compatibility.
+                           (catch 'has-binding
+                             (dolist (map (current-active-maps))
+                               (let ((func (lookup-key map trigger)))
+                                 (when (functionp func)
+                                   (throw 'has-binding func)))))))
                       (when (or (eq mapping #'visual-replace)
                                 (eq (command-remapping mapping) #'visual-replace))
                         (local-set-key trigger visual-replace-secondary-mode-map))))
