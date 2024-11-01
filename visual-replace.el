@@ -1270,8 +1270,20 @@ RANGES is a series of (cons START END) to search, one after the
 other."
   (when ranges
     (setq visual-replace--first-match-timer
-          (run-with-idle-timer 0 nil #'visual-replace--first-match
-                               args ranges))))
+          (visual-replace--more-idle-timer
+           #'visual-replace--first-match args ranges))))
+
+(defun visual-replace--more-idle-timer (func &rest args)
+  "Schedule FUNC with ARGS from an idle timer.
+
+FUNC is added with small delay to potentially allow other idle
+timers to run."
+  (let ((cur (current-idle-time)))
+    (apply #'run-with-idle-timer
+           (if cur
+               (time-add cur 0.05)
+             visual-replace-preview-delay)
+           nil func args)))
 
 (defun visual-replace--first-match (args ranges)
   "Look for a match to display.
