@@ -764,7 +764,9 @@ THING defaults to symbol. It can be set to anything that
       (visual-replace-make-args
        :from (buffer-substring-no-properties
               (car bounds)
-              (cdr bounds)))
+              (cdr bounds))
+       ;; Go directly to the replacement prompt.
+       :to "")
       (car bounds)))))
 
 ;;;###autoload
