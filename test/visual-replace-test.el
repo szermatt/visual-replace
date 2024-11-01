@@ -147,7 +147,7 @@
      (goto-char (point-min))
      (search-forward "-at-point 3")
      (goto-char (match-beginning 0))
-     (visual-replace-ert-simulate-keys (kbd "TAB r e p l RET")
+     (visual-replace-ert-simulate-keys (kbd "r e p l RET")
        (visual-replace-thing-at-point))
      (should (equal (concat "this is thing-at-point 0\n"
                             "this is thing-at-point 1\n"
@@ -167,7 +167,7 @@
      (goto-char (point-min))
      (search-forward "-at-point 3")
      (goto-char (match-beginning 0))
-     (visual-replace-ert-simulate-keys (kbd "TAB r e p l RET")
+     (visual-replace-ert-simulate-keys (kbd "r e p l RET")
        (visual-replace-thing-at-point 'word))
      (should (equal (concat "this is thing-at-point 0\n"
                             "this is thing-at-point 1\n"
@@ -187,7 +187,7 @@
      (search-forward-regexp "text 3")
      (goto-char (match-beginning 0))
      (let ((visual-replace-default-to-full-scope 'full))
-       (visual-replace-ert-simulate-keys (kbd "TAB r e p l a c e d RET")
+       (visual-replace-ert-simulate-keys (kbd "r e p l a c e d RET")
          (visual-replace-selected)))
      (should (equal (concat "this is replaced 0\n"
                             "this is replaced 1\n"
@@ -226,7 +226,7 @@
      (goto-char (point-min))
      (search-forward "some text 3")
      (goto-char (match-beginning 0))
-     (visual-replace-ert-simulate-keys (kbd "TAB r e p l a c e d RET")
+     (visual-replace-ert-simulate-keys (kbd "r e p l a c e d RET")
        (visual-replace-selected))
      (should (equal (concat "this is some text 0\n"
                             "this is some text 1\n"
