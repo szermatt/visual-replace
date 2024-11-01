@@ -827,50 +827,58 @@ not active."
         (min (mark) (point))))
     (visual-replace-thing-at-point)))
 
-(defun visual-replace-args--text (args &optional force-separator)
+(defun visual-replace-args--text (args)
   "Build the text representation of ARGS, a `visual-replace-args' struct.
 
 The text representation is the content of minibuffer that would result
 in such a struct being returned by `visual-replace-read'.
 
-Unless FORCE-SEPARATOR is non-nil, only add a separator if
-necessary, to capture flags defined in ARGS."
-  (let ((flags-text
-         (concat
-          (if (visual-replace-args-query args) "?" "")
-          (cond ((eq (visual-replace-args-lax-ws args)
-                     (visual-replace-args-lax-ws-default args))
-                 "")
-                ((visual-replace-args-lax-ws args) "(lax ws)")
-                (t "(strict ws)"))
-          (cond ((eq (visual-replace-args-case-fold args) case-fold-search) "")
-                ((visual-replace-args-case-fold args) "i")
-                (t "c"))
-          (if (visual-replace-args-regexp args) ".*" "")
-          (if (visual-replace-args-word args) "w" "")))
+Only add a separator if necessary, to capture flags defined in
+ARGS."
+  (let ((flag-text (visual-replace-args--flag-text args))
         (from-text (or (visual-replace-args-from args) "")))
-    (if (and (not force-separator)
-             (null (visual-replace-args-to args))
-             (equal "" flags-text))
+    (if (and (null (visual-replace-args-to args))
+             (equal "" flag-text))
         from-text
-      (let ((stored-args (visual-replace-copy-args args)))
-        (setf (visual-replace-args-from stored-args) nil)
-        (setf (visual-replace-args-to stored-args) nil)
-        (concat
-         from-text
-         (propertize " "
-                     'display (concat " →" flags-text " ")
-                     'visual-replace-args stored-args
-                     'face 'minibuffer-prompt
-                     'separator t)
-         (or (visual-replace-args-to args) ""))))))
+      (concat
+       from-text
+       (visual-replace-args--separator args flag-text)
+       (or (visual-replace-args-to args) "")))))
 
-(defun visual-replace-args--separator (args)
-  "Return the separator for ARGS, a `visual-replace-args'."
-  (let ((flag-args (visual-replace-copy-args args)))
-    (setf (visual-replace-args-from flag-args) nil)
-    (setf (visual-replace-args-to flag-args) nil)
-    (visual-replace-args--text flag-args 'forced)))
+(defun visual-replace-args--flag-text (args)
+  "Build the text representation of the flags in ARGS.
+
+This function takes the set of options from ARGS, a
+`visual-replace-args' and returns its text representation, to be
+displayed in the prompt following the arrow."
+  (concat
+   (if (visual-replace-args-query args) "?" "")
+   (cond ((eq (visual-replace-args-lax-ws args)
+              (visual-replace-args-lax-ws-default args))
+          "")
+         ((visual-replace-args-lax-ws args) "(lax ws)")
+         (t "(strict ws)"))
+   (cond ((eq (visual-replace-args-case-fold args) case-fold-search) "")
+         ((visual-replace-args-case-fold args) "i")
+         (t "c"))
+   (if (visual-replace-args-regexp args) ".*" "")
+   (if (visual-replace-args-word args) "w" "")))
+
+(defun visual-replace-args--separator (args &optional flag-text)
+  "Return the separator for ARGS, a `visual-replace-args'.
+
+FLAG-TEXT is the text that follows the arrow in the separator. If
+nil, it is built based on ARGS."
+  (let* ((flag-text (or flag-text (visual-replace-args--flag-text args))))
+    (propertize
+     " "
+     'display (concat " →" flag-text " ")
+     'visual-replace-args (let ((args (visual-replace-copy-args args)))
+                            (setf (visual-replace-args-from args) nil)
+                            (setf (visual-replace-args-to args) nil)
+                            args)
+     'face 'minibuffer-prompt
+     'separator t)))
 
 (defun visual-replace-args--from-text (text)
   "Build a `visual-replace-args' that corresponds to TEXT.
