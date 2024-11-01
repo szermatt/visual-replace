@@ -733,6 +733,7 @@ for `visual-replace'. Replacement starts at the current point."
   (let ((args
          (visual-replace-make-args
           :from isearch-string
+          :to "" ; Go directly to the replacement prompt.
           :regexp isearch-regexp
           :word isearch-regexp-function
           :case-fold isearch-case-fold-search)))
