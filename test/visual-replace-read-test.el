@@ -56,6 +56,13 @@
                   '("Replace from point: hello → worl[]d"
                     "Replace from point: hell[]o → world")))))
 
+(ert-deftest test-visual-replace-read-TAB-default-to-end ()
+  (test-visual-replace-env
+   (test-visual-replace-run "hello TAB world C-u 8 <left> TAB <F1> ! RET"
+                        (visual-replace-read))
+   (should (equal test-visual-replace-snapshot
+                  '("Replace from point: hello → world[]")))))
+
 (ert-deftest test-visual-replace-read-toggle-regexp ()
   (test-visual-replace-env
    (let ((args (car (test-visual-replace-run "hello TAB world <F1> r <F1> ! RET" (visual-replace-read)))))
@@ -414,9 +421,9 @@
    (should
     (equal (car (test-visual-replace-run
                  "<F1> h TAB x <F1> ! RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "xworld" :regexp t)))
+           (visual-replace-make-args :from "hello" :to "worldx" :regexp t)))
    (should (equal test-visual-replace-snapshot
-                  '("Replace from point [hello →.* world]: hello →.* x[]world")))))
+                  '("Replace from point [hello →.* world]: hello →.* worldx[]")))))
 
 (ert-deftest test-visual-replace-history-regex-toggle ()
   (test-visual-replace-env
