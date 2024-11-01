@@ -474,7 +474,7 @@ See also `visual-replace-enter'."
              (>= marker (car goal-area))
              (<= marker (cdr goal-area)))
         (goto-char marker)
-      (goto-char (car goal-area)))
+      (goto-char (cdr goal-area)))
 
     ;; remember the position TAB was called for next time.
     (unless (markerp marker)
