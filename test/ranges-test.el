@@ -121,4 +121,13 @@
             '((20 . 50) (60 . 70) (80 . 100) (120 . 130) (140 . 150))
             '((10 . 30) (40 . 90) (110 . 130))))))
 
+(ert-deftest test-visual-replace-contains-sorted ()
+  (should-not (visual-replace--range-contains-sorted nil 10))
+  (should-not (visual-replace--range-contains-sorted '((20 . 100)) 10))
+  (should (visual-replace--range-contains-sorted '((0 . 100)) 10))
+  (should (visual-replace--range-contains-sorted '((10 . 100)) 10))
+  (should-not (visual-replace--range-contains-sorted '((20 . 100)) 10))
+  (should-not (visual-replace--range-contains-sorted '((0 . 9) (11 . 100)) 10))
+  (should (visual-replace--range-contains-sorted '((0 . 9) (10 . 100)) 10)))
+
 ;;; ranges-test.el ends here

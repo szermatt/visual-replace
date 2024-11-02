@@ -1415,6 +1415,18 @@ Returns a set of sorted, non-overlapping ranges."
             (setq branges (cdr branges))))))
     (append (nreverse result) aranges)))
 
+(defun visual-replace--range-contains-sorted (ranges pos)
+  "Check whether POS is in RANGES.
+
+`visual-replace--range-fix' or `visual-replace--ranges-nmerge' can make
+sure that RANGES are sorted and non-overlapping,
+
+Returns non-nil if RANGES contains POS."
+  (while (and ranges (> pos (cdr (car ranges))))
+    (setq ranges (cdr ranges)))
+  (when ranges
+    (>= pos (car (car ranges)))))
+
 (defun visual-replace--small-ranges (ranges)
   "Split RANGES into ranges of at most 80 lines.
 
