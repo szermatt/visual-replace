@@ -1388,6 +1388,33 @@ Returns a set of sorted, non-overlapping ranges."
           (setq branges (cdr branges)))))
     (nreverse intersect)))
 
+(defun visual-replace--range-substract-sorted (aranges branges)
+  "Substract sorted, non-overlapping ranges BRANGES from ARANGES.
+
+`visual-replace--range-fix' or `visual-replace--ranges-nmerge' can make
+sure that ARANGES and BRANGES are sorted and non-overlapping,
+
+Returns a set of sorted, non-overlapping ranges."
+  (let ((result))
+    (while (and aranges branges)
+      (let* ((arange (car aranges))
+             (brange (car branges))
+             (left (when (< (car arange) (car brange))
+                     (cons (car arange)
+                           (min (cdr arange) (car brange)))))
+             (right (when (and (> (cdr arange) (cdr brange))
+                               (< (car arange) (cdr brange)))
+                      (cons (cdr brange) (cdr arange)))))
+        (when left (push left result))
+        (if right
+            (setq aranges (cons right (cdr aranges))
+                  branges (cdr branges))
+          (when (<= (cdr arange) (cdr brange))
+            (setq aranges (cdr aranges)))
+          (when (<= (cdr brange) (cdr arange))
+            (setq branges (cdr branges))))))
+    (append (nreverse result) aranges)))
+
 (defun visual-replace--small-ranges (ranges)
   "Split RANGES into ranges of at most 80 lines.
 

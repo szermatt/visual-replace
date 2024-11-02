@@ -61,4 +61,64 @@
   (should (equal '((10 . 100)) (visual-replace--ranges-fix '((100 . 10)))))
   (should (equal '((10 . 20) (30 . 40)) (visual-replace--ranges-fix '((10 . 20) (30 . 35) (32 . 40))))))
 
+(ert-deftest test-visual-replace-substract-sorted-pairs ()
+  ;;   A +-------+
+  ;;   B    +-------+
+  ;; A-B +--+
+  (should (equal
+           '((10 . 20))
+           (visual-replace--range-substract-sorted
+            '((10 . 100))
+            '((20 . 120)))))
+  ;;   A   +-----+
+  ;;   B +----+
+  ;; A-B      +--+
+  (should (equal
+           '((100 . 120))
+           (visual-replace--range-substract-sorted
+            '((20 . 120))
+            '((10 . 100)))))
+  ;;   A   +--------+
+  ;;   B +---------------+
+  ;; A-B
+  (should (equal
+           nil
+           (visual-replace--range-substract-sorted
+            '((20 . 100))
+            '((10 . 120)))))
+  ;;   A +---------------+
+  ;;   B   +--------+
+  ;; A-B +-+        +----+
+  (should (equal
+           '((10 . 20) (100 . 120))
+           (visual-replace--range-substract-sorted
+            '((10 . 120))
+            '((20 . 100)))))
+  ;;   A  +----+
+  ;;   B          +----+
+  ;; A-B  +----+
+  (should (equal
+           '((10 . 20))
+           (visual-replace--range-substract-sorted
+            '((10 . 20))
+            '((100 . 120)))))
+  ;;   A          +----+
+  ;;   B  +----+
+  ;; A-B          +----+
+  (should (equal
+           '((100 . 120))
+           (visual-replace--range-substract-sorted
+            '((100 . 120))
+            '((10 . 20))))))
+
+(ert-deftest test-visual-replace-substract-sorted-ranges ()
+  ;;   A    +-----+  +----+ +----+     +--+  +--+
+  ;;   B +----+ +-------------+      +----+
+  ;; A-B      +-+             +--+           +--+
+  (should (equal
+           '((30 . 40) (90 . 100) (140 . 150))
+           (visual-replace--range-substract-sorted
+            '((20 . 50) (60 . 70) (80 . 100) (120 . 130) (140 . 150))
+            '((10 . 30) (40 . 90) (110 . 130))))))
+
 ;;; ranges-test.el ends here
