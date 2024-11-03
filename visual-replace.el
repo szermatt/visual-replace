@@ -567,7 +567,7 @@ This kills the whole section."
         (setf (visual-replace-args-regexp args) nil)
       (setf (visual-replace-args-regexp args) t)
       (setf (visual-replace-args-word args) nil))
-    (visual-replace--update-separator args 'forced)))
+    (visual-replace--update-separator args)))
 
 (defun visual-replace-toggle-query ()
   "Toggle the query flag while building arguments for `visual-replace'."
@@ -576,7 +576,7 @@ This kills the whole section."
   (let ((args (visual-replace-args--from-minibuffer)))
     (setf (visual-replace-args-query args)
           (not (visual-replace-args-query args)))
-    (visual-replace--update-separator args 'forced)))
+    (visual-replace--update-separator args)))
 
 (defun visual-replace-toggle-word ()
   "Toggle the word-delimited flag while building arguments for `visual-replace'."
@@ -587,7 +587,7 @@ This kills the whole section."
         (setf (visual-replace-args-word args) nil)
       (setf (visual-replace-args-word args) t)
       (setf (visual-replace-args-regexp args) nil))
-    (visual-replace--update-separator args 'forced)))
+    (visual-replace--update-separator args)))
 
 (defun visual-replace-toggle-case-fold ()
   "Toggle the case-fold flag while building arguments for `visual-replace'."
@@ -596,7 +596,7 @@ This kills the whole section."
   (let ((args (visual-replace-args--from-minibuffer)))
     (setf (visual-replace-args-case-fold args)
           (not (visual-replace-args-case-fold args)))
-    (visual-replace--update-separator args 'forced)))
+    (visual-replace--update-separator args)))
 
 (defun visual-replace-toggle-lax-ws ()
   "Toggle the lax-ws flag while building arguments for `visual-replace'."
@@ -606,7 +606,7 @@ This kills the whole section."
          (newval (not (visual-replace-args-lax-ws args))))
     (setf (visual-replace-args-lax-ws-regexp args) newval)
     (setf (visual-replace-args-lax-ws-non-regexp args) newval)
-    (visual-replace--update-separator args 'forced)))
+    (visual-replace--update-separator args)))
 
 (defun visual-replace-toggle-scope (&optional scope)
   "Toggle the SCOPE type.
@@ -1044,32 +1044,26 @@ changed."
            (message "Note: `\\t' here doesn't match a tab; to do that, just type TAB")))
          (sit-for 2))))
 
-(defun visual-replace--update-separator (args &optional forced)
+(defun visual-replace--update-separator (args)
   "Update the separator in the current minibuffer to show ARGS.
 
 This function updates or inserts a field separator that reflect
 the current settings, captured by a `visual-replace-args' struct with
-no from or to slot set.
-
-If FORCED is non-nil, update the separator even if it looks like
-it would not change anything."
+no from or to slot set."
   (let ((start (visual-replace--separator-start))
         (end (visual-replace--separator-end))
         (separator (visual-replace-args--separator args)))
-    (cond ((not start)
-           (save-excursion
-             (goto-char (point-max))
-             (insert separator)))
-          ((or forced (and start end
-                           (not (equal (buffer-substring start end)
-                                       separator))))
-           (let ((start-point (point)))
-             (save-excursion
-               (delete-region start end)
-               (goto-char start)
-               (insert separator))
-             (when (equal start-point end)
-               (goto-char (+ start (length separator)))))))))
+    (if (not start)
+        (save-excursion
+          (goto-char (point-max))
+          (insert separator))
+      (let ((start-point (point)))
+        (save-excursion
+          (delete-region start end)
+          (goto-char start)
+          (insert separator))
+        (when (equal start-point end)
+          (goto-char (+ start (length separator))))))))
 
 (defun visual-replace--separator-start (&optional string)
   "Return the start position of the separator.
