@@ -207,7 +207,7 @@
      (search-forward-regexp "\\(some text\\) 3")
      (set-mark (match-beginning 1))
      (goto-char (match-end 1))
-     (visual-replace-ert-simulate-keys (kbd "TAB r e p l a c e d RET")
+     (visual-replace-ert-simulate-keys (kbd "r e p l a c e d RET")
        (visual-replace-selected))
      (should (equal (concat "this is some text 0\n"
                             "this is some text 1\n"
@@ -247,7 +247,7 @@
      (set-mark (match-beginning 1))
      (goto-char (match-end 1))
      (let ((visual-replace-default-to-full-scope 'full))
-       (visual-replace-ert-simulate-keys (kbd "TAB r e p l a c e d RET")
+       (visual-replace-ert-simulate-keys (kbd "r e p l a c e d RET")
          (visual-replace-selected)))
      (should (equal (concat "this is replaced 0\n"
                             "this is replaced 1\n"

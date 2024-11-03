@@ -810,7 +810,8 @@ not active."
         (visual-replace-make-args
          :from (buffer-substring-no-properties
                 (min (mark) (point))
-                (max (mark) (point))))
+                (max (mark) (point)))
+         :to "")
         (min (mark) (point))))
     (visual-replace-thing-at-point)))
 
