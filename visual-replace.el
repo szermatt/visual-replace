@@ -1328,16 +1328,18 @@ moves the calling window to display that first match."
       ;; no matches, continue
       t))
 
-(defun visual-replace--more-idle-timer (func &rest args)
+(defun visual-replace--run-with-idle-timer (func &rest args)
   "Schedule FUNC with ARGS from an idle timer.
 
-FUNC is added with small delay to potentially allow other idle
-timers to run."
+When called when Emacs is not idle, FUNC is run once Emacs has
+been idle for `visual-replace-preview-delay'.
+
+When called while Emacs is idle, FUNC is added in a way that asks
+for it to be run right away but still allows other idle timers to
+run."
   (let ((cur (current-idle-time)))
     (apply #'run-with-idle-timer
-           (if cur
-               (time-add cur 0.05)
-             visual-replace-preview-delay)
+           (or cur visual-replace-preview-delay)
            nil func args)))
 
 (defun visual-replace--run-idle-search (args work-queue consumers)
@@ -1397,7 +1399,7 @@ there are no step consumers and no consumers."
         (when work-queue
           (visual-replace--reset-idle-search-timer)
           (setq visual-replace--idle-search-timer
-                (visual-replace--more-idle-timer
+                (visual-replace--run-with-idle-timer
                  (lambda ()
                    (setq visual-replace--idle-search-timer nil)
                    (visual-replace--run-idle-search
