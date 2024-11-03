@@ -401,6 +401,9 @@ This is an instance of the struct `visual-replace--scope'.")
 (defvar visual-replace--calling-window nil
   "Window from which `visual-replace' was called.")
 
+(defvar visual-replace--minibuffer nil
+  "Minibuffer in which `visual-replace' is running.")
+
 (defvar visual-replace--match-ovs nil
   "Overlays added for the preview in the calling buffer.")
 
@@ -635,6 +638,7 @@ used as point for \\='from-point. By default, the scope is
   (let ((history-add-new-input nil)
         (visual-replace--calling-buffer (current-buffer))
         (visual-replace--calling-window (selected-window))
+        (visual-replace--minibuffer nil)
         (visual-replace--scope (visual-replace--make-scope initial-scope))
         (visual-replace--undo-marker nil)
         (minibuffer-allow-text-properties t) ; separator uses text-properties
@@ -663,6 +667,7 @@ used as point for \\='from-point. By default, the scope is
                   (when visual-replace-keep-incomplete
                     (add-hook 'after-change-functions #'visual-replace--after-change 0 'local))
                   (visual-replace-minibuffer-mode t)
+                  (setq visual-replace--minibuffer (current-buffer))
                   (when trigger
                     (let ((mapping
                            ;; Emacs 26 lookup-key cannot take a list
@@ -905,9 +910,7 @@ TEXT is the textual content of the minibuffer, with properties."
 (defun visual-replace-args--from-minibuffer ()
   "Build a `visual-replace-args' from the minibuffer content."
   (visual-replace-args--from-text
-   (with-selected-window
-       (or (active-minibuffer-window)
-           (minibuffer-window))
+   (with-current-buffer visual-replace--minibuffer
      (minibuffer-contents))))
 
 (defun visual-replace--scope-text ()
@@ -1732,9 +1735,8 @@ clicked."
     (save-excursion
       (goto-char (overlay-start ov))
       (visual-replace-apply-one))
-    (select-window
-     (or (active-minibuffer-window)
-         (minibuffer-window)))))
+    (select-window (get-buffer-window
+                    visual-replace--minibuffer))))
 
 (defun visual-replace--assert-active ()
   "Raise an error unless a visual replace session is active."
