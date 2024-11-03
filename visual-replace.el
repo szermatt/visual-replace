@@ -1171,7 +1171,15 @@ Return a list of (start end replacement)."
 
 Returned ranges are sorted and non-overlapping."
   (visual-replace--ranges-nmerge
-   (mapcar (lambda (win) (cons (window-start win) (window-end win)))
+   (mapcar (lambda (win)
+             (cons (window-start win)
+                   ;; This approximates (window-end win), in a way
+                   ;; that doesn't require a redisplay.
+                   (with-current-buffer buf
+                     (save-excursion
+                       (goto-char (window-start win))
+                       (forward-line (window-height win))
+                       (point)))))
            (get-buffer-window-list buf))))
 
 (defun visual-replace--overlay (start end replacement)

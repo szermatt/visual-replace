@@ -42,21 +42,9 @@ are triggered by the key F1 ! when running test-visual-replace-run.")
            (visual-replace-default-to-full-scope nil)
            (visual-replace-highlight-match-at-point nil)
            (test-visual-replace-snapshot nil))
-       (cl-letf (((symbol-function 'sit-for) (lambda (_)))
-                 ((symbol-function 'window-end) #'test-visual-window-end))
+       (cl-letf (((symbol-function 'sit-for) (lambda (_))))
          (ert-with-test-buffer nil
            ,@body)))))
-
-(defun test-visual-window-end (win)
-  "Compute window-end on demand for WIN.
-
-In normal situations, `window-end' is computed at the end of a
-redisplay. This is efficient, but causes problems during tests."
-  (with-current-buffer (window-buffer win)
-    (save-excursion
-      (goto-char (window-start win))
-      (forward-line (window-height win))
-      (point))))
 
 (defmacro test-visual-replace-run (macro &rest body)
   "Run BODY and execute MACRO.
