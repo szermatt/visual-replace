@@ -433,6 +433,9 @@ This marker is added to `buffer-undo-list' by the first call to
 This is a local variable in the minibuffer in visual replace
 mode.")
 
+(defconst visual-replace-min-length 3
+  "Only do search or preview for string lengths >= this value.")
+
 (defun visual-replace-enter ()
   "Confirm the current text to replace.
 
@@ -1244,7 +1247,12 @@ matches to display unless NO-FIRST-MATCH is non-nil."
     (with-current-buffer visual-replace--calling-buffer
       (let* ((args (visual-replace-args--from-minibuffer))
              (ranges (visual-replace--scope-ranges)))
-        (when (> (length (visual-replace-args-from args)) 2)
+        (if (< (length (visual-replace-args-from args))
+               visual-replace-min-length)
+            ;; Reset any existing preview, if necessary.
+            (visual-replace--clear-preview)
+
+          ;; Actually build the preview, looking for a match to show.
           (let ((visible-ranges (visual-replace--range-intersect-sorted
                                  ranges
                                  (visual-replace--visible-ranges

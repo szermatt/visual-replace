@@ -741,6 +741,19 @@
             "hollo, world, hello, hollo!"
             (buffer-substring-no-properties (point-min) (point-max))))))
 
+(ert-deftest test-visual-disable-preview-if-too-short ()
+  (test-visual-replace-env
+   (insert "hello, world, hello, hello!")
+   (goto-char (point-min))
+   (set-window-buffer (selected-window) (current-buffer))
+   (test-visual-replace-run "hel <F1> _ DEL <F1> _ <F1> x" (visual-replace-read))
+   (should (equal (test-visual-replace-highlight-face
+                   (nth 0 test-visual-replace-snapshot) 'visual-replace-match)
+                  "[hel]lo, world, [hel]lo, [hel]lo!"))
+   (should (equal (test-visual-replace-highlight-face
+                   (nth 1 test-visual-replace-snapshot) 'visual-replace-match)
+                  "hello, world, hello, hello!"))))
+
 (ert-deftest test-visual-replace-read-read-only-buffer ()
   (test-visual-replace-env
    (insert "foo")
