@@ -435,6 +435,7 @@ has been defined, create a new field to fill in the replacement.
 
 See also `visual-replace-tab'."
   (interactive)
+  (visual-replace--assert-in-minibuffer)
   (visual-replace--update-separator (visual-replace-args--from-minibuffer))
   (let ((separator-start (visual-replace--separator-start))
         (separator-end (visual-replace--separator-end)))
@@ -454,6 +455,7 @@ Introduce a separator or navigate between fields.
 
 See also `visual-replace-enter'."
   (interactive)
+  (visual-replace--assert-in-minibuffer)
   (visual-replace--update-separator (visual-replace-args--from-minibuffer))
   (let ((separator-start (visual-replace--separator-start))
         (separator-end (visual-replace--separator-end))
@@ -493,6 +495,7 @@ When editing the replacement text, insert the original text.
 
 See also `visual-replace-yank-pop'."
   (interactive)
+  (visual-replace--assert-in-minibuffer)
   (let ((separator-start (visual-replace--separator-start))
         (separator-end (visual-replace--separator-end)))
     (cond
@@ -511,6 +514,7 @@ See also `visual-replace-yank-pop'."
 
 The first time it's called, executes a `yank', then a `yank-pop'."
   (interactive)
+  (visual-replace--assert-in-minibuffer)
   (if (memq last-command '(yank yank-pop))
       (progn  (setq this-command 'yank-pop)
               (call-interactively #'yank-pop))
@@ -524,6 +528,7 @@ The first time it's called, executes a `yank', then a `yank-pop'."
 
 This kills to separator or end of line."
   (interactive)
+  (visual-replace--assert-in-minibuffer)
   (let ((separator-start (visual-replace--separator-start)))
     (if (and separator-start (< (point) separator-start))
         (kill-region (point) separator-start)
@@ -534,6 +539,7 @@ This kills to separator or end of line."
 
 This kills the whole section."
   (interactive)
+  (visual-replace--assert-in-minibuffer)
   (let ((separator-start (visual-replace--separator-start)))
     (cond
      ((and separator-start (< (point) separator-start))
@@ -545,6 +551,7 @@ This kills the whole section."
 (defun visual-replace-toggle-regexp ()
   "Toggle the regexp flag while building arguments for `visual-replace'."
   (interactive)
+  (visual-replace--assert-in-minibuffer)
   (let ((args (visual-replace-args--from-minibuffer)))
     (if (visual-replace-args-regexp args)
         (setf (visual-replace-args-regexp args) nil)
@@ -555,6 +562,7 @@ This kills the whole section."
 (defun visual-replace-toggle-query ()
   "Toggle the query flag while building arguments for `visual-replace'."
   (interactive)
+  (visual-replace--assert-in-minibuffer)
   (let ((args (visual-replace-args--from-minibuffer)))
     (setf (visual-replace-args-query args)
           (not (visual-replace-args-query args)))
@@ -563,6 +571,7 @@ This kills the whole section."
 (defun visual-replace-toggle-word ()
   "Toggle the word-delimited flag while building arguments for `visual-replace'."
   (interactive)
+  (visual-replace--assert-in-minibuffer)
   (let ((args (visual-replace-args--from-minibuffer)))
     (if (visual-replace-args-word args)
         (setf (visual-replace-args-word args) nil)
@@ -573,6 +582,7 @@ This kills the whole section."
 (defun visual-replace-toggle-case-fold ()
   "Toggle the case-fold flag while building arguments for `visual-replace'."
   (interactive)
+  (visual-replace--assert-in-minibuffer)
   (let ((args (visual-replace-args--from-minibuffer)))
     (setf (visual-replace-args-case-fold args)
           (not (visual-replace-args-case-fold args)))
@@ -581,6 +591,7 @@ This kills the whole section."
 (defun visual-replace-toggle-lax-ws ()
   "Toggle the lax-ws flag while building arguments for `visual-replace'."
   (interactive)
+  (visual-replace--assert-in-minibuffer)
   (let* ((args (visual-replace-args--from-minibuffer))
          (newval (not (visual-replace-args-lax-ws args))))
     (setf (visual-replace-args-lax-ws-regexp args) newval)
@@ -593,6 +604,7 @@ This kills the whole section."
 If unspecified, SCOPE defaults to the variable
 `visual-replace--scope'."
   (interactive)
+  (visual-replace--assert-in-minibuffer)
   (let* ((scope (or scope visual-replace--scope))
          (type (visual-replace--scope-type scope)))
     (setf (visual-replace--scope-type scope)
@@ -1381,6 +1393,7 @@ Also skips empty ranges."
 (defun visual-replace-next-match ()
   "Move the point to the next match."
   (interactive)
+  (visual-replace--assert-active)
   (with-selected-window visual-replace--calling-window
     (let ((match (car (visual-replace--search
                        (visual-replace-args--from-minibuffer)
@@ -1395,6 +1408,7 @@ Also skips empty ranges."
 (defun visual-replace-prev-match ()
   "Move the point to the previous match."
   (interactive)
+  (visual-replace--assert-active)
   (with-selected-window visual-replace--calling-window
     (let ((match (car (visual-replace--search
                        (visual-replace-args--from-minibuffer)
@@ -1436,6 +1450,7 @@ map."
 
 With a prefix argument NUM, repeat the replacement that many times."
   (interactive "p")
+  (visual-replace--assert-active)
   (with-selected-window visual-replace--calling-window
     (when (null visual-replace--undo-marker)
       (setq visual-replace--undo-marker (cl-gensym))
@@ -1475,6 +1490,7 @@ visual replace session.
 
 A prefix argument serves as a repeat count for `undo'."
   (interactive)
+  (visual-replace--assert-active)
   (with-selected-window visual-replace--calling-window
     (let ((marker-cell (visual-replace--find-undo-marker-cell)))
       (unless marker-cell
@@ -1548,6 +1564,7 @@ properly.
 This calls `visual-replace-apply-one' for the match that was
 clicked."
   (interactive "e")
+  (visual-replace--assert-active)
   (let* ((pos (posn-point (nth 1 ev)))
          (ov (cl-find-if
               (lambda (ov)
@@ -1564,6 +1581,17 @@ clicked."
     (select-window
      (or (active-minibuffer-window)
          (minibuffer-window)))))
+
+(defun visual-replace--assert-active ()
+  "Raise an error unless a visual replace session is active."
+  (unless (window-live-p visual-replace--calling-window)
+    (error "Visual Replace not currently active")))
+
+(defun visual-replace--assert-in-minibuffer ()
+  "Raise an error unless called from a minibuffer in the right mode."
+  (unless (and (eq (current-buffer) visual-replace--minibuffer)
+               visual-replace-minibuffer-mode)
+    (error "Not in a minibuffer in Visual Replace mode")))
 
 (provide 'visual-replace)
 
