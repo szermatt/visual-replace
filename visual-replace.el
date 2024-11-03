@@ -410,8 +410,12 @@ This is an instance of the struct `visual-replace--scope'.")
 (defvar visual-replace--incomplete nil
   "Replacement text entered, but not confirmed.")
 
-(defvar visual-replace--first-match-timer nil
-  "Timer scheduled to search for a first match to display.")
+(defvar visual-replace--idle-search-timer nil
+  "Timer used to run search in the background.
+
+Such timer is created by `visual-replace--schedule-idle-search'
+and can be cancelled by
+`visual-replace--reset-idle-search-timer'.")
 
 (defvar visual-replace--undo-marker nil
   "A marker put into the undo list.
@@ -653,7 +657,7 @@ used as point for \\='from-point. By default, the scope is
             (when visual-replace-preview
               (setq timer (run-with-idle-timer
                            visual-replace-preview-delay
-                           #'repeat #'visual-replace--update-preview)))
+                           'repeat #'visual-replace--update-preview)))
             (minibuffer-with-setup-hook
                 (lambda ()
                   (when visual-replace-keep-incomplete
@@ -684,7 +688,9 @@ used as point for \\='from-point. By default, the scope is
                                 ": ")
                           initial-input nil nil nil (car search-ring) t))))
         ;; unwind
-        (when timer (cancel-timer timer))
+        (visual-replace--reset-idle-search-timer)
+        (when timer
+          (cancel-timer timer))
         (visual-replace--clear-scope)
         (visual-replace--clear-preview)))
     (unless quit-flag (setq visual-replace--incomplete nil))
@@ -1231,55 +1237,96 @@ It looks for matches within the visible portions of the buffer
 and highlights them. If no matches can be found in the visible
 portion of the buffer, it triggers a search for some other
 matches to display unless NO-FIRST-MATCH is non-nil."
-  (visual-replace--clear-preview)
-  (when visual-replace--first-match-timer
-    (cancel-timer visual-replace--first-match-timer)
-    (setq visual-replace--first-match-timer nil))
-  (let* ((args (visual-replace-args--from-minibuffer))
-         (ranges (visual-replace--scope-ranges)))
-    (when (> (length (visual-replace-args-from args)) 2)
-      (with-current-buffer visual-replace--calling-buffer
-        (let ((matches (visual-replace--search
-                        args
-                        (visual-replace--range-intersect-sorted
-                         ranges
-                         (visual-replace--visible-ranges (current-buffer)))
-                        visual-replace-preview-max-duration)))
-          (if matches
-              (dolist (m matches)
-                (when-let ((ov (visual-replace--overlay
-                                (nth 0 m) (nth 1 m) (nth 2 m))))
-                  (push ov visual-replace--match-ovs)))
-            ;; no matches within the visible region
+  (when visual-replace-preview
+    (with-current-buffer visual-replace--calling-buffer
+      (let* ((args (visual-replace-args--from-minibuffer))
+             (ranges (visual-replace--scope-ranges)))
+        (when (> (length (visual-replace-args-from args)) 2)
+          (let ((visible-ranges (visual-replace--range-intersect-sorted
+                                 ranges
+                                 (visual-replace--visible-ranges
+                                  visual-replace--calling-buffer)))
+                work-queue consumers)
+            ;; This functions just builds a idle search and runs it. See
+            ;; visual-replace--run-idle-search for the format of
+            ;; work-queue and consumers.
+
+            (push `((visual-replace--highlight-matches)
+                    ;; call (visual-replace-search args ...
+                    ,visible-ranges ,visual-replace-preview-max-duration)
+                  work-queue)
             (when (and visual-replace-first-match (not no-first-match))
-              (let ((origin (save-excursion
+              (let ((invisible-ranges (visual-replace--range-substract-sorted
+                                       ranges
+                                       visible-ranges))
+                    (origin (save-excursion
                               (goto-char (visual-replace--scope-point
                                           visual-replace--scope))
                               (line-beginning-position))))
-                (visual-replace--schedule-first-match
-                 args
-                 (visual-replace--small-ranges
-                  (append
-                   ;; first search for a match below the original
-                   ;; position of the point.
-                   (visual-replace--range-intersect-sorted
-                    ranges
-                    `((,origin . ,(point-max))))
-                   ;; if none can be found, look for one above.
-                   (visual-replace--range-intersect-sorted
-                    ranges
-                    `((,(point-min) . ,origin))))))))))))))
+                (push (lambda (matches)
+                        (visual-replace--show-first-match matches visible-ranges))
+                      consumers)
+                ;; first search for a match below the original
+                ;; position of the point.
+                (dolist (small-range (visual-replace--small-ranges
+                                      (visual-replace--range-intersect-sorted
+                                       invisible-ranges
+                                       `((,origin . ,(point-max))))))
+                  (push `(nil
+                          ;; call (visual-replace-search args ...
+                          ,(list small-range) ,visual-replace-preview-max-duration 1)
+                        work-queue))
+                ;; if none can be found, look for one above, going backward.
+                (dolist (small-range (nreverse (visual-replace--small-ranges
+                                                (visual-replace--range-intersect-sorted
+                                                 invisible-ranges
+                                                 `((,(point-min) . ,origin))))))
+                  (push `(nil
+                          ;; call (visual-replace-search args ...
+                          ,(list small-range) ,visual-replace-preview-max-duration 1 backward)
+                        work-queue))))
+            (visual-replace--run-idle-search
+             args (nreverse work-queue) consumers)))))))
 
-(defun visual-replace--schedule-first-match (args ranges)
-  "Schedule a run of `visual-replace--first-match'.
+(defun visual-replace--highlight-matches (matches)
+  "Create overlays to highlight MATCHES in the current buffer.
 
-ARGS is the `visual-replace-args' instance to use for searching.
-RANGES is a series of (cons START END) to search, one after the
-other."
-  (when ranges
-    (setq visual-replace--first-match-timer
-          (visual-replace--more-idle-timer
-           #'visual-replace--first-match args ranges))))
+This function is meant to be used as step consumer for
+`visual-replace--run-idle-search' and fed matches found within
+the visible range of the buffer."
+  (visual-replace--clear-preview)
+  (dolist (m matches)
+    (when-let ((ov (visual-replace--overlay
+                    (nth 0 m) (nth 1 m) (nth 2 m))))
+      (push ov visual-replace--match-ovs))))
+
+(defun visual-replace--show-first-match (matches visible-ranges)
+  "Make sure the first match is visible.
+
+This function is meant to be used as consumer for
+`visual-replace--run-idle-search'.
+
+This function waits for a match. It returns t as long as MATCHES
+is empty, to ask to be called again with matches.
+
+Once this function has gotten its first match, it checks it
+against VISIBLE-RANGES. If the first match is not visible, it
+moves the calling window to display that first match."
+  (if matches
+      (prog1 ; match found
+          nil ; stop searching for more matches
+          (let ((win visual-replace--calling-window)
+                (pos (car (car matches))))
+            (unless (visual-replace--range-contains-sorted
+                     visible-ranges pos)
+              (with-selected-window win
+                (let ((orig-start (window-start win)))
+                  (goto-char pos)
+                  (recenter)
+                  (when (not (= orig-start (window-start win)))
+                    (visual-replace--update-preview 'no-first-match)))))))
+      ;; no matches, continue
+      t))
 
 (defun visual-replace--more-idle-timer (func &rest args)
   "Schedule FUNC with ARGS from an idle timer.
@@ -1293,36 +1340,74 @@ timers to run."
              visual-replace-preview-delay)
            nil func args)))
 
-(defun visual-replace--first-match (args ranges)
-  "Look for a match to display.
+(defun visual-replace--run-idle-search (args work-queue consumers)
+  "Run an idle search for ARGS, a `visual-replace-args' struct.
 
-This function is meant to be called exclusively from an idle
-timer, stored in `visual-replace--first-match-timer', by
-`visual-replace--update-preview' when it cannot find any match.
+This functions goes though WORK-QUEUE, running searches as
+indicated, on after the other. The first search is run directly
+and any subsequent searches are run in a idle timer.
 
-ARGS is the `visual-replace-args' instance to use for searching.
-RANGES is a series of (cons START END) to search, one after the
-other.
+WORK-QUEUE is a list of (list-of-step-consumers . search-args).
+Each element of WORK-QUEUE describes a call to
+`visual-replace--search' with ARGS and search-args as arguments.
+The matches returned by that call is fed to the step consumers in
+list-of-step-consumers for the current element, and to the
+consumers in CONSUMERS.
 
-This searches one range, then schedules another run for searching
-the next range, until RANGES is empty.
+Consumers in list-of-step-consumers are called one after the
+other with a single argument, the matches that were found,
+possibly nil. The return value doesn't matter.
 
-Note that calling `visual-replace--update-preview' cancels the
-timer"
-  (setq visual-replace--first-match-timer nil)
-  (with-current-buffer visual-replace--calling-buffer
-    (let* ((range (car ranges))
-           (match (car (visual-replace--search
-                        args (list range)
-                        visual-replace-first-match-max-duration 1))))
-      (if match
-          (progn
-            (with-selected-window visual-replace--calling-window
-              (goto-char (car match))
-              (recenter))
-            (visual-replace--update-preview 'no-first-match))
-        (visual-replace--schedule-first-match
-         args (cdr ranges))))))
+Consumers in CONSUMERS are also called one after the other with
+the matches that were found. They must return either non-nil, to
+indicate that they want to receive more matches, or nil, to
+indicate that they're done.
+
+`visual-replace--run-idle-search' doesn't run searches for which
+there are no step consumers and no consumers."
+  (when (buffer-live-p visual-replace--calling-buffer)
+    (with-current-buffer visual-replace--calling-buffer
+      (let ((step-consumers (car (car work-queue)))
+            (search-args (cdr (car work-queue))))
+        (when (or step-consumers consumers)
+          (let ((matches (apply #'visual-replace--search
+                                args search-args)))
+
+            ;; Send matches to each step consumers.
+            (dolist (c step-consumers)
+              (funcall c matches))
+
+            ;; Send matches to each global consumers, remove consumers
+            ;; that return nil, meaning they're done.
+            (let ((c consumers))
+              (while c
+                (unless (funcall (car c) matches)
+                  (setcar c nil))
+                (setq c (cdr c))))
+            (setq consumers (delq nil consumers))))
+
+        ;; Prepare work-queue for the next run, skipping items without any
+        ;; consumers.
+        (setq work-queue (cdr work-queue))
+        (unless consumers
+          (while (and work-queue (null (car (car work-queue))))
+            (setq work-queue (cdr work-queue))))
+
+        ;; Schedule the next run
+        (when work-queue
+          (visual-replace--reset-idle-search-timer)
+          (setq visual-replace--idle-search-timer
+                (visual-replace--more-idle-timer
+                 (lambda ()
+                   (setq visual-replace--idle-search-timer nil)
+                   (visual-replace--run-idle-search
+                    args work-queue consumers)))))))))
+
+(defun visual-replace--reset-idle-search-timer ()
+  "Cancel `visual-replace--idle-search-timer' if necessary."
+  (when visual-replace--idle-search-timer
+    (cancel-timer visual-replace--idle-search-timer)
+    (setq visual-replace--idle-search-timer nil)))
 
 (defun visual-replace--clear-preview ()
   "Delete all overlays in `visual-replace--match-ovs', if any."

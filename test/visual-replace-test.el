@@ -357,7 +357,8 @@
         (lambda ()
           (interactive)
           (visual-replace--update-preview)
-          (while visual-replace--first-match-timer
+          (while visual-replace--idle-search-timer
+            (cl-assert (memq visual-replace--idle-search-timer timer-idle-list))
             (ert-run-idle-timers))
           (push (visual-replace-test-window-content win) snapshots)))
        (visual-replace-ert-simulate-keys (kbd (format "t e x t SPC %d . TAB r e p l C-c t RET" to-replace))
@@ -393,7 +394,8 @@
         (lambda ()
           (interactive)
           (visual-replace--update-preview)
-          (while visual-replace--first-match-timer
+          (while visual-replace--idle-search-timer
+            (cl-assert (memq visual-replace--idle-search-timer timer-idle-list))
             (ert-run-idle-timers))
           (push (visual-replace-test-window-content win) snapshots)))
        (visual-replace-ert-simulate-keys (kbd "t e x t SPC 5 . TAB repl C-c t RET")
