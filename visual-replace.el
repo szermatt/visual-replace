@@ -407,6 +407,21 @@ This is an instance of the struct `visual-replace--scope'.")
 (defvar visual-replace--match-ovs nil
   "Overlays added for the preview in the calling buffer.")
 
+(defvar visual-replace--preview-state nil
+  "Represents the state of the preview.
+
+The preview is a set of overlays stored in
+`visual-replace--match-ovs'. This variable keeps track of the
+state that was current when that set of overlays was created.
+
+If non-nil, this is a list of 2 elements:
+ (ARGS VISIBLE-RANGES POINT).
+
+ARGS is a `visual-replace-range' element that was used to produce
+these overlays. VISIBLE-RANGES is the range within the buffer
+Visual Replace looked for matches for the preview. POINT is the
+value of (point).")
+
 (defvar visual-replace--scope-ovs nil
   "Overlay that highlight the replacement region.")
 
@@ -650,6 +665,11 @@ used as point for \\='from-point. By default, the scope is
                               (text (visual-replace-args--text args))
                               (from (visual-replace-args-from args)))
                          (cons text (if from (1+ (length text)) 0))))
+        (visual-replace--preview-state nil)
+        (after-change (lambda (_beg _end _len)
+                        (when visual-replace--preview-state
+                          (setq visual-replace--preview-state nil)
+                          (visual-replace--update-preview))))
         (trigger (this-command-keys-vector))
         (default-value)
         (text)
@@ -661,6 +681,7 @@ used as point for \\='from-point. By default, the scope is
       (unwind-protect
           (progn
             (deactivate-mark)
+            (add-hook 'after-change-functions after-change 0 'local)
             (when visual-replace-preview
               (setq timer (run-with-idle-timer
                            visual-replace-preview-delay
@@ -696,6 +717,7 @@ used as point for \\='from-point. By default, the scope is
                                 ": ")
                           initial-input nil nil nil (car search-ring) t))))
         ;; unwind
+        (remove-hook 'after-change-functions after-change 'local)
         (visual-replace--reset-idle-search-timer)
         (when timer
           (cancel-timer timer))
@@ -841,6 +863,26 @@ not active."
         (min (mark) (point))))
     (visual-replace-thing-at-point)))
 
+(defun visual-replace-args--case-fold-search (args)
+  "Compute value of `case-fold-search' for the given ARGS."
+  (if (and (visual-replace-args-case-fold args) search-upper-case)
+      (isearch-no-upper-case-p (visual-replace-args-from args)
+                               (visual-replace-args-regexp args))
+    (visual-replace-args-case-fold args)))
+
+(defun visual-replace-args--nocasify (args)
+  "Return non-nil if case-replacement should be disabled for ARGS.
+
+This builds the argument nocasify of `match-substitute-replacement'."
+  (not (and case-replace (visual-replace-args--case-fold-search args))))
+
+(defun visual-replace-args--literal (args)
+  "Return non-nil if regexp replacement should be literal for ARGS.
+
+This builds the argument literal of `match-substitute-replacement'."
+  (let ((regexp-flag (visual-replace-args-regexp args)))
+    (or (not regexp-flag) (eq regexp-flag 'literal))))
+
 (defun visual-replace-args--text (args)
   "Build the text representation of ARGS, a `visual-replace-args' struct.
 
@@ -877,6 +919,23 @@ displayed in the prompt following the arrow."
          (t "c"))
    (if (visual-replace-args-regexp args) ".*" "")
    (if (visual-replace-args-word args) "w" "")))
+
+(defun visual-replace-args--equiv-for-match-p (a b)
+  "Return non-nil if A and B are equivalent for matching.
+
+Always returns nil if A or B are nil."
+  (and
+   a b
+   (equal (visual-replace-args-from a)
+          (visual-replace-args-from b))
+   (eq (visual-replace-args-word a)
+       (visual-replace-args-word b))
+   (eq (visual-replace-args-regexp a)
+       (visual-replace-args-regexp b))
+   (eq (visual-replace-args-case-fold a)
+       (visual-replace-args-case-fold b))
+   (eq (visual-replace-args-lax-ws a)
+       (visual-replace-args-lax-ws b))))
 
 (defun visual-replace-args--separator (args &optional flag-text)
   "Return the separator for ARGS, a `visual-replace-args'.
@@ -1106,31 +1165,19 @@ regions to the beginning. This only matters when MAX-MATCHES is
 set.
 
 Return a list of (start end replacement)."
-  (let* ((preview-start (get-internal-run-time))
-         (args (visual-replace-preprocess args))
-         (from (visual-replace-args-from args))
-         (replace-lax-whitespace (visual-replace-args-lax-ws-non-regexp args))
-         (replace-regexp-lax-whitespace (visual-replace-args-lax-ws-regexp args))
-         (case-fold-search (if (and (visual-replace-args-case-fold args) search-upper-case)
-                               (isearch-no-upper-case-p (visual-replace-args-from args)
-                                                        (visual-replace-args-regexp args))
-                             (visual-replace-args-case-fold args)))
-         (nocasify (not (and case-replace case-fold-search)))
-         (regexp-flag (visual-replace-args-regexp args))
-         (literal (or (not regexp-flag) (eq regexp-flag 'literal)))
-         (replacement-count 0)
-         (matches))
+  (let ((preview-start (get-internal-run-time))
+        (args (visual-replace-preprocess args))
+        (from (visual-replace-args-from args))
+        (replace-lax-whitespace (visual-replace-args-lax-ws-non-regexp args))
+        (replace-regexp-lax-whitespace (visual-replace-args-lax-ws-regexp args))
+        (case-fold-search (visual-replace-args--case-fold-search args))
+        (replacement-count 0)
+        (matches))
     (catch 'visual-replace-return
       (dolist (range sorted-ranges)
         (let ((start (car range))
               (end (cdr range))
-              (replacement
-               (condition-case nil
-                   (if (visual-replace-args-to args)
-                       (query-replace-compile-replacement
-                        (visual-replace-args-to args)
-                        (visual-replace-args-regexp args)))
-                 (error nil))))
+              (replacement (visual-replace--compile-replacement args)))
           (when backward
             (setq start (cdr range))
             (setq end (car range)))
@@ -1155,22 +1202,50 @@ Return a list of (start end replacement)."
                                                    preview-start))
                                    max-duration)))
                   (throw 'visual-replace-return nil))
-                (condition-case nil
-                    (setq m-replacement
-                          (cond
-                           ((stringp replacement)
-                            (match-substitute-replacement replacement nocasify literal))
-                           ((consp replacement)
-                            (prog1
-                                (funcall (car replacement) (cdr replacement)
-                                         replacement-count)
-                              (cl-incf replacement-count)))))
-                  ;; ignore invalid replacements
-                  (error nil))
-                (push (list m-start m-end m-replacement) matches)
+                (setq m-replacement (visual-replace--replacement-for-match-data
+                                     replacement replacement-count args))
+                (cl-incf replacement-count)
+                (push (list m-start m-end m-replacement (match-data)) matches)
                 (when (and max-matches (>= (length matches) max-matches))
                   (throw 'visual-replace-return (nreverse matches))))))))
       (nreverse matches))))
+
+(defun visual-replace--compile-replacement (args)
+  "Prepare replacement for ARGS.
+
+The return value is meant to be passed to
+ `visual-replace--replacement-for-match-data'."
+  (condition-case nil
+      (if (visual-replace-args-to args)
+          (query-replace-compile-replacement
+           (visual-replace-args-to args)
+           (visual-replace-args-regexp args)))
+    (error nil)))
+
+(defun visual-replace--replacement-for-match-data (replacement replacement-count args)
+  "Build replacement string for the current match data.
+
+REPLACEMENT should be a compiled replacement, built by
+`visual-replace--compile-replacement'.
+
+REPLACEMENT-COUNT is the index of the current replacement.
+
+ARGS is the `visual-replace-args' to take relevant flags from."
+  (condition-case nil
+      (let ((replace-lax-whitespace (visual-replace-args-lax-ws-non-regexp args))
+            (replace-regexp-lax-whitespace (visual-replace-args-lax-ws-regexp args))
+            (case-fold-search (visual-replace-args--case-fold-search args)))
+        (cond
+         ((null replacement) nil)
+         ((stringp replacement)
+          (match-substitute-replacement replacement
+                                        (visual-replace-args--nocasify args)
+                                        (visual-replace-args--literal args)))
+         ((consp replacement)
+          (funcall (car replacement) (cdr replacement)
+                   replacement-count))))
+    ;; ignore invalid replacements
+    (error nil)))
 
 (defun visual-replace--visible-ranges (buf)
   "Return the visible ranges of BUF.
@@ -1188,44 +1263,55 @@ Returned ranges are sorted and non-overlapping."
                        (point)))))
            (get-buffer-window-list buf))))
 
-(defun visual-replace--overlay (start end replacement)
+(defun visual-replace--overlay (start end replacement match-data)
   "Create an overlay highlighting text and replacement.
 
 The text between START and END is the text being replacement.
-REPLACEMENT, if non-nil, is its replacement."
+REPLACEMENT, if non-nil, is its replacement.
+MATCH-DATA is the value of (match-data) for the match."
   (unless (text-property-not-all start end 'read-only nil)
     (let ((ov (make-overlay start end)))
       (overlay-put ov 'priority 1000)
       (overlay-put ov 'visual-replace t)
-      (overlay-put ov 'visual-replace-replacement replacement)
-      (if (null replacement)
-          ;; no replacement yet
-          (overlay-put ov 'face 'visual-replace-match)
-
-        ;; show text and replacement, highlight if necessary
-        (let* ((highlight
-                (and visual-replace-highlight-match-at-point
-                     (>= (point) start)
-                     (< (point) end)))
-               (match-face
-                (if highlight
-                    'visual-replace-delete-match-highlight
-                  'visual-replace-delete-match))
-               (repl-face
-                (if highlight
-                    'visual-replace-replacement-highlight
-                  'visual-replace-replacement)))
-          (overlay-put ov 'face match-face)
-          (overlay-put ov 'help-echo "mouse-1: apply")
-          (overlay-put ov 'keymap visual-replace--on-click-map)
-          (when replacement
-            (overlay-put
-             ov 'after-string
-             (propertize replacement
-                         'face repl-face
-                         'help-echo "mouse-1: apply"
-                         'keymap visual-replace--on-click-map)))))
+      (overlay-put ov 'visual-replace-match-data match-data)
+      (visual-replace--set-ov-replacement ov replacement)
+      (visual-replace--set-ov-highlight ov)
       ov)))
+
+(defun visual-replace--set-ov-replacement (ov replacement)
+  "Fill in overlay OV with the given REPLACEMENT."
+  (if (null replacement)
+      ;; no replacement
+      (progn
+        (overlay-put ov 'face 'visual-replace-match)
+        (overlay-put ov 'help-echo nil)
+        (overlay-put ov 'keymap nil)
+        (overlay-put ov 'after-string nil))
+
+    ;; show text and replacement, highlight if necessary
+    (overlay-put ov 'help-echo "mouse-1: apply")
+    (overlay-put ov 'keymap visual-replace--on-click-map)
+    (overlay-put
+     ov 'after-string
+     (propertize replacement
+                 'help-echo "mouse-1: apply"
+                 'keymap visual-replace--on-click-map))))
+
+(defun visual-replace--set-ov-highlight (ov)
+  "Highlight or de-highlight OV as appropriate for point."
+  (when-let ((after-string (overlay-get ov 'after-string)))
+    (let ((highlight (and visual-replace-highlight-match-at-point
+                          (>= (point) (overlay-start ov))
+                          (< (point) (overlay-end ov)))))
+      (overlay-put ov 'face (if highlight
+                                'visual-replace-delete-match-highlight
+                              'visual-replace-delete-match))
+      (set-text-properties
+       0 (length after-string)
+       `(face ,(if highlight
+                   'visual-replace-replacement-highlight
+                 'visual-replace-replacement))
+       after-string))))
 
 (defun visual-replace--update-preview (&optional no-first-match)
   "Update the preview to reflect the content of the minibuffer.
@@ -1240,26 +1326,61 @@ matches to display unless NO-FIRST-MATCH is non-nil."
   (when visual-replace-preview
     (with-current-buffer visual-replace--calling-buffer
       (let* ((args (visual-replace-args--from-minibuffer))
-             (ranges (visual-replace--scope-ranges)))
-        (if (< (length (visual-replace-args-from args))
-               visual-replace-min-length)
-            ;; Reset any existing preview, if necessary.
-            (visual-replace--clear-preview)
+             (ranges (visual-replace--scope-ranges))
+             (visible-ranges (visual-replace--range-intersect-sorted
+                              ranges
+                              (visual-replace--visible-ranges
+                               visual-replace--calling-buffer)))
+             (old-args (nth 0 visual-replace--preview-state))
+             (old-visible-ranges (nth 1 visual-replace--preview-state))
+             (old-point (nth 2 visual-replace--preview-state)))
+        (cond
+         ;; Preview is turned off. Reset it if necessary.
+         ((< (length (visual-replace-args-from args))
+             visual-replace-min-length)
+          (setq visual-replace--preview-state nil)
+          (visual-replace--clear-preview))
 
-          ;; Actually build the preview, looking for a match to show.
-          (let ((visible-ranges (visual-replace--range-intersect-sorted
-                                 ranges
-                                 (visual-replace--visible-ranges
-                                  visual-replace--calling-buffer)))
-                work-queue consumers)
-            ;; This functions just builds a idle search and runs it. See
-            ;; visual-replace--run-idle-search for the format of
-            ;; work-queue and consumers.
+         ;; Preview overlays are correct; update them if necessary.
+         ((and (visual-replace-args--equiv-for-match-p args old-args)
+               (equal old-visible-ranges visible-ranges))
 
-            (push `((visual-replace--highlight-matches)
+          (unless (equal (point) old-point)
+            (dolist (ov visual-replace--match-ovs)
+              (visual-replace--set-ov-highlight ov))
+            (setf (nth 2 visual-replace--preview-state) (point)))
+
+          (unless (string= (visual-replace-args-to args)
+                           (visual-replace-args-to old-args))
+            (let ((replacement (visual-replace--compile-replacement args))
+                  (replacement-count 0))
+              (dolist (ov visual-replace--match-ovs)
+                (set-match-data (overlay-get ov 'visual-replace-match-data))
+                (visual-replace--set-ov-replacement
+                 ov (visual-replace--replacement-for-match-data
+                     replacement
+                     replacement-count
+                     args))
+                (cl-incf replacement-count)))
+            (setf (nth 0 visual-replace--preview-state) args)))
+
+         ;; Preview overlays need to be re-created. Run searches to
+         ;; build the preview, looking for a match to show if
+         ;; necessary.
+         (t
+          (let (work-queue consumers)
+            ;; This section prepares searches in work-queue and runs
+            ;; them. See visual-replace--run-idle-search for the
+            ;; format of work-queue and consumers.
+            (push `((,(lambda (matches)
+                        (visual-replace--highlight-matches matches)
+                        (setq visual-replace--preview-state
+                              (list args visible-ranges (point)))))
+
                     ;; call (visual-replace-search args ...
                     ,visible-ranges ,visual-replace-preview-max-duration)
                   work-queue)
+
             (when (and visual-replace-first-match (not no-first-match))
               (let ((invisible-ranges (visual-replace--range-substract-sorted
                                        ranges
@@ -1279,7 +1400,8 @@ matches to display unless NO-FIRST-MATCH is non-nil."
                                        `((,origin . ,(point-max))))))
                   (push `(nil
                           ;; call (visual-replace-search args ...
-                          ,(list small-range) ,visual-replace-preview-max-duration 1)
+                          ,(list small-range)
+                          ,visual-replace-first-match-max-duration 1)
                         work-queue))
                 ;; if none can be found, look for one above, going backward.
                 (dolist (small-range (nreverse (visual-replace--small-ranges
@@ -1288,10 +1410,11 @@ matches to display unless NO-FIRST-MATCH is non-nil."
                                                  `((,(point-min) . ,origin))))))
                   (push `(nil
                           ;; call (visual-replace-search args ...
-                          ,(list small-range) ,visual-replace-preview-max-duration 1 backward)
+                          ,(list small-range)
+                          ,visual-replace-first-match-max-duration 1 backward)
                         work-queue))))
             (visual-replace--run-idle-search
-             args (nreverse work-queue) consumers)))))))
+             args (nreverse work-queue) consumers))))))))
 
 (defun visual-replace--highlight-matches (matches)
   "Create overlays to highlight MATCHES in the current buffer.
@@ -1301,8 +1424,7 @@ This function is meant to be used as step consumer for
 the visible range of the buffer."
   (visual-replace--clear-preview)
   (dolist (m matches)
-    (when-let ((ov (visual-replace--overlay
-                    (nth 0 m) (nth 1 m) (nth 2 m))))
+    (when-let ((ov (apply #'visual-replace--overlay m)))
       (push ov visual-replace--match-ovs))))
 
 (defun visual-replace--show-first-match (matches visible-ranges)
