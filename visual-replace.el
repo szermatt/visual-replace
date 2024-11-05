@@ -1340,6 +1340,24 @@ MATCH-DATA is the value of (match-data) for the match."
                  'visual-replace-replacement))
        after-string))))
 
+(defun visual-replace--update-total ()
+  "Update the index and total in the prompt.
+
+This should be called whenever the total changes or the point
+changes."
+  (when-let ((ov visual-replace--total-ov))
+    (when (nth 3 visual-replace--preview-state)
+      (let ((total (length visual-replace--match-ovs)))
+        (overlay-put
+         ov 'before-string
+         (if-let ((ov
+                   (seq-find
+                    (lambda (ov) (overlay-get ov 'visual-replace-idx))
+                    (with-current-buffer visual-replace--calling-buffer
+                      (overlays-at (point))))))
+             (format "[%d/%d] " (1+ (overlay-get ov 'visual-replace-idx)) total)
+           (format "[%d] " total)))))))
+
 (defun visual-replace--update-preview (&optional no-first-match)
   "Update the preview to reflect the content of the minibuffer.
 
@@ -1395,12 +1413,15 @@ matches to display unless NO-FIRST-MATCH is non-nil."
                    args))
               (cl-incf replacement-count)))
           (setf (nth 0 visual-replace--preview-state) args)
-          (setf (nth 2 visual-replace--preview-state) (point)))
+          (when (not (equal (point) old-point))
+            (visual-replace--update-total)
+            (setf (nth 2 visual-replace--preview-state) (point))))
 
          ;; Preview overlays are complete; highlight needs updating.
          ((and equiv (not (equal (point) old-point)))
           (dolist (ov visual-replace--match-ovs)
             (visual-replace--set-ov-highlight ov))
+          (visual-replace--update-total)
           (setf (nth 2 visual-replace--preview-state) (point)))
 
          ;; Preview overlays need to be re-created. Run searches to
@@ -1436,10 +1457,16 @@ matches to display unless NO-FIRST-MATCH is non-nil."
                         (when (visual-replace-args--equiv-for-match-p
                                args (nth 0 visual-replace--preview-state))
                           (setf (nth 3 visual-replace--preview-state) t)
-                          (when-let ((ov visual-replace--total-ov))
-                            (overlay-put ov 'before-string
-                                         (format "[%d] "
-                                                 (length visual-replace--match-ovs)))))))
+                          (setq visual-replace--match-ovs
+                                (sort visual-replace--match-ovs
+                                      (lambda (a b)
+                                        (< (overlay-start a)
+                                           (overlay-start b)))))
+                          (let ((idx 0))
+                            (dolist (ov visual-replace--match-ovs)
+                              (overlay-put ov 'visual-replace-idx idx)
+                              (cl-incf idx)))
+                          (visual-replace--update-total))))
                     consumers))
 
             (when first-match

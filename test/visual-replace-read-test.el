@@ -875,7 +875,7 @@
 (ert-deftest test-visual-replace-read-display-total ()
   (test-visual-replace-env
    (let ((visual-replace-display-total t))
-     (insert "hello, world, hello, hello!")
+     (insert "I say, hello, world, hello, hello!")
      (goto-char (point-min))
      (set-window-buffer (selected-window) (current-buffer))
      (test-visual-replace-run
@@ -891,12 +891,28 @@
       (equal (test-visual-replace-highlight-face
               (nth 2 test-visual-replace-snapshot)
               'visual-replace-match)
-             "[hell]o, world, [hell]o, [hell]o!")))))
+             "I say, [hell]o, world, [hell]o, [hell]o!")))))
+
+(ert-deftest test-visual-replace-read-display-index ()
+  (test-visual-replace-env
+   (let ((visual-replace-display-total t))
+     (insert "I say, hello, world, hello, hello!")
+     (goto-char (point-min))
+     (set-window-buffer (selected-window) (current-buffer))
+     (test-visual-replace-run
+      "hello <down> <F1> ! <down> <F1> ! <down> <F1> ! <F1> x"
+      (visual-replace-read))
+     (should
+      (equal test-visual-replace-snapshot
+             (list
+              "[1/3] Replace from point: hello[]"
+              "[2/3] Replace from point: hello[]"
+              "[3/3] Replace from point: hello[]"))))))
 
 (ert-deftest test-visual-replace-read-display-total-update ()
   (test-visual-replace-env
    (let ((visual-replace-display-total t))
-     (insert "hello, world, hellow, hellow!")
+     (insert "I say, hello, world, hellow, hellow!")
      (goto-char (point-min))
      (set-window-buffer (selected-window) (current-buffer))
      (test-visual-replace-run
@@ -911,7 +927,7 @@
 (ert-deftest test-visual-replace-read-display-total-too-short ()
   (test-visual-replace-env
    (let ((visual-replace-display-total t))
-     (insert "hello, world, hello, hello!")
+     (insert "I say, hello, world, hello, hello!")
      (goto-char (point-min))
      (set-window-buffer (selected-window) (current-buffer))
      (test-visual-replace-run
@@ -927,7 +943,7 @@
       (equal (test-visual-replace-highlight-face
               (nth 2 test-visual-replace-snapshot)
               'visual-replace-match)
-             "hello, world, hello, hello!")))))
+             "I say, hello, world, hello, hello!")))))
 
 (ert-deftest test-visual-replace-read-display-total-large-buffer ()
   (test-visual-replace-env
