@@ -36,6 +36,8 @@ are triggered by the key F1 ! when running test-visual-replace-run.")
            (replace-regexp-lax-whitespace nil)
            (visual-replace-read-history nil)
            (visual-replace-preview t)
+           (visual-replace-first-match t)
+           (visual-replace-display-total nil)
            (visual-replace-keep-incomplete t)
            (visual-replace-functions nil)
            (visual-replace-initial-scope nil)
@@ -84,9 +86,13 @@ This is meant to be called within `test-visual-replace-env`."
       (define-key visual-replace-mode-map (kbd "<F1>") test-map)
       (unwind-protect
           (progn
-            (define-key visual-replace-mode-map (kbd "<F1> !") 'test-visual-replace-snapshot)
+            ;; Snapshot minibuffer.
+            (define-key visual-replace-mode-map (kbd "<F1> !")
+                        'test-visual-replace-snapshot)
+            ;; Snapshot buffer.
             (define-key visual-replace-mode-map (kbd "<F1> _")
-              (lambda () (interactive)
+              (lambda ()
+                (interactive)
                 (test-visual-replace-preview start-buffer)))
             (define-key visual-replace-mode-map (kbd "<F1> r") 'visual-replace-toggle-regexp)
             (define-key visual-replace-mode-map (kbd "<F1> q") 'visual-replace-toggle-query)
@@ -125,6 +131,8 @@ This is meant to be called within `test-visual-replace-env`."
 
 The snapshot is appended to `test-visual-replace-snapshot`."
   (interactive)
+  (visual-replace--update-preview)
+  (test-visual-run-idle-search-timers)
   (with-current-buffer (window-buffer (minibuffer-window))
     (unwind-protect
         (save-excursion
@@ -132,24 +140,8 @@ The snapshot is appended to `test-visual-replace-snapshot`."
           (goto-char (point-min))
           (setq test-visual-replace-snapshot
                 (append test-visual-replace-snapshot
-                        (list (test-visual-replace-buffer-content)))))
+                        (list (visual-replace-test-content)))))
       (delete-region (point) (+ 2 (point))))))
-
-(defun test-visual-replace-buffer-content ()
-  "Returns the content of the buffer.
-
-The returned string takes text properties \\='display and
-\\='invisible into account, to better match what's displayed."
-  (let (results)
-    (save-excursion
-      (dolist (part (test-visual-replace-split-by-properties
-                     (point-min) (point-max)))
-        (let ((invisible (get-text-property 0 'invisible part))
-              (display (get-text-property 0 'display part)))
-          (when (or (null invisible)
-                    (not (memq invisible buffer-invisibility-spec)))
-            (push (or display part) results))))
-      (apply 'concat (nreverse results)))))
 
 (defun test-visual-replace-split-by-properties (start end)
   "Split the text between START and END.
@@ -189,9 +181,16 @@ interpreting \\='display and \\='invisible. The face properties
 of the overlays are kept as text properties."
   (with-current-buffer buf
     (visual-replace--update-preview)
+    (test-visual-run-idle-search-timers)
     (setq test-visual-replace-snapshot
           (append test-visual-replace-snapshot
                   (list (visual-replace-test-content))))))
+
+(defun test-visual-run-idle-search-timers ()
+  "Run idle search timers, as long as there is one."
+  (while visual-replace--idle-search-timer
+    (cl-assert (memq visual-replace--idle-search-timer timer-idle-list))
+    (ert-run-idle-timers)))
 
 (defun test-visual-replace-highlight-property (text property mark)
   "Add MARK to TEXT where PROPERTY first turns non-nil."
@@ -291,7 +290,7 @@ text properties."
             (push before-string sections))
           (push (cond
                  (invisible "")
-                 (display (concat "{" display "}"))
+                 (display (concat display))
                  (t
                   (let ((text (buffer-substring-no-properties (point) last)))
                     (dolist (ov-prop ov-props)

@@ -872,4 +872,81 @@
                    "Fee fi fo fum!"
                    "Lee fi fo fum!")))))
 
+(ert-deftest test-visual-replace-read-display-total ()
+  (test-visual-replace-env
+   (let ((visual-replace-display-total t))
+     (insert "hello, world, hello, hello!")
+     (goto-char (point-min))
+     (set-window-buffer (selected-window) (current-buffer))
+     (test-visual-replace-run
+      "he <F1> ! ll <F1> ! <F1> _ <F1> x"
+      (visual-replace-read))
+     (should
+      (equal (nth 0 test-visual-replace-snapshot)
+             "Replace from point: he[]"))
+     (should
+      (equal (nth 1 test-visual-replace-snapshot)
+             "[3] Replace from point: hell[]"))
+     (should
+      (equal (test-visual-replace-highlight-face
+              (nth 2 test-visual-replace-snapshot)
+              'visual-replace-match)
+             "[hell]o, world, [hell]o, [hell]o!")))))
+
+(ert-deftest test-visual-replace-read-display-total-update ()
+  (test-visual-replace-env
+   (let ((visual-replace-display-total t))
+     (insert "hello, world, hellow, hellow!")
+     (goto-char (point-min))
+     (set-window-buffer (selected-window) (current-buffer))
+     (test-visual-replace-run
+      "hello <F1> ! w <F1> ! DEL , <F1> ! DEL . <F1> ! <F1> x"
+      (visual-replace-read))
+     (should (equal test-visual-replace-snapshot
+                    (list "[3] Replace from point: hello[]"
+                          "[2] Replace from point: hellow[]"
+                          "[1] Replace from point: hello,[]"
+                          "[0] Replace from point: hello.[]"))))))
+
+(ert-deftest test-visual-replace-read-display-total-too-short ()
+  (test-visual-replace-env
+   (let ((visual-replace-display-total t))
+     (insert "hello, world, hello, hello!")
+     (goto-char (point-min))
+     (set-window-buffer (selected-window) (current-buffer))
+     (test-visual-replace-run
+      "hell <F1> ! DEL DEL <F1> ! <F1> _ <F1> x"
+      (visual-replace-read))
+     (should
+      (equal (nth 0 test-visual-replace-snapshot)
+             "[3] Replace from point: hell[]"))
+     (should
+      (equal (nth 1 test-visual-replace-snapshot)
+             "Replace from point: he[]"))
+     (should
+      (equal (test-visual-replace-highlight-face
+              (nth 2 test-visual-replace-snapshot)
+              'visual-replace-match)
+             "hello, world, hello, hello!")))))
+
+(ert-deftest test-visual-replace-read-display-total-large-buffer ()
+  (test-visual-replace-env
+   (let ((visual-replace-display-total t))
+     (dotimes (i 1024)
+       (insert (format "some text%d\n" i)))
+     (goto-char (point-min))
+     (set-window-buffer (selected-window) (current-buffer))
+     (test-visual-replace-run
+      "text <F1> ! <F1> _ <F1> x"
+      (visual-replace-read))
+     (should
+      (equal (nth 0 test-visual-replace-snapshot)
+             "[1024] Replace from point: text[]"))
+     (dolist (line (split-string (test-visual-replace-highlight-face
+                                  (nth 1 test-visual-replace-snapshot)
+                                  'visual-replace-match)
+                                 "\n" 'omit-nulls))
+       (should (string-match "^some \\[text\\]" line))))))
+
+
 ;;; visual-replace-test.el ends here

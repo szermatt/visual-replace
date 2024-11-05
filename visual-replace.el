@@ -121,12 +121,26 @@ See also `visual-replace-initial-scope'."
   :type 'boolean
   :group 'visual-replace)
 
+(defcustom visual-replace-display-total nil
+  "If non-nil, display the total match count in the prompt.
+
+When enabled, Visual Replace counts all matches within the buffer
+with a lower priority than the preview highlights and displays
+the result in the prompt, just before the arrow."
+  :type 'boolean
+  :group 'visual-replace)
+
 (defface visual-replace-match
   '((t :inherit query-replace))
   "How to display the string that was matched.
 
 This is the face that's used to highlight matches, before a
 replacement has been defined."
+  :group 'visual-replace)
+
+(defface visual-replace-total
+  '((t :inherit minibuffer-prompt))
+  "How to display match count in the prompt."
   :group 'visual-replace)
 
 (defface visual-replace-delete-match
@@ -407,6 +421,11 @@ This is an instance of the struct `visual-replace--scope'.")
 (defvar visual-replace--match-ovs nil
   "Overlays added for the preview in the calling buffer.")
 
+(defvar visual-replace--total-ov nil
+  "Overlay added to the minibuffer to display match count.
+
+Only relevant if `visual-replace-display-total' is non-nil.")
+
 (defvar visual-replace--preview-state nil
   "Represents the state of the preview.
 
@@ -415,12 +434,13 @@ The preview is a set of overlays stored in
 state that was current when that set of overlays was created.
 
 If non-nil, this is a list of 2 elements:
- (ARGS VISIBLE-RANGES POINT).
+ (ARGS VISIBLE-RANGES POINT IS-COMPLETE).
 
 ARGS is a `visual-replace-range' element that was used to produce
 these overlays. VISIBLE-RANGES is the range within the buffer
 Visual Replace looked for matches for the preview. POINT is the
-value of (point).")
+value of (point). IS-COMPLETE is t once the whole buffer was
+searched, so overlays are complete.")
 
 (defvar visual-replace--scope-ovs nil
   "Overlay that highlight the replacement region.")
@@ -671,6 +691,7 @@ used as point for \\='from-point. By default, the scope is
                           (setq visual-replace--preview-state nil)
                           (visual-replace--update-preview))))
         (trigger (this-command-keys-vector))
+        (visual-replace--total-ov nil)
         (default-value)
         (text)
         (timer))
@@ -688,6 +709,11 @@ used as point for \\='from-point. By default, the scope is
                            'repeat #'visual-replace--update-preview)))
             (minibuffer-with-setup-hook
                 (lambda ()
+                  (setq visual-replace--total-ov
+                        (when visual-replace-display-total
+                          (let ((ov (make-overlay (point-min) (point-min))))
+                            (overlay-put ov 'face 'visual-replace-total)
+                            ov)))
                   (when visual-replace-keep-incomplete
                     (add-hook 'after-change-functions #'visual-replace--after-change 0 'local))
                   (visual-replace-minibuffer-mode t)
@@ -1295,7 +1321,8 @@ MATCH-DATA is the value of (match-data) for the match."
      ov 'after-string
      (propertize replacement
                  'help-echo "mouse-1: apply"
-                 'keymap visual-replace--on-click-map))))
+                 'keymap visual-replace--on-click-map))
+    (visual-replace--set-ov-highlight ov)))
 
 (defun visual-replace--set-ov-highlight (ov)
   "Highlight or de-highlight OV as appropriate for point."
@@ -1333,55 +1360,95 @@ matches to display unless NO-FIRST-MATCH is non-nil."
                                visual-replace--calling-buffer)))
              (old-args (nth 0 visual-replace--preview-state))
              (old-visible-ranges (nth 1 visual-replace--preview-state))
-             (old-point (nth 2 visual-replace--preview-state)))
+             (old-point (nth 2 visual-replace--preview-state))
+             (is-complete (nth 3 visual-replace--preview-state))
+             equiv)
         (cond
          ;; Preview is turned off. Reset it if necessary.
          ((< (length (visual-replace-args-from args))
              visual-replace-min-length)
           (setq visual-replace--preview-state nil)
+          (when-let ((ov visual-replace--total-ov))
+            (overlay-put ov 'before-string nil))
           (visual-replace--clear-preview))
 
-         ;; Preview overlays are correct; update them if necessary.
-         ((and (visual-replace-args--equiv-for-match-p args old-args)
-               (equal old-visible-ranges visible-ranges))
+         ;; Preview overlays are correct.
+         ((and (setq equiv (and (visual-replace-args--equiv-for-match-p args old-args)
+                                (or is-complete (equal old-visible-ranges visible-ranges))))
+               (equal (point) old-point)
+               (string= (visual-replace-args-to args)
+                        (visual-replace-args-to old-args))))
 
-          (unless (equal (point) old-point)
+         ;; Preview overlays are complete; replacement needs updating.
+         ;; This also updates highlights.
+         ((and equiv
+               (not (string= (visual-replace-args-to args)
+                             (visual-replace-args-to old-args))))
+          (let ((replacement (visual-replace--compile-replacement args))
+                (replacement-count 0))
             (dolist (ov visual-replace--match-ovs)
-              (visual-replace--set-ov-highlight ov))
-            (setf (nth 2 visual-replace--preview-state) (point)))
+              (set-match-data (overlay-get ov 'visual-replace-match-data))
+              (visual-replace--set-ov-replacement
+               ov (visual-replace--replacement-for-match-data
+                   replacement
+                   replacement-count
+                   args))
+              (cl-incf replacement-count)))
+          (setf (nth 0 visual-replace--preview-state) args)
+          (setf (nth 2 visual-replace--preview-state) (point)))
 
-          (unless (string= (visual-replace-args-to args)
-                           (visual-replace-args-to old-args))
-            (let ((replacement (visual-replace--compile-replacement args))
-                  (replacement-count 0))
-              (dolist (ov visual-replace--match-ovs)
-                (set-match-data (overlay-get ov 'visual-replace-match-data))
-                (visual-replace--set-ov-replacement
-                 ov (visual-replace--replacement-for-match-data
-                     replacement
-                     replacement-count
-                     args))
-                (cl-incf replacement-count)))
-            (setf (nth 0 visual-replace--preview-state) args)))
+         ;; Preview overlays are complete; highlight needs updating.
+         ((and equiv (not (equal (point) old-point)))
+          (dolist (ov visual-replace--match-ovs)
+            (visual-replace--set-ov-highlight ov))
+          (setf (nth 2 visual-replace--preview-state) (point)))
 
          ;; Preview overlays need to be re-created. Run searches to
          ;; build the preview, looking for a match to show if
          ;; necessary.
          (t
-          (let (work-queue consumers)
+          (let ((first-match (and (not no-first-match)
+                                  visual-replace-first-match))
+                (count-matches (and (not no-first-match)
+                                    visual-replace-display-total))
+                work-queue consumers)
+
             ;; This section prepares searches in work-queue and runs
             ;; them. See visual-replace--run-idle-search for the
             ;; format of work-queue and consumers.
-            (push `((,(lambda (matches)
-                        (visual-replace--highlight-matches matches)
-                        (setq visual-replace--preview-state
-                              (list args visible-ranges (point)))))
+            (push `(,(unless count-matches
+                       (list (lambda (ranges matches)
+                               (setq visual-replace--preview-state
+                                     (list args visible-ranges (point) nil))
+                               (visual-replace--highlight-matches ranges matches))))
 
                     ;; call (visual-replace-search args ...
                     ,visible-ranges ,visual-replace-preview-max-duration)
                   work-queue)
 
-            (when (and visual-replace-first-match (not no-first-match))
+            (when count-matches
+              (setq visual-replace--preview-state
+                    (list args visible-ranges (point) nil))
+              (push (lambda (ranges matches is-done)
+                      (if (not is-done)
+                          (prog1 t ; continue until the end
+                            (visual-replace--highlight-matches ranges matches))
+                        (when (visual-replace-args--equiv-for-match-p
+                               args (nth 0 visual-replace--preview-state))
+                          (setf (nth 3 visual-replace--preview-state) t)
+                          (when-let ((ov visual-replace--total-ov))
+                            (overlay-put ov 'before-string
+                                         (format "[%d] "
+                                                 (length visual-replace--match-ovs)))))))
+                    consumers))
+
+            (when first-match
+                (push (lambda (_ranges matches _is-done)
+                        (visual-replace--show-first-match
+                         matches visible-ranges (not count-matches)))
+                      consumers))
+
+            (when (or count-matches first-match)
               (let ((invisible-ranges (visual-replace--range-substract-sorted
                                        ranges
                                        visible-ranges))
@@ -1389,9 +1456,6 @@ matches to display unless NO-FIRST-MATCH is non-nil."
                               (goto-char (visual-replace--scope-point
                                           visual-replace--scope))
                               (line-beginning-position))))
-                (push (lambda (matches)
-                        (visual-replace--show-first-match matches visible-ranges))
-                      consumers)
                 ;; first search for a match below the original
                 ;; position of the point.
                 (dolist (small-range (visual-replace--small-ranges
@@ -1401,7 +1465,8 @@ matches to display unless NO-FIRST-MATCH is non-nil."
                   (push `(nil
                           ;; call (visual-replace-search args ...
                           ,(list small-range)
-                          ,visual-replace-first-match-max-duration 1)
+                          ,visual-replace-first-match-max-duration
+                          ,(if count-matches nil 1))
                         work-queue))
                 ;; if none can be found, look for one above, going backward.
                 (dolist (small-range (nreverse (visual-replace--small-ranges
@@ -1411,23 +1476,25 @@ matches to display unless NO-FIRST-MATCH is non-nil."
                   (push `(nil
                           ;; call (visual-replace-search args ...
                           ,(list small-range)
-                          ,visual-replace-first-match-max-duration 1 backward)
+                          ,visual-replace-first-match-max-duration
+                          ,(if count-matches nil 1)
+                          backward)
                         work-queue))))
             (visual-replace--run-idle-search
              args (nreverse work-queue) consumers))))))))
 
-(defun visual-replace--highlight-matches (matches)
+(defun visual-replace--highlight-matches (ranges matches)
   "Create overlays to highlight MATCHES in the current buffer.
 
 This function is meant to be used as step consumer for
 `visual-replace--run-idle-search' and fed matches found within
 the visible range of the buffer."
-  (visual-replace--clear-preview)
+  (visual-replace--clear-preview-in-ranges ranges)
   (dolist (m matches)
     (when-let ((ov (apply #'visual-replace--overlay m)))
       (push ov visual-replace--match-ovs))))
 
-(defun visual-replace--show-first-match (matches visible-ranges)
+(defun visual-replace--show-first-match (matches visible-ranges update-preview)
   "Make sure the first match is visible.
 
 This function is meant to be used as consumer for
@@ -1438,7 +1505,11 @@ is empty, to ask to be called again with matches.
 
 Once this function has gotten its first match, it checks it
 against VISIBLE-RANGES. If the first match is not visible, it
-moves the calling window to display that first match."
+moves the calling window to display that first match.
+
+If UPDATE-PREVIEW is non-nil, call
+`visual-replace--update-preview' after moving the window. This is
+necessary if there only are overlays in the visible range."
   (if matches
       (prog1 ; match found
           nil ; stop searching for more matches
@@ -1450,7 +1521,8 @@ moves the calling window to display that first match."
                 (let ((orig-start (window-start win)))
                   (goto-char pos)
                   (recenter)
-                  (when (not (= orig-start (window-start win)))
+                  (when (and update-preview
+                             (not (= orig-start (window-start win))))
                     (visual-replace--update-preview 'no-first-match)))))))
       ;; no matches, continue
       t))
@@ -1496,21 +1568,21 @@ indicate that they're done.
 there are no step consumers and no consumers."
   (when (buffer-live-p visual-replace--calling-buffer)
     (with-current-buffer visual-replace--calling-buffer
-      (let ((step-consumers (car (car work-queue)))
-            (search-args (cdr (car work-queue))))
+      (let* ((step-consumers (car (car work-queue)))
+             (search-args (cdr (car work-queue)))
+             (ranges (car search-args)))
         (when (or step-consumers consumers)
           (let ((matches (apply #'visual-replace--search
                                 args search-args)))
-
             ;; Send matches to each step consumers.
             (dolist (c step-consumers)
-              (funcall c matches))
+              (funcall c ranges matches))
 
             ;; Send matches to each global consumers, remove consumers
             ;; that return nil, meaning they're done.
             (let ((c consumers))
               (while c
-                (unless (funcall (car c) matches)
+                (unless (funcall (car c) ranges matches nil)
                   (setcar c nil))
                 (setq c (cdr c))))
             (setq consumers (delq nil consumers))))
@@ -1523,7 +1595,12 @@ there are no step consumers and no consumers."
             (setq work-queue (cdr work-queue))))
 
         ;; Schedule the next run
-        (when work-queue
+        (if (null work-queue)
+            ;; Let any remaining consumers know we're done.
+            (dolist (c consumers)
+              (funcall c nil nil 'is-done))
+
+          ;; Schedule another run on an idle timer
           (visual-replace--reset-idle-search-timer)
           (setq visual-replace--idle-search-timer
                 (visual-replace--run-with-idle-timer
@@ -1544,6 +1621,22 @@ there are no step consumers and no consumers."
     (dolist (overlay visual-replace--match-ovs)
       (delete-overlay overlay)))
   (setq visual-replace--match-ovs nil))
+
+(defun visual-replace--clear-preview-in-ranges (ranges)
+  "Delete all overlays in `visual-replace--match-ovs' in RANGES.
+
+RANGES must be sorted and non-overlapping.
+
+Overlays that start within RANGES are deleted and removed from
+the list."
+  (with-current-buffer visual-replace--calling-buffer
+    (let ((ovs visual-replace--match-ovs))
+      (setq visual-replace--match-ovs nil)
+      (dolist (ov ovs)
+        (if (visual-replace--range-contains-sorted
+             ranges (overlay-start ov))
+            (delete-overlay ov)
+          (push ov visual-replace--match-ovs))))))
 
 (defun visual-replace--after-change (&rest _ignored)
   "Update `visual-replace--incomplete'.
