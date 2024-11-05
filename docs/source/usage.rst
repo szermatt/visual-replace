@@ -153,6 +153,64 @@ If you want to replace only *some* matches within the scope, you can:
   also moving through the matches with :kbd:`<down>` or :kbd:`<up>`.
   :kbd:`u` reverts the last replacement.
 
+.. _options:
+
+Options
+-------
+.. index::
+   pair: variable; visual-replace-display-total
+   pair: variable; visual-replace-preview
+   pair: variable; visual-replace-first-match
+   pair: variable; visual-replace-initial-scope
+   pair: variable; visual-replace-default-to-full-scope
+
+This section lists a few of the most interesting customization options
+available in visual replace. Call :kbd:`M-x customize-group
+visual-replace` to see all options.
+
+Notably, see that customization group for the available customizable
+faces.
+
+* :kbd:`M-x customize-option visual-replace-preview` With this option
+  enabled, Visual Replace highlights matches and offer a preview of
+  their replacements. This is enabled by default.
+
+* :kbd:`M-x customize-option visual-replace-first-match` With this
+  option enabled, Visual Replace always tries to have at least one
+  match visible in the preview, even if it means jumping to another
+  section of the buffer. This is enabled by default.
+
+* :kbd:`M-x customize-option visual-replace-display-total` By default,
+  in preview mode, visual Replace only searches for and display
+  matches in the visible portions of the buffer. With this option
+  enabled, Visual Replace searches the whole buffer, in an idle timer,
+  and displays the total number of matches in the prompt.
+
+  When the point is on a match, the index of the match is also
+  displayed, in front of the total.
+
+  The total might be slow to update on large buffers or when using
+  complicated regexps.
+
+  This is not enabled by default.
+
+* :kbd:`M-x customize-option visual-replace-initial-scope` With this
+  option set, the initial scope ignores the active region
+  entirely and is always set to either "From Point" or "Full Buffer".
+
+  By default, the initial scope is:
+
+    * the active region, if there is one
+
+    * from point if :code:`visual-replace-default-to-full-scope` is nil, see below
+
+    * the full buffer otherwise
+
+* :kbd:`M-x customize-option visual-replace-default-full-scope` With
+  this option set, when no region is active, replacement applies by
+  default to the full buffer, instead of to the region following the
+  point.
+
 .. _commands:
 
 Commands

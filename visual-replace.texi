@@ -154,6 +154,7 @@ Visual Replace requires Emacs 26.1 or later.
 * Calling Visual Replace:: 
 * Visual Replace Mode:: 
 * Single replacements:: 
+* Options:: 
 * Commands:: 
 * Keymaps:: 
 * Hooks:: 
@@ -322,7 +323,7 @@ continue where you left off next time by going up in the history.
 See Search@footnote{https://www.gnu.org/software/emacs/manual/html_node/emacs/Search.html}
 in the Emacs manual for details of the different modes listed above.
 
-@node Single replacements,Commands,Visual Replace Mode,Usage
+@node Single replacements,Options,Visual Replace Mode,Usage
 @anchor{usage single}@anchor{a}@anchor{usage single-replacements}@anchor{b}
 @subsection Single replacements
 
@@ -351,8 +352,85 @@ also moving through the matches with @code{<down>} or @code{<up>}.
 @code{u} reverts the last replacement.
 @end itemize
 
-@node Commands,Keymaps,Single replacements,Usage
-@anchor{usage commands}@anchor{c}@anchor{usage id1}@anchor{d}
+@node Options,Commands,Single replacements,Usage
+@anchor{usage id1}@anchor{c}@anchor{usage options}@anchor{d}
+@subsection Options
+
+
+@geindex variable; visual-replace-display-total
+@geindex variable; visual-replace-preview
+@geindex variable; visual-replace-first-match
+@geindex variable; visual-replace-initial-scope
+@geindex variable; visual-replace-default-to-full-scope
+
+This section lists a few of the most interesting customization options
+available in visual replace. Call @code{M-x customize-group
+visual-replace} to see all options.
+
+Notably, see that customization group for the available customizable
+faces.
+
+
+@itemize *
+
+@item 
+@code{M-x customize-option visual-replace-preview} With this option
+enabled, Visual Replace highlights matches and offer a preview of
+their replacements. This is enabled by default.
+
+@item 
+@code{M-x customize-option visual-replace-first-match} With this
+option enabled, Visual Replace always tries to have at least one
+match visible in the preview, even if it means jumping to another
+section of the buffer. This is enabled by default.
+
+@item 
+@code{M-x customize-option visual-replace-display-total} By default,
+in preview mode, visual Replace only searches for and display
+matches in the visible portions of the buffer. With this option
+enabled, Visual Replace searches the whole buffer, in an idle timer,
+and displays the total number of matches in the prompt.
+
+When the point is on a match, the index of the match is also
+displayed, in front of the total.
+
+The total might be slow to update on large buffers or when using
+complicated regexps.
+
+This is not enabled by default.
+
+@item 
+@code{M-x customize-option visual-replace-initial-scope} With this
+option set, the initial scope ignores the active region
+entirely and is always set to either “From Point” or “Full Buffer”.
+
+By default, the initial scope is:
+
+@quotation
+
+
+@itemize *
+
+@item 
+the active region, if there is one
+
+@item 
+from point if @code{visual-replace-default-to-full-scope} is nil, see below
+
+@item 
+the full buffer otherwise
+@end itemize
+@end quotation
+
+@item 
+@code{M-x customize-option visual-replace-default-full-scope} With
+this option set, when no region is active, replacement applies by
+default to the full buffer, instead of to the region following the
+point.
+@end itemize
+
+@node Commands,Keymaps,Options,Usage
+@anchor{usage commands}@anchor{e}@anchor{usage id2}@anchor{f}
 @subsection Commands
 
 
@@ -477,7 +555,7 @@ instead of just one.
 @end itemize
 
 @node Keymaps,Hooks,Commands,Usage
-@anchor{usage keymaps}@anchor{e}
+@anchor{usage keymaps}@anchor{10}
 @subsection Keymaps
 
 
@@ -511,7 +589,7 @@ regexp mode using either @code{C-l r} or @code{C-r}.
 @end example
 
 @node Hooks,Limitations,Keymaps,Usage
-@anchor{usage hooks}@anchor{f}
+@anchor{usage hooks}@anchor{11}
 @subsection Hooks
 
 
@@ -529,7 +607,7 @@ can modify. You can use it to customize the behavior of the search or
 modify the regexp language.
 
 @node Limitations,,Hooks,Usage
-@anchor{usage limitations}@anchor{10}
+@anchor{usage limitations}@anchor{12}
 @subsection Limitations
 
 
@@ -549,7 +627,7 @@ function that increment an internal counter, will be executed too
 many times during preview, with unpredictable results.
 
 In all other cases, the preview should match what is eventually
-executed. If that’s not the case, please @ref{11,,report an issue}.
+executed. If that’s not the case, please @ref{13,,report an issue}.
 
 @item 
 If you use @code{visual-replace-apply-one} to replace single
@@ -558,7 +636,7 @@ matches are applied separately.
 @end itemize
 
 @node Contributing,,Usage,Contents
-@anchor{contrib doc}@anchor{12}@anchor{contrib contributing}@anchor{13}
+@anchor{contrib doc}@anchor{14}@anchor{contrib contributing}@anchor{15}
 @section Contributing
 
 
@@ -572,7 +650,7 @@ matches are applied separately.
 @end menu
 
 @node Reporting issues,Suggesting features,,Contributing
-@anchor{contrib reporting}@anchor{11}@anchor{contrib reporting-issues}@anchor{14}
+@anchor{contrib reporting}@anchor{13}@anchor{contrib reporting-issues}@anchor{16}
 @subsection Reporting issues
 
 
@@ -615,21 +693,21 @@ executing it and attach that to the issue.
 @end cartouche
 
 @node Suggesting features,Asking questions,Reporting issues,Contributing
-@anchor{contrib issue-tracker}@anchor{15}@anchor{contrib suggesting-features}@anchor{16}
+@anchor{contrib issue-tracker}@anchor{17}@anchor{contrib suggesting-features}@anchor{18}
 @subsection Suggesting features
 
 
 Please add feature suggestions to the Issue Tracker@footnote{https://github.com/szermatt/visual-replace/issues}.
 
 @node Asking questions,Code contributions,Suggesting features,Contributing
-@anchor{contrib asking-questions}@anchor{17}
+@anchor{contrib asking-questions}@anchor{19}
 @subsection Asking questions
 
 
 Open an issue on the Issue Tracker@footnote{https://github.com/szermatt/visual-replace/issues} with your question.
 
 @node Code contributions,Documentation contributions,Asking questions,Contributing
-@anchor{contrib code-contributions}@anchor{18}
+@anchor{contrib code-contributions}@anchor{1a}
 @subsection Code contributions
 
 
@@ -647,7 +725,7 @@ tests passing reliably when run using @code{eldev test} is what
 matters.
 
 @node Documentation contributions,,Code contributions,Contributing
-@anchor{contrib documentation-contributions}@anchor{19}@anchor{contrib eldev}@anchor{1a}
+@anchor{contrib documentation-contributions}@anchor{1b}@anchor{contrib eldev}@anchor{1c}
 @subsection Documentation contributions
 
 
