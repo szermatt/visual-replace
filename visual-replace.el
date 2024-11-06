@@ -160,6 +160,14 @@ This is the face that's used to show the replacement string, once
 a replacement has been defined."
   :group 'visual-replace)
 
+(defface visual-replace-match-highlight
+  '((t :weight bold :inherit (visual-replace-match)))
+  "How to display the matched string, in a highlighted match.
+
+This is the face that's used to highlight matches at point,
+before a replacement has been defined."
+  :group 'visual-replace)
+
 (defface visual-replace-delete-match-highlight
   '((t (:weight bold :inherit (visual-replace-delete-match))))
   "How to display the string to be replaced, in a highlighted match.
@@ -1326,19 +1334,23 @@ MATCH-DATA is the value of (match-data) for the match."
 
 (defun visual-replace--set-ov-highlight (ov)
   "Highlight or de-highlight OV as appropriate for point."
-  (when-let ((after-string (overlay-get ov 'after-string)))
-    (let ((highlight (and visual-replace-highlight-match-at-point
-                          (>= (point) (overlay-start ov))
-                          (< (point) (overlay-end ov)))))
+  (let ((highlight (and visual-replace-highlight-match-at-point
+                        (>= (point) (overlay-start ov))
+                        (< (point) (overlay-end ov)))))
+    (if-let ((after-string (overlay-get ov 'after-string)))
+        (progn
+          (overlay-put ov 'face (if highlight
+                                    'visual-replace-delete-match-highlight
+                                  'visual-replace-delete-match))
+          (set-text-properties
+           0 (length after-string)
+           `(face ,(if highlight
+                       'visual-replace-replacement-highlight
+                     'visual-replace-replacement))
+           after-string))
       (overlay-put ov 'face (if highlight
-                                'visual-replace-delete-match-highlight
-                              'visual-replace-delete-match))
-      (set-text-properties
-       0 (length after-string)
-       `(face ,(if highlight
-                   'visual-replace-replacement-highlight
-                 'visual-replace-replacement))
-       after-string))))
+                                'visual-replace-match-highlight
+                              'visual-replace-match)))))
 
 (defun visual-replace--set-ov-highlight-at-pos (pos)
   "(De-)Highlight overlays at POS, as appropriate for point."

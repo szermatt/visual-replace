@@ -766,6 +766,23 @@
      (insert "hello, world, hello, hello!")
      (goto-char (point-min))
      (set-window-buffer (selected-window) (current-buffer))
+     (test-visual-replace-run "hel <F1> _ <down> <F1> _ <up> F1 _ <F1> x" (visual-replace-read))
+     (should (equal (test-visual-replace-highlight-face
+                     (nth 0 test-visual-replace-snapshot) 'visual-replace-match-highlight)
+                    "[hel]lo, world, hello, hello!"))
+     (should (equal (test-visual-replace-highlight-face
+                     (nth 1 test-visual-replace-snapshot) 'visual-replace-match-highlight)
+                    "hello, world, [hel]lo, hello!"))
+     (should (equal (test-visual-replace-highlight-face
+                     (nth 0 test-visual-replace-snapshot) 'visual-replace-match-highlight)
+                    "[hel]lo, world, hello, hello!")))))
+
+(ert-deftest test-visual-replace-preview-highlight-replacement-at-point ()
+  (test-visual-replace-env
+   (let ((visual-replace-highlight-match-at-point t))
+     (insert "hello, world, hello, hello!")
+     (goto-char (point-min))
+     (set-window-buffer (selected-window) (current-buffer))
      (test-visual-replace-run "hel TAB hu <F1> _ <down> <F1> _ <up> F1 _ <F1> x" (visual-replace-read))
      (should (equal (test-visual-replace-highlight-face
                      (nth 0 test-visual-replace-snapshot) 'visual-replace-delete-match-highlight)
