@@ -1340,6 +1340,13 @@ MATCH-DATA is the value of (match-data) for the match."
                  'visual-replace-replacement))
        after-string))))
 
+(defun visual-replace--set-ov-highlight-at-pos (pos)
+  "(De-)Highlight overlays at POS, as appropriate for point."
+  (when pos
+    (dolist (ov (overlays-at pos))
+      (when (overlay-get ov 'visual-replace)
+        (visual-replace--set-ov-highlight ov)))))
+
 (defun visual-replace--update-total ()
   "Update the index and total in the prompt.
 
@@ -1419,8 +1426,8 @@ matches to display unless NO-FIRST-MATCH is non-nil."
 
          ;; Preview overlays are complete; highlight needs updating.
          ((and equiv (not (equal (point) old-point)))
-          (dolist (ov visual-replace--match-ovs)
-            (visual-replace--set-ov-highlight ov))
+          (visual-replace--set-ov-highlight-at-pos old-point)
+          (visual-replace--set-ov-highlight-at-pos (point))
           (visual-replace--update-total)
           (setf (nth 2 visual-replace--preview-state) (point)))
 
