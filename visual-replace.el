@@ -727,8 +727,8 @@ used as point for \\='from-point. By default, the scope is
                             ov)))
                   (when visual-replace-keep-incomplete
                     (add-hook 'after-change-functions #'visual-replace--after-change 0 'local))
-                  (visual-replace-minibuffer-mode t)
                   (setq visual-replace--minibuffer (current-buffer))
+                  (visual-replace-minibuffer-mode t)
                   (when trigger
                     (let ((mapping
                            ;; Emacs 26 lookup-key cannot take a list
