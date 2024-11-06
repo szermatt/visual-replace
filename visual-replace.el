@@ -671,7 +671,9 @@ If unspecified, SCOPE defaults to the variable
             (pcase type
               ('from-point 'full)
               (_ 'from-point)))))
-  (visual-replace--show-scope))
+  (visual-replace--show-scope)
+  (visual-replace--reset-preview)
+  (visual-replace--update-preview))
 
 (defun visual-replace-read (&optional initial-args initial-scope)
   "Read arguments for `query-replace'.
@@ -698,9 +700,8 @@ used as point for \\='from-point. By default, the scope is
                          (cons text (if from (1+ (length text)) 0))))
         (visual-replace--preview-state nil)
         (after-change (lambda (_beg _end _len)
-                        (when visual-replace--preview-state
-                          (setq visual-replace--preview-state nil)
-                          (visual-replace--update-preview))))
+                        (visual-replace--reset-preview)
+                        (visual-replace--update-preview)))
         (trigger (this-command-keys-vector))
         (visual-replace--total-ov nil)
         (default-value)
@@ -1382,6 +1383,12 @@ changes."
              (format "[%d/%d] " (1+ (overlay-get ov 'visual-replace-idx)) total)
            (format "[%d] " total)))))))
 
+(defun visual-replace--reset-preview ()
+  "Reset the preview state and rebuild the preview."
+  (when visual-replace--preview-state
+    (setq visual-replace--preview-state nil)
+    (visual-replace--clear-preview)))
+
 (defun visual-replace--update-preview (&optional no-first-match)
   "Update the preview to reflect the content of the minibuffer.
 
@@ -1404,6 +1411,7 @@ matches to display unless NO-FIRST-MATCH is non-nil."
              (old-visible-ranges (nth 1 visual-replace--preview-state))
              (old-point (nth 2 visual-replace--preview-state))
              (is-complete (nth 3 visual-replace--preview-state))
+             (old-scope (nth 4 visual-replace--preview-state))
              equiv)
         (cond
          ;; Preview is turned off. Reset it if necessary.
@@ -1415,7 +1423,8 @@ matches to display unless NO-FIRST-MATCH is non-nil."
           (visual-replace--clear-preview))
 
          ;; Preview overlays are correct.
-         ((and (setq equiv (and (visual-replace-args--equiv-for-match-p args old-args)
+         ((and (setq equiv (and (eq old-scope (visual-replace--scope-type visual-replace--scope))
+                                (visual-replace-args--equiv-for-match-p args old-args)
                                 (or is-complete (equal old-visible-ranges visible-ranges))))
                (equal (point) old-point)
                (string= (visual-replace-args-to args)
@@ -1458,13 +1467,15 @@ matches to display unless NO-FIRST-MATCH is non-nil."
                                     visual-replace-display-total))
                 work-queue consumers)
 
+            (setq visual-replace--preview-state
+                  (list args visible-ranges (point) nil
+                        (visual-replace--scope-type visual-replace--scope)))
+
             ;; This section prepares searches in work-queue and runs
             ;; them. See visual-replace--run-idle-search for the
             ;; format of work-queue and consumers.
             (push `(,(unless count-matches
                        (list (lambda (ranges matches)
-                               (setq visual-replace--preview-state
-                                     (list args visible-ranges (point) nil))
                                (visual-replace--highlight-matches ranges matches))))
 
                     ;; call (visual-replace-search args ...
@@ -1472,8 +1483,6 @@ matches to display unless NO-FIRST-MATCH is non-nil."
                   work-queue)
 
             (when count-matches
-              (setq visual-replace--preview-state
-                    (list args visible-ranges (point) nil))
               (push (lambda (ranges matches is-done)
                       (if (not is-done)
                           (prog1 t ; continue until the end

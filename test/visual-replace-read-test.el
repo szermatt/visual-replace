@@ -194,6 +194,26 @@
                     "Replace in buffer: hello → world[]"
                     "Replace from point: hello → world[]")))))
 
+(ert-deftest test-visual-replace-preview-toggle-scope ()
+  (test-visual-replace-env
+   (insert "hello, world, hello, hello!")
+   (goto-char (point-min))
+   (search-forward "world")
+   (set-window-buffer (selected-window) (current-buffer))
+   (test-visual-replace-run "hello <F1> _ <F1> s <F1> _ <F1> s <F1> _ <F1> x" (visual-replace-read))
+   (should (equal
+            '( ;; from point
+              "hello, world, [hello], [hello]!"
+              ;; full buffer
+              "[hello], world, [hello], [hello]!"
+              ;; from point again, to make sure the extra matches are
+              ;; deleted
+              "hello, world, [hello], [hello]!")
+            (mapcar (lambda (snapshot)
+                      (test-visual-replace-highlight-face
+                       snapshot 'visual-replace-match 'visual-replace-match-highlight))
+                    test-visual-replace-snapshot)))))
+
 (ert-deftest test-visual-replace-forgets-setting ()
   (test-visual-replace-env
    (test-visual-replace-run "hello TAB world <F1> r <F1> q <F1> s RET" (visual-replace-read))

@@ -202,10 +202,12 @@ of the overlays are kept as text properties."
         (concat (substring text 0 pos) mark (substring text pos (length text)))
       text)))
 
-(defun test-visual-replace-highlight-face (text face)
-  "Return a copy of TEXT with FACE highlighted.
+(defun test-visual-replace-highlight-face (text &rest faces)
+  "Return a copy of TEXT with FACES highlighted.
 
-The region of text with FACE are surrounded with []."
+FACES should be one or more face to highlight.
+
+The region of text with FACES are surrounded with []."
   (with-temp-buffer
     (insert text)
     (goto-char (point-min))
@@ -213,12 +215,12 @@ The region of text with FACE are surrounded with []."
       (while (< (point) (point-max))
         (cond
          ((and (not active)
-               (eq face (get-text-property (point) 'face)))
+               (memq (get-text-property (point) 'face) faces))
           (insert "[")
           (goto-char (1+ (point)))
           (setq active t))
          ((and active
-               (not (eq face (get-text-property (point) 'face))))
+               (not (memq (get-text-property (point) 'face) faces)))
           (insert "]")
           (goto-char (1+ (point)))
           (setq active nil)))
