@@ -842,6 +842,8 @@ This function attempts to copy as much of the current state of
 isearch as possible, with the text being searched set as query
 for `visual-replace'. Replacement starts at the current point."
   (interactive)
+  (when (and isearch-other-end (< isearch-other-end (point)))
+    (goto-char isearch-other-end))
   (let ((args
          (visual-replace-make-args
           :from isearch-string

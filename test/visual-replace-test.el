@@ -793,4 +793,17 @@
                       (buffer-substring-no-properties
                        (point-min) (point-max))))))))
 
+(ert-deftest test-visual-replace-from-isearch ()
+  (test-visual-replace-env
+   (insert "hello, world, hello, hello!")
+   (with-selected-window (display-buffer (current-buffer))
+     ;; visual-replace-from-isearch must start at the beginning of the current match,
+     ;; so that it's covered with "replace from point".
+     (goto-char (point-min))
+     (execute-kbd-macro (kbd "C-s hell C-s M-x visual-replace-from-isearch RET hull"))
+     (should (equal "hello, world, hullo, hullo!"
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
+
 ;;; visual-replace-test.el ends here
