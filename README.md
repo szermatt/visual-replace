@@ -15,17 +15,22 @@ The main improvements are:
    replaced and the replacement. This makes it easier to craft
    possibly complex regular expression search and replace.
 
- * You can modify the scope and type of the search-and-replace
-   command.
+ * You can see the matches and how they're going to be modified
+   as you edit the command arguments.
 
- * You can see what is going to be modified as you edit the command
-   arguments.
+ * To help craft the search string and its replacement, you
+   can navigate between matches with the arrow keys and
+   optionally see the number of matches in the prompt.
 
- * You can go through the replacements and apply only some of them,
+ * You can apply only some replacements, selectively, 
    using keyboard shortcuts, or by clicking on the preview.
 
+ * You can modify the scope and type of the search-and-replace
+   command, to the full buffer, the region or everything after
+   the point.
+
 Visual Replace is only an interface for the existing query and 
-replace  mechanisms built into Emacs, that is, the actual 
+replace mechanisms built into Emacs, that is, the actual 
 replacements are always done by the standard Emacs commands.
 
 ![example](images/capture_blue.png)
