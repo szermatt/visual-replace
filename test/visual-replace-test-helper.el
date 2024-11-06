@@ -43,6 +43,7 @@ are triggered by the key F1 ! when running test-visual-replace-run.")
            (visual-replace-initial-scope nil)
            (visual-replace-default-to-full-scope nil)
            (visual-replace-highlight-match-at-point nil)
+           (visual-replace-minibuffer-mode-hook nil)
            (test-visual-replace-snapshot nil))
        (cl-letf (((symbol-function 'sit-for) (lambda (_))))
          (ert-with-test-buffer nil

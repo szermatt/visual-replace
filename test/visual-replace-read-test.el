@@ -1007,4 +1007,12 @@
          ;; again.
          (should (equal test-buffer (window-buffer (selected-window)))))))))
 
+(ert-deftest test-visual-replace-read-toggle-query-from-hook ()
+  (test-visual-replace-env
+   (add-hook 'visual-replace-minibuffer-mode-hook #'visual-replace-toggle-query)
+   (should
+    (equal (car (test-visual-replace-run
+                 "hello TAB world RET" (visual-replace-read)))
+           (visual-replace-make-args :from "hello" :to "world" :query t)))))
+
 ;;; visual-replace-test.el ends here
