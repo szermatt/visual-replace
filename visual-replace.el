@@ -421,7 +421,10 @@ This is an instance of the struct `visual-replace--scope'.")
   "Buffer from which `visual-replace' was called.")
 
 (defvar visual-replace--calling-window nil
-  "Window from which `visual-replace' was called.")
+  "Window from which `visual-replace' was called.
+
+As window layout might change, always access it through
+`visual-replace--find-window'.")
 
 (defvar visual-replace--minibuffer nil
   "Minibuffer in which `visual-replace' is running.")
@@ -1559,10 +1562,19 @@ necessary if there only are overlays in the visible range."
   (if matches
       (prog1 ; match found
           nil ; stop searching for more matches
-          (let ((win visual-replace--calling-window)
-                (pos (car (car matches))))
-            (unless (visual-replace--range-contains-sorted
-                     visible-ranges pos)
+          (let ((pos (car (car matches)))
+                (win
+                 (let ((win visual-replace--calling-window)
+                       (buf visual-replace--calling-buffer))
+                   (or
+                    (when (and (window-live-p win)
+                               (eq buf (window-buffer win)))
+                      win)
+                    (when (buffer-live-p buf)
+                      (get-buffer-window buf))))))
+            (when (and win
+                       (not (visual-replace--range-contains-sorted
+                             visible-ranges pos)))
               (with-selected-window win
                 (let ((orig-start (window-start win)))
                   (goto-char pos)
@@ -1813,8 +1825,7 @@ Also skips empty ranges."
 (defun visual-replace-next-match ()
   "Move the point to the next match."
   (interactive)
-  (visual-replace--assert-active)
-  (with-selected-window visual-replace--calling-window
+  (with-selected-window (visual-replace--find-window)
     (let ((match (car (visual-replace--search
                        (visual-replace-args--from-minibuffer)
                        (visual-replace--range-intersect-sorted
@@ -1828,8 +1839,7 @@ Also skips empty ranges."
 (defun visual-replace-prev-match ()
   "Move the point to the previous match."
   (interactive)
-  (visual-replace--assert-active)
-  (with-selected-window visual-replace--calling-window
+  (with-selected-window (visual-replace--find-window)
     (let ((match (car (visual-replace--search
                        (visual-replace-args--from-minibuffer)
                        (visual-replace--range-intersect-sorted
@@ -1870,8 +1880,7 @@ map."
 
 With a prefix argument NUM, repeat the replacement that many times."
   (interactive "p")
-  (visual-replace--assert-active)
-  (with-selected-window visual-replace--calling-window
+  (with-selected-window (visual-replace--find-window)
     (when (null visual-replace--undo-marker)
       (setq visual-replace--undo-marker (cl-gensym))
       (visual-replace--add-undo-marker))
@@ -1910,8 +1919,7 @@ visual replace session.
 
 A prefix argument serves as a repeat count for `undo'."
   (interactive)
-  (visual-replace--assert-active)
-  (with-selected-window visual-replace--calling-window
+  (with-selected-window (visual-replace--find-window)
     (let ((marker-cell (visual-replace--find-undo-marker-cell)))
       (unless marker-cell
         (error "No replacement to undo"))
@@ -1984,7 +1992,9 @@ properly.
 This calls `visual-replace-apply-one' for the match that was
 clicked."
   (interactive "e")
-  (visual-replace--assert-active)
+  (unless (eq (current-buffer)
+              visual-replace--calling-buffer)
+    (error "No active Visual Replace session for buffer"))
   (let* ((pos (posn-point (nth 1 ev)))
          (ov (cl-find-if
               (lambda (ov)
@@ -2001,16 +2011,31 @@ clicked."
     (select-window (get-buffer-window
                     visual-replace--minibuffer))))
 
-(defun visual-replace--assert-active ()
-  "Raise an error unless a visual replace session is active."
-  (unless (window-live-p visual-replace--calling-window)
-    (error "Visual Replace not currently active")))
+(defun visual-replace--find-window ()
+  "Find a live window to work on or fail with an error.
+
+This function looks for a window showing the calling buffer,
+preferring the window Visual Replace was called from. It displays
+the buffer, if necessary."
+  (let ((buf visual-replace--calling-buffer)
+        (win visual-replace--calling-window))
+    (cond
+     ((and (window-live-p win)
+           (eq (window-buffer win) buf))
+      win)
+     ((not (buffer-live-p buf))
+      (error "No buffer for Visual Replace to work on"))
+     ((setq win (or (get-buffer-window buf)
+                    (display-buffer buf)))
+      (setq visual-replace--calling-window win)
+      win)
+     (t
+      (error "No window for Visual Replace to work on")))))
 
 (defun visual-replace--assert-in-minibuffer ()
   "Raise an error unless called from a minibuffer in the right mode."
-  (unless (and (eq (current-buffer) visual-replace--minibuffer)
-               visual-replace-minibuffer-mode)
-    (error "Not in a minibuffer in Visual Replace mode")))
+  (unless (eq (current-buffer) visual-replace--minibuffer)
+    (error "Not in a Visual Replace minibuffer")))
 
 (provide 'visual-replace)
 
