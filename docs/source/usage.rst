@@ -159,6 +159,7 @@ Customization
 -------------
 
 .. index::
+   pair: variable; visual-replace-keep-initial-position
    pair: variable; visual-replace-display-total
    pair: variable; visual-replace-preview
    pair: variable; visual-replace-first-match
@@ -182,6 +183,15 @@ faces.
   option enabled, Visual Replace always tries to have at least one
   match visible in the preview, even if it means jumping to another
   section of the buffer. This is enabled by default.
+
+* :kbd:`M-x customize-option keep-initial-position` With this option
+  enabled, Visual Replace goes back to the point it was called from,
+  even if the point was moved during preview, to display the first
+  match, or manually with :kbd:`<down>` or :kbd:`<up>`.
+
+  Note that in the case where the point is moved during preview,
+  Visual Replace sets a mark at the original location, to go back too
+  if necessary.
 
 * :kbd:`M-x customize-option visual-replace-display-total` By default,
   in preview mode, visual Replace only searches for and display

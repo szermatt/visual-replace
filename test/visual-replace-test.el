@@ -412,6 +412,65 @@
        ;; We're now back at the original position.
        (should (equal (- (line-number-at-pos (point-max)) 3) (line-number-at-pos (point))))))))
 
+(ert-deftest test-visual-replace-restore-position-after-jump ()
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+     (let* ((snapshots)
+            (win (selected-window))
+            (height (window-height win))
+            (to-replace (* 2 height)))
+       (dotimes (i (* 3 height))
+         (insert (format "this is text %d.\n" i)))
+       (goto-char (point-min))
+       (forward-line 3)
+       (recenter)
+       (define-key
+        visual-replace-mode-map
+        (kbd "C-c t")
+        (lambda ()
+          (interactive)
+          (visual-replace--update-preview)
+          (while visual-replace--idle-search-timer
+            (cl-assert (memq visual-replace--idle-search-timer timer-idle-list))
+            (ert-run-idle-timers))))
+       (visual-replace-ert-simulate-keys (kbd (format "t e x t SPC %d . TAB r e p l C-c t RET" to-replace))
+         (call-interactively 'visual-replace))
+
+       (should (equal "this is text 3."
+                      (buffer-substring-no-properties
+                       (line-beginning-position)
+                       (line-end-position))))))))
+
+(ert-deftest test-visual-replace-stay-in-position-after-jump ()
+  (test-visual-replace-env
+     (with-selected-window (display-buffer (current-buffer))
+       (let* ((snapshots)
+              (win (selected-window))
+              (visual-replace-keep-initial-position nil)
+              (height (window-height win))
+              (to-replace (* 2 height)))
+         (dotimes (i (* 3 height))
+           (insert (format "this is text %d.\n" i)))
+         (goto-char (point-min))
+         (forward-line 3)
+         (recenter)
+         (define-key
+          visual-replace-mode-map
+          (kbd "C-c t")
+          (lambda ()
+            (interactive)
+            (visual-replace--update-preview)
+            (while visual-replace--idle-search-timer
+              (cl-assert (memq visual-replace--idle-search-timer timer-idle-list))
+              (ert-run-idle-timers))))
+         (visual-replace-ert-simulate-keys (kbd (format "t e x t SPC %d . TAB r e p l C-c t RET" to-replace))
+                                           (call-interactively 'visual-replace))
+         ;; The point should be at the first match.
+         (should (equal "this is repl"
+                        (buffer-substring-no-properties
+                         (line-beginning-position)
+                         (line-end-position))))))))
+
 (ert-deftest test-visual-replace-small-ranges ()
   (ert-with-test-buffer nil
     (dotimes (i 300)

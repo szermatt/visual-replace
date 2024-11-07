@@ -130,6 +130,16 @@ the result in the prompt, just before the arrow."
   :type 'boolean
   :group 'visual-replace)
 
+(defcustom visual-replace-keep-initial-position nil
+  "If non-nil, always go back to the point `visual-replace' was called from.
+
+If nil the point stays where it was moved in preview mode, by
+commands such as with `visual-replace-next-match'. A mark is
+pushed at the original position to go back to with
+`exchange-point-and-mark', if necessary."
+  :type 'boolean
+  :group 'visual-replace)
+
 (defface visual-replace-match
   '((t :inherit query-replace))
   "How to display the string that was matched.
@@ -695,6 +705,17 @@ INITIAL-SCOPE is used to initialize the replacement scope,
 used as point for \\='from-point. By default, the scope is
 \\='region if the region is active, or \\='from-point otherwise."
   (barf-if-buffer-read-only)
+  (if visual-replace-keep-initial-position
+      (save-excursion
+        (visual-replace-read--internal initial-args initial-scope))
+    (push-mark nil 'nomsg)
+    (visual-replace-read--internal initial-args initial-scope)))
+
+(defun visual-replace-read--internal (&optional initial-args initial-scope)
+  "Private implementation of `visual-replace-read'.
+
+See `visual-replace-read' for a description of the behavior of
+this function and of INITIAL-ARGS and INITIAL-SCOPE."
   (let ((history-add-new-input nil)
         (visual-replace--calling-buffer (current-buffer))
         (visual-replace--calling-window (selected-window))
@@ -719,59 +740,58 @@ used as point for \\='from-point. By default, the scope is
     (setq default-value (car minibuffer-history))
     (when visual-replace--incomplete
       (push visual-replace--incomplete minibuffer-history))
-    (save-excursion
-      (unwind-protect
-          (progn
-            (deactivate-mark)
-            (add-hook 'after-change-functions after-change 0 'local)
-            (when visual-replace-preview
-              (setq timer (run-with-idle-timer
-                           visual-replace-preview-delay
-                           'repeat #'visual-replace--update-preview)))
-            (minibuffer-with-setup-hook
-                (lambda ()
-                  (setq visual-replace--total-ov
-                        (when visual-replace-display-total
-                          (let ((ov (make-overlay (point-min) (point-min))))
-                            (overlay-put ov 'face 'visual-replace-total)
-                            ov)))
-                  (when visual-replace-keep-incomplete
-                    (add-hook 'after-change-functions #'visual-replace--after-change 0 'local))
-                  (setq visual-replace--minibuffer (current-buffer))
-                  (visual-replace-minibuffer-mode t)
-                  (unless initial-args
-                    (run-hooks 'visual-replace-defaults-hook))
-                  (when trigger
-                    (let ((mapping
-                           ;; Emacs 26 lookup-key cannot take a list
-                           ;; of keymaps, using this code for backward
-                           ;; compatibility.
-                           (catch 'has-binding
-                             (dolist (map (current-active-maps))
-                               (let ((func (lookup-key map trigger)))
-                                 (when (functionp func)
-                                   (throw 'has-binding func)))))))
-                      (when (or (eq mapping #'visual-replace)
-                                (eq (command-remapping mapping) #'visual-replace))
-                        (local-set-key trigger visual-replace-secondary-mode-map))))
-                  (visual-replace--show-scope)
-                  (setq-local yank-excluded-properties (append '(separator display face) yank-excluded-properties))
-                  (setq-local text-property-default-nonsticky
-                              (append '((separator . t) (face . t))
-                                      text-property-default-nonsticky)))
-              (setq text (read-from-minibuffer
-                          (concat "Replace "
-                                  (visual-replace--scope-text)
-                                  (if default-value (format " [%s]" default-value) "")
+    (unwind-protect
+        (progn
+          (deactivate-mark)
+          (add-hook 'after-change-functions after-change 0 'local)
+          (when visual-replace-preview
+            (setq timer (run-with-idle-timer
+                         visual-replace-preview-delay
+                         'repeat #'visual-replace--update-preview)))
+          (minibuffer-with-setup-hook
+              (lambda ()
+                (setq visual-replace--total-ov
+                      (when visual-replace-display-total
+                        (let ((ov (make-overlay (point-min) (point-min))))
+                          (overlay-put ov 'face 'visual-replace-total)
+                          ov)))
+                (when visual-replace-keep-incomplete
+                  (add-hook 'after-change-functions #'visual-replace--after-change 0 'local))
+                (setq visual-replace--minibuffer (current-buffer))
+                (visual-replace-minibuffer-mode t)
+                (unless initial-args
+                  (run-hooks 'visual-replace-defaults-hook))
+                (when trigger
+                  (let ((mapping
+                         ;; Emacs 26 lookup-key cannot take a list
+                         ;; of keymaps, using this code for backward
+                         ;; compatibility.
+                         (catch 'has-binding
+                           (dolist (map (current-active-maps))
+                             (let ((func (lookup-key map trigger)))
+                               (when (functionp func)
+                                 (throw 'has-binding func)))))))
+                    (when (or (eq mapping #'visual-replace)
+                              (eq (command-remapping mapping) #'visual-replace))
+                      (local-set-key trigger visual-replace-secondary-mode-map))))
+                (visual-replace--show-scope)
+                (setq-local yank-excluded-properties (append '(separator display face) yank-excluded-properties))
+                (setq-local text-property-default-nonsticky
+                            (append '((separator . t) (face . t))
+                                    text-property-default-nonsticky)))
+            (setq text (read-from-minibuffer
+                        (concat "Replace "
+                                (visual-replace--scope-text)
+                                (if default-value (format " [%s]" default-value) "")
                                 ": ")
-                          initial-input nil nil nil (car search-ring) t))))
-        ;; unwind
-        (remove-hook 'after-change-functions after-change 'local)
-        (visual-replace--reset-idle-search-timer)
-        (when timer
-          (cancel-timer timer))
-        (visual-replace--clear-scope)
-        (visual-replace--clear-preview)))
+                        initial-input nil nil nil (car search-ring) t))))
+      ;; unwind
+      (remove-hook 'after-change-functions after-change 'local)
+      (visual-replace--reset-idle-search-timer)
+      (when timer
+        (cancel-timer timer))
+      (visual-replace--clear-scope)
+      (visual-replace--clear-preview))
     (unless quit-flag (setq visual-replace--incomplete nil))
     (let* ((final-args (visual-replace-args--from-text text))
            (from (visual-replace-args-from final-args))
@@ -834,15 +854,19 @@ of (start . end) as returned by `region-bounds'."
                    (unless (eq arg 'bounds)
                      (error "unsupported: (funcall region-extract-function %s)" arg))
                    (visual-replace--ranges-fix ranges))))
-            (perform-replace
-             from
-             (query-replace-compile-replacement
-              (visual-replace-args-to args)
-              (visual-replace-args-regexp args))
-             (visual-replace-args-query args)
-             (visual-replace-args-regexp args)
-             (visual-replace-args-word args)
-             1 nil start end nil noncontiguous-p))
+            (cl-letf (((symbol-function 'push-mark) (lambda (&rest _args))))
+              ;; perform-replace sets the mark at an uninteresting
+              ;; position. Redefining push-mark avoids that.
+
+              (perform-replace
+               from
+               (query-replace-compile-replacement
+                (visual-replace-args-to args)
+                (visual-replace-args-regexp args))
+               (visual-replace-args-query args)
+               (visual-replace-args-regexp args)
+               (visual-replace-args-word args)
+               1 nil start end nil noncontiguous-p)))
           (goto-char origin))
       (set-marker origin nil))))
 

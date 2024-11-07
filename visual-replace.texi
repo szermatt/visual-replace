@@ -366,6 +366,7 @@ also moving through the matches with @code{<down>} or @code{<up>}.
 @subsection Customization
 
 
+@geindex variable; visual-replace-keep-initial-position
 @geindex variable; visual-replace-display-total
 @geindex variable; visual-replace-preview
 @geindex variable; visual-replace-first-match
@@ -394,6 +395,16 @@ their replacements. This is enabled by default.
 option enabled, Visual Replace always tries to have at least one
 match visible in the preview, even if it means jumping to another
 section of the buffer. This is enabled by default.
+
+@item 
+@code{M-x customize-option keep-initial-position} With this option
+enabled, Visual Replace goes back to the point it was called from,
+even if the point was moved during preview, to display the first
+match, or manually with @code{<down>} or @code{<up>}.
+
+Note that in the case where the point is moved during preview,
+Visual Replace sets a mark at the original location, to go back too
+if necessary.
 
 @item 
 @code{M-x customize-option visual-replace-display-total} By default,
