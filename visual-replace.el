@@ -250,8 +250,6 @@ to customize `visual-replace-defaults-hook' instead."
     (define-key map (kbd "<down>") #'visual-replace-next-match)
     (define-key map [remap yank] #'visual-replace-yank)
     (define-key map [remap yank-pop] #'visual-replace-yank-pop)
-    (define-key map [remap kill] #'visual-replace-kill)
-    (define-key map [remap kill-whole-line] #'visual-replace-kill-whole-line)
     map)
 "Map of minibuffer keyboard shortcuts available when editing a query.
 
@@ -615,31 +613,6 @@ The first time it's called, executes a `yank', then a `yank-pop'."
     (setq this-command 'yank)
     (yank)))
 
-(defun visual-replace-kill ()
-  "Replacement for command`kill' for `visual-replace'.
-
-This kills to separator or end of line."
-  (interactive)
-  (visual-replace--assert-in-minibuffer)
-  (let ((separator-start (visual-replace--separator-start)))
-    (if (and separator-start (< (point) separator-start))
-        (kill-region (point) separator-start)
-      (kill-line))))
-
-(defun visual-replace-kill-whole-line ()
-  "Replacement for command `kill-whole-line' for `visual-replace'.
-
-This kills the whole section."
-  (interactive)
-  (visual-replace--assert-in-minibuffer)
-  (let ((separator-start (visual-replace--separator-start)))
-    (cond
-     ((and separator-start (< (point) separator-start))
-      (kill-region (minibuffer-prompt-end) separator-start))
-     (separator-start
-      (kill-region (visual-replace--separator-end) (line-end-position)))
-     (t (kill-region (minibuffer-prompt-end) (line-end-position))))))
-
 (defun visual-replace-toggle-regexp ()
   "Toggle the regexp flag while building arguments for `visual-replace'."
   (interactive)
@@ -975,9 +948,9 @@ ARGS."
              (equal "" flag-text))
         from-text
       (concat
-       from-text
-       (visual-replace-args--separator args flag-text)
-       (or (visual-replace-args-to args) "")))))
+       (propertize from-text 'field 'search)
+       (visual-replace-args--separator args flag-text) ;
+       (propertize (or (visual-replace-args-to args) "") 'field 'replace)))))
 
 (defun visual-replace-args--flag-text (args)
   "Build the text representation of the flags in ARGS.
@@ -1029,7 +1002,14 @@ nil, it is built based on ARGS."
                             (setf (visual-replace-args-to args) nil)
                             args)
      'face 'minibuffer-prompt
+     'front-sticky nil
+     'rear-nonsticky t
+     'insert-behind-hooks (list #'visual-replace--insert-replace-field)
      'separator t)))
+
+(defun visual-replace--insert-replace-field (beg end)
+  "Set field property between BEG and END to replace."
+  (add-text-properties beg end '(field replace)))
 
 (defun visual-replace-args--from-text (text)
   "Build a `visual-replace-args' that corresponds to TEXT.
@@ -1192,15 +1172,21 @@ no from or to slot set."
         (separator (visual-replace-args--separator args)))
     (if (not start)
         (save-excursion
+          (setq start (point-max))
           (goto-char (point-max))
-          (insert separator))
+          (insert separator)
+          (setq end (point)))
       (let ((start-point (point)))
         (save-excursion
           (delete-region start end)
           (goto-char start)
           (insert separator))
         (when (equal start-point end)
-          (goto-char (+ start (length separator))))))))
+          (goto-char (+ start (length separator))))))
+    (add-text-properties
+     (minibuffer-prompt-end) start '(field search))
+    (add-text-properties
+     end (point-max) '(field replace))))
 
 (defun visual-replace--separator-start (&optional string)
   "Return the start position of the separator.
@@ -2085,6 +2071,16 @@ the buffer, if necessary."
   "Raise an error unless called from a minibuffer in the right mode."
   (unless (eq (current-buffer) visual-replace--minibuffer)
     (error "Not in a Visual Replace minibuffer")))
+
+;; Older versions of Visual Replace defined their own version of kill
+;; and kill-whole-line that avoided deleting the separator. Recent
+;; versions achieve the same by defining two fields, so kill and
+;; kill-whole-line, as well as beginning-of-line and end-of-line, know
+;; how to behave.
+(defalias 'video-replace-kill 'kill)
+(make-obsolete 'video-replace-kill 'kill "2024-11-07")
+(defalias 'video-replace-kill-whole-line 'kill-whole-line)
+(make-obsolete 'video-replace-kill-whole-line 'kill-whole-line "2024-11-07")
 
 (provide 'visual-replace)
 

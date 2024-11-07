@@ -268,10 +268,53 @@
                                              (visual-replace-read)))))
      (should (equal ranges (list (cons (point-min) (point-max))))))))
 
+(ert-deftest test-visual-replace-fields ()
+  (test-visual-replace-env
+   (test-visual-replace-run
+    "hello TAB world <F1> ! RET"
+    (define-key visual-replace-mode-map (kbd "<F1> !")
+                (lambda ()
+                  (interactive)
+                  (push (minibuffer-contents)
+                        test-visual-replace-snapshot)))
+    (visual-replace-read))
+   (should (equal (test-visual-replace-highlight-property
+                   (car test-visual-replace-snapshot)
+                   'field 'search)
+                  "[hello] world"))
+   (should (equal (test-visual-replace-highlight-property
+                   (car test-visual-replace-snapshot)
+                   'field 'replace)
+                  "hello [world]"))))
+
+(ert-deftest test-visual-replace-fields-in-history-entry ()
+  (test-visual-replace-env
+   ;; fill history
+   (test-visual-replace-run
+    "hello TAB world RET"
+    (visual-replace-read))
+   ;; recall history entry.
+   (test-visual-replace-run
+    "<F1> h <F1> ! RET"
+    (define-key visual-replace-mode-map (kbd "<F1> !")
+                (lambda ()
+                  (interactive)
+                  (push (minibuffer-contents)
+                        test-visual-replace-snapshot)))
+    (visual-replace-read))
+   (should (equal (test-visual-replace-highlight-property
+                   (car test-visual-replace-snapshot)
+                   'field 'search)
+                  "[hello] world"))
+   (should (equal (test-visual-replace-highlight-property
+                   (car test-visual-replace-snapshot)
+                   'field 'replace)
+                  "hello [world]"))))
+
 (ert-deftest test-visual-replace-kill ()
   (test-visual-replace-env
    (test-visual-replace-run
-    "hello TAB world C-a <right> <F1> k <F1> ! <right> <right> <F1> k <F1> ! RET"
+    "hello TAB world TAB C-a <right> C-k <F1> ! TAB C-a <right> C-k <F1> ! RET"
     (visual-replace-read))
    (should (equal test-visual-replace-snapshot
                   '("Replace from point: h[] → world"
@@ -279,24 +322,19 @@
 
 (ert-deftest test-visual-replace-kill-no-separator ()
   (test-visual-replace-env
-   (test-visual-replace-run "hello <left> <F1> k <F1> ! RET" (visual-replace-read))
+   (test-visual-replace-run "hello <left> C-k <F1> ! RET" (visual-replace-read))
    (should (equal test-visual-replace-snapshot
                   '("Replace from point: hell[]")))))
 
 (ert-deftest test-visual-replace-kill-whole-line ()
   (test-visual-replace-env
    (test-visual-replace-run
-    "hello TAB world C-a <right> <F1> K <F1> ! <right> <right> <F1> K <F1> ! <F1> g"
+    "hello TAB world <F1> k <F1> ! TAB <F1> k <F1> ! <F1> g"
+    (define-key visual-replace-mode-map (kbd "<F1> k") 'kill-whole-line)
     (visual-replace-read))
    (should (equal test-visual-replace-snapshot
-                  '("Replace from point: [] → world"
-                    "Replace from point:  → []")))))
-
-(ert-deftest test-visual-replace-kill-whole-line-no-separator ()
-  (test-visual-replace-env
-   (test-visual-replace-run "hello <F1> K <F1> ! <F1> g"
-                        (visual-replace-read))
-   (should (equal test-visual-replace-snapshot '("Replace from point: []")))))
+                  '("Replace from point: hello → []"
+                    "Replace from point: []")))))
 
 (ert-deftest test-visual-replace-yank-in-from ()
   (test-visual-replace-env
@@ -563,16 +601,16 @@
 
 (ert-deftest test-visual-replace-kill-and-yank-separator ()
   (test-visual-replace-env
-   (test-visual-replace-run "hello TAB C-a <F1> q <F1> ! <F1> u <F1> ! TAB <F1> ! RET"
+   (test-visual-replace-run "hello TAB TAB C-a <F1> q <F1> ! <F1> u <F1> ! TAB <F1> ! RET"
                         (define-key visual-replace-mode-map (kbd "<F1> q")
                           (lambda () (interactive) (call-interactively 'kill-line)))
                         (define-key visual-replace-mode-map (kbd "<F1> u")
                           (lambda () (interactive) (call-interactively 'yank)))
                         (visual-replace-read))
    (should (equal test-visual-replace-snapshot
-                  '("Replace from point: []"
-                    "Replace from point: hello []"
-                    "Replace from point: hello  → []")))))
+                  '("Replace from point: [] → "
+                    "Replace from point: hello[] → "
+                    "Replace from point: hello → []")))))
 
 (ert-deftest test-visual-replace-initial-input ()
   (test-visual-replace-env

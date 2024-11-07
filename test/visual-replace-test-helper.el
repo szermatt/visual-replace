@@ -102,8 +102,6 @@ This is meant to be called within `test-visual-replace-env`."
             (define-key visual-replace-mode-map (kbd "<F1> s") 'visual-replace-toggle-scope)
             (define-key visual-replace-mode-map (kbd "<F1> c") 'visual-replace-toggle-case-fold)
             (define-key visual-replace-mode-map (kbd "<F1> l") 'visual-replace-toggle-lax-ws)
-            (define-key visual-replace-mode-map (kbd "<F1> k") 'visual-replace-kill)
-            (define-key visual-replace-mode-map (kbd "<F1> K") 'visual-replace-kill-whole-line)
             (define-key visual-replace-mode-map (kbd "<F1> y") 'visual-replace-yank)
             (define-key visual-replace-mode-map (kbd "<F1> Y") 'visual-replace-yank-pop)
             (define-key visual-replace-mode-map (kbd "<F1> u") 'visual-replace-undo)
@@ -194,21 +192,18 @@ of the overlays are kept as text properties."
     (cl-assert (memq visual-replace--idle-search-timer timer-idle-list))
     (ert-run-idle-timers)))
 
-(defun test-visual-replace-highlight-property (text property mark)
-  "Add MARK to TEXT where PROPERTY first turns non-nil."
-  (let ((pos (if (get-text-property 0 property text)
-                 0
-               (next-single-property-change 0 property text ))))
-    (if pos
-        (concat (substring text 0 pos) mark (substring text pos (length text)))
-      text)))
-
 (defun test-visual-replace-highlight-face (text &rest faces)
   "Return a copy of TEXT with FACES highlighted.
 
 FACES should be one or more face to highlight.
 
 The region of text with FACES are surrounded with []."
+  (apply #'test-visual-replace-highlight-property text 'face faces))
+
+(defun test-visual-replace-highlight-property (text property &rest values)
+  "Return a copy of TEXT with PROPERTY set to VALUES highlighted.
+
+The matching regions of text are surrounded with []."
   (with-temp-buffer
     (insert text)
     (goto-char (point-min))
@@ -216,12 +211,12 @@ The region of text with FACES are surrounded with []."
       (while (< (point) (point-max))
         (cond
          ((and (not active)
-               (memq (get-text-property (point) 'face) faces))
+               (memq (get-text-property (point) property) values))
           (insert "[")
           (goto-char (1+ (point)))
           (setq active t))
          ((and active
-               (not (memq (get-text-property (point) 'face) faces)))
+               (not (memq (get-text-property (point) property) values)))
           (insert "]")
           (goto-char (1+ (point)))
           (setq active nil)))
