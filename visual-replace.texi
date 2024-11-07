@@ -154,7 +154,7 @@ Visual Replace requires Emacs 26.1 or later.
 * Calling Visual Replace:: 
 * Visual Replace Mode:: 
 * Single replacements:: 
-* Options:: 
+* Customization:: 
 * Commands:: 
 * Keymaps:: 
 * Hooks:: 
@@ -323,7 +323,7 @@ continue where you left off next time by going up in the history.
 See Search@footnote{https://www.gnu.org/software/emacs/manual/html_node/emacs/Search.html}
 in the Emacs manual for details of the different modes listed above.
 
-@node Single replacements,Options,Visual Replace Mode,Usage
+@node Single replacements,Customization,Visual Replace Mode,Usage
 @anchor{usage single}@anchor{a}@anchor{usage single-replacements}@anchor{b}
 @subsection Single replacements
 
@@ -352,9 +352,9 @@ also moving through the matches with @code{<down>} or @code{<up>}.
 @code{u} reverts the last replacement.
 @end itemize
 
-@node Options,Commands,Single replacements,Usage
-@anchor{usage id1}@anchor{c}@anchor{usage options}@anchor{d}
-@subsection Options
+@node Customization,Commands,Single replacements,Usage
+@anchor{usage customization}@anchor{c}@anchor{usage options}@anchor{d}
+@subsection Customization
 
 
 @geindex variable; visual-replace-display-total
@@ -362,6 +362,8 @@ also moving through the matches with @code{<down>} or @code{<up>}.
 @geindex variable; visual-replace-first-match
 @geindex variable; visual-replace-initial-scope
 @geindex variable; visual-replace-default-to-full-scope
+@geindex variable; visual-replace-defaults-hook
+@geindex variable; visual-replace-minibuffer-mode-hook
 
 This section lists a few of the most interesting customization options
 available in visual replace. Call @code{M-x customize-group
@@ -427,10 +429,35 @@ the full buffer otherwise
 this option set, when no region is active, replacement applies by
 default to the full buffer, instead of to the region following the
 point.
+
+@item 
+@code{M-x customize-option visual-replace-defaults-hook} To modify
+search and replace defaults, such as, for example, having searches
+default to regular expressions or search default to word mode, call
+the command that turns it on from this hook. This is called when
+Visual Replace is started with no initial text, so these
+customizations won’t apply to @code{visual-replace-from-isearch},
+for example.
+
+@item 
+@code{M-x customize-option visual-replace-minibuffer-mode-hook} This
+hook is called when Visual Replace is started in the minibuffer. It
+can be used to turn on query mode in all cases by registering the
+command @code{visual-replace-toggle-query} in this hook.
+
+Rather than setting the as a customization, with
+@code{use-package}, you can force Visual Replace to call
+@code{query-replace} by default with:
+
+@example
+(use-package visual-replace
+  [...]
+  :hook ((visual-replace-minibuffer-mode . visual-replace-toggle-query))
+@end example
 @end itemize
 
-@node Commands,Keymaps,Options,Usage
-@anchor{usage commands}@anchor{e}@anchor{usage id2}@anchor{f}
+@node Commands,Keymaps,Customization,Usage
+@anchor{usage commands}@anchor{e}@anchor{usage id1}@anchor{f}
 @subsection Commands
 
 

@@ -1035,4 +1035,25 @@
                  "hello TAB world RET" (visual-replace-read)))
            (visual-replace-make-args :from "hello" :to "world" :query t)))))
 
+(ert-deftest test-visual-replace-read-toggle-word-from-hook ()
+  (test-visual-replace-env
+   (add-hook 'visual-replace-defaults-hook #'visual-replace-toggle-word)
+   (should
+    (equal (car (test-visual-replace-run
+                 "hello TAB world RET" (visual-replace-read)))
+           (visual-replace-make-args :from "hello" :to "world" :word t)))))
+
+(ert-deftest test-visual-replace-read-toggle-word-from-hook-not-default ()
+  (test-visual-replace-env
+   ;; The hook below doesn't apply if a visual-replace-args struct is
+   ;; passed to visual-replace-read.
+   (add-hook 'visual-replace-defaults-hook #'visual-replace-toggle-word)
+   (should
+    (equal (car (test-visual-replace-run
+                 "hello TAB world RET" (visual-replace-read
+                                        (let ((args (visual-replace-make-args)))
+                                          (setf (visual-replace-args-regexp args) t)
+                                          args))))
+           (visual-replace-make-args :from "hello" :to "world" :regexp t)))))
+
 ;;; visual-replace-test.el ends here

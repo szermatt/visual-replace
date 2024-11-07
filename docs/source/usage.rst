@@ -155,14 +155,17 @@ If you want to replace only *some* matches within the scope, you can:
 
 .. _options:
 
-Options
--------
+Customization
+-------------
+
 .. index::
    pair: variable; visual-replace-display-total
    pair: variable; visual-replace-preview
    pair: variable; visual-replace-first-match
    pair: variable; visual-replace-initial-scope
    pair: variable; visual-replace-default-to-full-scope
+   pair: variable; visual-replace-defaults-hook
+   pair: variable; visual-replace-minibuffer-mode-hook
 
 This section lists a few of the most interesting customization options
 available in visual replace. Call :kbd:`M-x customize-group
@@ -210,6 +213,29 @@ faces.
   this option set, when no region is active, replacement applies by
   default to the full buffer, instead of to the region following the
   point.
+
+* :kbd:`M-x customize-option visual-replace-defaults-hook` To modify
+  search and replace defaults, such as, for example, having searches
+  default to regular expressions or search default to word mode, call
+  the command that turns it on from this hook. This is called when
+  Visual Replace is started with no initial text, so these
+  customizations won't apply to :code:`visual-replace-from-isearch`,
+  for example.
+
+* :kbd:`M-x customize-option visual-replace-minibuffer-mode-hook` This
+  hook is called when Visual Replace is started in the minibuffer. It
+  can be used to turn on query mode in all cases by registering the
+  command :code:`visual-replace-toggle-query` in this hook.
+
+  Rather than setting the as a customization, with
+  :code:`use-package`, you can force Visual Replace to call
+  :code:`query-replace` by default with:
+
+  .. code-block:: elisp
+
+    (use-package visual-replace
+      [...]
+      :hook ((visual-replace-minibuffer-mode . visual-replace-toggle-query))
 
 .. _commands:
 

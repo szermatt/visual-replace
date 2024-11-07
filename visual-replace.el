@@ -200,6 +200,42 @@ Set this to nil to turn it off."
   :type 'boolean
   :group 'visual-replace)
 
+(defcustom visual-replace-defaults-hook nil
+  "Hook run when visual replace is called with no initial arguments.
+
+Functions registered to this hook are run when visual replace is
+called normally, with no initial text or setup. That is, when you
+call `visual-replace' and not `visual-replace-from-isearch' or
+`visual-replace-thing-at-point'.
+
+This allows changing the search arguments for visual replace, by
+registering the relevant command to this hook. For example, if
+you always want to start in regexp mode, run
+`visual-replace-toggle-regexp' from this hook.
+
+To run code in every case, register it with
+`visual-replace-minibuffer-mode-hook' instead."
+  :type 'hook
+  :group 'visual-replace
+  :options '(visual-replace-toggle-regexp
+             visual-replace-toggle-word
+             visual-replace-toggle-case-fold
+             visual-replace-toggle-lax-ws))
+
+(defcustom visual-replace-minibuffer-mode-hook nil
+  "Hook run when visual replace starts.
+
+Functions registered to this hook are run when visual replace is
+started in the minibuffer. This allows changing the initial
+state. It's also useful to enable the query mode by default, by
+calling `visual-replace-toggle-query' from this hook..
+
+To manipulate search and replace arguments, you most likely want
+to customize `visual-replace-defaults-hook' instead."
+  :type 'hook
+  :group 'visual-replace
+  :options '(visual-replace-toggle-query))
+
 (defvar visual-replace-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap isearch-toggle-regexp] #'visual-replace-toggle-regexp)
@@ -730,6 +766,8 @@ used as point for \\='from-point. By default, the scope is
                     (add-hook 'after-change-functions #'visual-replace--after-change 0 'local))
                   (setq visual-replace--minibuffer (current-buffer))
                   (visual-replace-minibuffer-mode t)
+                  (unless initial-args
+                    (run-hooks 'visual-replace-defaults-hook))
                   (when trigger
                     (let ((mapping
                            ;; Emacs 26 lookup-key cannot take a list
