@@ -2101,10 +2101,10 @@ the buffer, if necessary."
 ;; versions achieve the same by defining two fields, so kill and
 ;; kill-whole-line, as well as beginning-of-line and end-of-line, know
 ;; how to behave.
-(defalias 'video-replace-kill 'kill)
-(make-obsolete 'video-replace-kill 'kill "2024-11-07")
-(defalias 'video-replace-kill-whole-line 'kill-whole-line)
-(make-obsolete 'video-replace-kill-whole-line 'kill-whole-line "2024-11-07")
+(defalias 'visual-replace-kill 'kill)
+(make-obsolete 'visual-replace-kill 'kill "2024-11-07")
+(defalias 'visual-replace-kill-whole-line 'kill-whole-line)
+(make-obsolete 'visual-replace-kill-whole-line 'kill-whole-line "2024-11-07")
 
 (provide 'visual-replace)
 
