@@ -1594,6 +1594,9 @@ matches to display unless NO-FIRST-MATCH is non-nil."
 (defun visual-replace--highlight-matches (ranges matches)
   "Create overlays to highlight MATCHES in the current buffer.
 
+MATCHES should be the complete set of matches found within
+RANGES. It may be nil if there are no matches.
+
 This function is meant to be used as step consumer for
 `visual-replace--run-idle-search' and fed matches found within
 the visible range of the buffer."
