@@ -223,7 +223,7 @@ See also the example below.
 
 @quotation
 
-@image{visual-replace-figures/capture_blue,,,Screen grab showing Visual Replace in action,png}
+@image{visual-replace-figures/cast,,,Screen grab showing Visual Replace in action,gif}
 @end quotation
 
 Once both fields are filled, press @code{RET} to execute the
