@@ -724,6 +724,8 @@ might be unexpected interaction with your Emacs configurations. The
 tests passing reliably when run using @code{eldev test} is what
 matters.
 
+Please also make sure your commit message follows Conventional Commits 1.0.0@footnote{https://www.conventionalcommits.org/en/v1.0.0/}.
+
 @node Documentation contributions,,Code contributions,Contributing
 @anchor{contrib documentation-contributions}@anchor{1b}@anchor{contrib eldev}@anchor{1c}
 @subsection Documentation contributions

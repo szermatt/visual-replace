@@ -62,6 +62,9 @@ might be unexpected interaction with your Emacs configurations. The
 tests passing reliably when run using :command:`eldev test` is what
 matters.
 
+Please also make sure your commit message follows `Conventional
+Commits 1.0.0 <https://www.conventionalcommits.org/en/v1.0.0/>`_.
+
 .. _eldev: https://github.com/emacs-eldev/eldev
 
 Documentation contributions
