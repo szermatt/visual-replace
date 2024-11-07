@@ -22,15 +22,15 @@ The main improvements are:
    can navigate between matches with the arrow keys and
    optionally see the number of matches in the prompt.
 
- * You can apply only some replacements, selectively, 
+ * You can apply only some replacements, selectively,
    using keyboard shortcuts, or by clicking on the preview.
 
  * You can modify the scope and type of the search-and-replace
    command, to the full buffer, the region or everything after
    the point.
 
-Visual Replace is only an interface for the existing query and 
-replace mechanisms built into Emacs, that is, the actual 
+Visual Replace is only an interface for the existing query and
+replace mechanisms built into Emacs, that is, the actual
 replacements are always done by the standard Emacs commands.
 
 ![example](images/cast.gif)
@@ -45,7 +45,7 @@ The prompt also displays the mode of replacement:
 * *text* →? *replacement* executes `query-replace`
 * *text* →.* *replacement* executes `replace-regexp`
 * *text* →?.* *replacement* executes `query-replace-regexp`
-  
+
 More flags can be toggled, to control:
 
 * the scope of the replacement, region or whole buffer
@@ -72,10 +72,9 @@ The other packages I've found make it a 2-step process.
 supports a preview, but uses its own search-and-replace mechanism and
 only supports a regexp mode.
 
-[anzu](https://github.com/emacsorphanage/anzu) also supports a preview
-and supports a more powerful query-replace mechanism, and much more.
-It was abandoned for a long time, but has been recently taken up by a
-new maintainer.
+[anzu](https://github.com/emacsorphanage/anzu) is otherwise very
+similar to visual-replace. It was abandoned for a long time, but has
+been recently taken up by a new maintainer.
 
 ## INSTALLATION
 

@@ -10,11 +10,19 @@ The main improvements are:
    replaced and the replacement. This makes it easier to craft
    possibly complex regular expression search and replace.
 
- * You can modify the scope and type of the search-and-replace
-   command.
+ * You can see the matches and how they're going to be modified
+   as you edit the command arguments.
 
- * You can see what is going to be modified as you edit the command
-   arguments.
+ * To help craft the search string and its replacement, you
+   can navigate between matches with the arrow keys and
+   optionally see the number of matches in the prompt.
+
+ * You can apply only some replacements, selectively,
+   using keyboard shortcuts, or by clicking on the preview.
+
+ * You can modify the scope and type of the search-and-replace
+   command, to the full buffer, the region or everything after
+   the point.
 
 Visual Replace is just an interface. The actual replacements are
 always done by the standard Emacs commands.
@@ -30,10 +38,9 @@ The other packages I've found make it a 2-step process.
 supports a preview, but uses its own search-and-replace mechanism and
 only supports a regexp mode.
 
-`anzu <https://github.com/emacsorphanage/anzu>`_ also supports a
-preview and supports a more powerful query-replace mechanism, and much
-more. It was abandoned for a long time, but has been recently taken up
-by a new maintainer.
+`anzu <https://github.com/emacsorphanage/anzu>`_ is otherwise very
+similar to visual-replace. It was abandoned for a long time, but has
+been recently taken up by a new maintainer.
 
 Contents
 --------
