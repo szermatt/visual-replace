@@ -707,11 +707,10 @@ used as point for \\='from-point. By default, the scope is
   (barf-if-buffer-read-only)
   (if visual-replace-keep-initial-position
       (save-excursion
-        (visual-replace-read--internal initial-args initial-scope))
-    (push-mark nil 'nomsg)
-    (visual-replace-read--internal initial-args initial-scope)))
+        (visual-replace-read--internal initial-args initial-scope nil))
+    (visual-replace-read--internal initial-args initial-scope 'push-mark)))
 
-(defun visual-replace-read--internal (&optional initial-args initial-scope)
+(defun visual-replace-read--internal (&optional initial-args initial-scope push-mark)
   "Private implementation of `visual-replace-read'.
 
 See `visual-replace-read' for a description of the behavior of
@@ -740,6 +739,8 @@ this function and of INITIAL-ARGS and INITIAL-SCOPE."
     (setq default-value (car minibuffer-history))
     (when visual-replace--incomplete
       (push visual-replace--incomplete minibuffer-history))
+    (when push-mark
+      (push-mark nil 'nomsg))
     (unwind-protect
         (progn
           (deactivate-mark)
