@@ -33,7 +33,7 @@ Visual Replace is only an interface for the existing query and
 replace mechanisms built into Emacs, that is, the actual 
 replacements are always done by the standard Emacs commands.
 
-![example](images/capture_blue.png)
+![example](images/cast.gif)
 
 > **The following is just a quick introduction. Read the full
 > documentation at https://visual-replace.readthedocs.io/en/latest/ or,

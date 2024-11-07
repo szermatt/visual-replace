@@ -56,7 +56,7 @@ by moving the cursor.
 
 See also the example below.
 
-  .. image:: ../../images/capture_blue.png
+  .. image:: ../../images/cast.gif
     :width: 600
     :alt: Screen grab showing Visual Replace in action
 
