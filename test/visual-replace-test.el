@@ -392,7 +392,16 @@
        ;; The point is now at the first match.
        (should (equal "this is repl" (buffer-substring-no-properties
                                       (line-beginning-position)
-                                      (line-end-position))))))))
+                                      (line-end-position))))
+
+       ;; The mark is at the original position, but inactive.
+       (should-not (region-active-p))
+       (should (equal "this is text 3."
+                      (save-excursion
+                        (goto-char (mark))
+                        (buffer-substring-no-properties
+                         (line-beginning-position)
+                         (line-end-position)))))))))
 
 (ert-deftest test-visual-replace-jump-backward-to-first-match ()
   (test-visual-replace-env
@@ -400,11 +409,15 @@
      (let* ((snapshots)
             (win (selected-window))
             (visual-replace-default-to-full-scope t)
-            (height (window-height win)))
+            (height (window-height win))
+            (start-line))
        (dotimes (i (* 3 height))
          (insert (format "this is text %d.\n" i)))
        (goto-char (point-max))
        (forward-line -3)
+       (setq start-line (buffer-substring-no-properties
+                         (line-beginning-position)
+                         (line-end-position)))
        (recenter)
        (define-key
         visual-replace-mode-map
@@ -430,7 +443,16 @@
        ;; The point is now at the first match.
        (should (equal "this is repl" (buffer-substring-no-properties
                                       (line-beginning-position)
-                                      (line-end-position))))))))
+                                      (line-end-position))))
+
+       ;; The mark is at the original position, but inactive.
+       (should-not (region-active-p))
+       (should (equal start-line
+                      (save-excursion
+                        (goto-char (mark))
+                        (buffer-substring-no-properties
+                         (line-beginning-position)
+                         (line-end-position)))))))))
 
 (ert-deftest test-visual-replace-restore-position-after-jump ()
   (test-visual-replace-env
