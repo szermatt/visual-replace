@@ -714,7 +714,9 @@ used as point for \\='from-point. By default, the scope is
   "Private implementation of `visual-replace-read'.
 
 See `visual-replace-read' for a description of the behavior of
-this function and of INITIAL-ARGS and INITIAL-SCOPE."
+this function and of INITIAL-ARGS and INITIAL-SCOPE.
+
+If PUSH-MARK is non-nil, push a mark to the current point."
   (let ((history-add-new-input nil)
         (visual-replace--calling-buffer (current-buffer))
         (visual-replace--calling-window (selected-window))
