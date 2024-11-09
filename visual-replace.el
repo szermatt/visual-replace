@@ -1594,7 +1594,7 @@ matches to display unless NO-FIRST-MATCH is non-nil."
                 (count-matches (and (not no-first-match)
                                     visual-replace-display-total
                                     (not (visual-replace--preview-too-many-matches))
-                                    (< (- (point-max) (point))
+                                    (< (visual-replace--ranges-bytesize ranges)
                                        visual-replace-max-size-for-search)))
                 work-queue consumers)
 
@@ -1868,6 +1868,15 @@ This is added to `after-change-functions' for the minibuffer."
   "Check whether `visual-replace' added an overlay at POS."
   (memq t (mapcar (lambda (ov) (overlay-get ov 'visual-replace))
                   (overlays-at pos))))
+
+(defun visual-replace--ranges-bytesize (ranges)
+  "Compute the size, in bytes of the buffer range covered by RANGES.
+
+The range must be sorted and non-overlapping."
+  (if ranges
+      (- (cdr (car (last ranges)))
+         (car (car ranges)))
+    0))
 
 (defun visual-replace--ranges-nmerge (ranges)
   "Merge overlapping range in RANGES (destructive).

@@ -1099,6 +1099,41 @@
            (should (string-match "^some text" line)))
          (cl-incf i))))))
 
+(ert-deftest test-visual-replace-read-display-total-in-region-buffer-too-large ()
+  (test-visual-replace-env
+   (let ((visual-replace-display-total t)
+         (visual-replace-max-matches-for-total 1000)
+         (visual-replace-max-size-for-search 1024))
+     (dotimes (i 300)
+       (insert (format "some text%d\n" i)))
+     (goto-char (point-min))
+     (forward-line 10)
+     (set-mark (point))
+     (forward-line 20)
+
+     (set-window-buffer (selected-window) (current-buffer))
+     (test-visual-replace-run
+      "text <F1> ! <F1> _ <F1> x"
+      (visual-replace-read))
+     (should
+      (string-match "20\\] Replace in region (20L): text\\[\\]$"
+                    (nth 0 test-visual-replace-snapshot)))
+     ;; Not just using [20], because on Emacs 26.1, the point
+     ;; sometimes ends up on a match, for some reason.
+     ;; TODO: investigate this.
+
+     ;; preview have highlighted all matches.
+     (let ((lines (split-string (test-visual-replace-highlight-face
+                                 (nth 1 test-visual-replace-snapshot)
+                                 'visual-replace-match)
+                                "\n" 'omit-nulls))
+           (i 0))
+       (dolist (line lines)
+         (if (and (>= i 10) (< i 30))
+             (should (string-match "^some \\[text\\]" line))
+           (should (string-match "^some text" line)))
+         (cl-incf i))))))
+
 (ert-deftest test-visual-replace-preview-display-window ()
   (save-window-excursion
     (with-temp-buffer

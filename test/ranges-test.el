@@ -130,4 +130,12 @@
   (should-not (visual-replace--range-contains-sorted '((0 . 9) (11 . 100)) 10))
   (should (visual-replace--range-contains-sorted '((0 . 9) (10 . 100)) 10)))
 
+(ert-deftest test-visual-replace-range-bytesize ()
+  (should (equal 0 (visual-replace--ranges-bytesize nil)))
+  (should (equal 0 (visual-replace--ranges-bytesize '((10 . 10)))))
+  (should (equal 1000 (visual-replace--ranges-bytesize
+                       '((100 . 1100)))))
+  (should (equal 2000 (visual-replace--ranges-bytesize
+                       '((100 . 200) (500 . 600) (900 . 2100))))))
+
 ;;; ranges-test.el ends here
