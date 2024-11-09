@@ -162,6 +162,7 @@ Visual Replace requires Emacs 26.1 or later.
 @menu
 * Calling Visual Replace:: 
 * Visual Replace Mode:: 
+* Yank and Pop:: 
 * Single replacements:: 
 * Customization:: 
 * Commands:: 
@@ -217,7 +218,7 @@ then uses whatever shortcut you’ve already installed.
 
 Once this is done, launch @code{visual-replace} with the keybinding you chose.
 
-@node Visual Replace Mode,Single replacements,Calling Visual Replace,Usage
+@node Visual Replace Mode,Yank and Pop,Calling Visual Replace,Usage
 @anchor{usage visual-replace-mode}@anchor{9}
 @subsection Visual Replace Mode
 
@@ -332,8 +333,45 @@ continue where you left off next time by going up in the history.
 See Search@footnote{https://www.gnu.org/software/emacs/manual/html_node/emacs/Search.html}
 in the Emacs manual for details of the different modes listed above.
 
-@node Single replacements,Customization,Visual Replace Mode,Usage
-@anchor{usage single}@anchor{a}@anchor{usage single-replacements}@anchor{b}
+@node Yank and Pop,Single replacements,Visual Replace Mode,Usage
+@anchor{usage yank}@anchor{b}@anchor{usage yank-and-pop}@anchor{c}
+@subsection Yank and Pop
+
+
+Yank, usually bound to @code{C-y}, works differently in Visual Replace
+than it does normally. In Visual Replace mode, it calls
+@code{visual-replace-yank}.
+
+
+@itemize *
+
+@item 
+In the search section, yanking copies text from the current buffer
+into the search section. This avoids typing text when it’s right
+under the point.
+
+You can also move to a match with @code{<up>} and @code{<down>} to
+capture more text from the buffer.
+
+@item 
+In the replacement section, yanking copies text from the search
+section. This avoids typing the search string again when you just
+want to make some small changes to it.
+@end itemize
+
+The normal yank can be executed by calling @code{yank-pop}, usually
+bound to @code{M-y}.
+
+This can be configured by editing @cite{visual-mode-map}. For example, to
+use the normal yank commands, you can do:
+
+@example
+(define-key visual-replace-mode-map [remap yank] nil)
+(define-key visual-replace-mode-map [remap yank-pop] nil)
+@end example
+
+@node Single replacements,Customization,Yank and Pop,Usage
+@anchor{usage single}@anchor{a}@anchor{usage single-replacements}@anchor{d}
 @subsection Single replacements
 
 
@@ -362,7 +400,7 @@ also moving through the matches with @code{<down>} or @code{<up>}.
 @end itemize
 
 @node Customization,Commands,Single replacements,Usage
-@anchor{usage customization}@anchor{c}@anchor{usage options}@anchor{d}
+@anchor{usage customization}@anchor{e}@anchor{usage options}@anchor{f}
 @subsection Customization
 
 
@@ -477,7 +515,7 @@ Rather than setting the as a customization, with
 @end itemize
 
 @node Commands,Keymaps,Customization,Usage
-@anchor{usage commands}@anchor{e}@anchor{usage id1}@anchor{f}
+@anchor{usage commands}@anchor{10}@anchor{usage id1}@anchor{11}
 @subsection Commands
 
 
@@ -602,7 +640,7 @@ instead of just one.
 @end itemize
 
 @node Keymaps,Hooks,Commands,Usage
-@anchor{usage keymaps}@anchor{10}
+@anchor{usage keymaps}@anchor{12}
 @subsection Keymaps
 
 
@@ -636,7 +674,7 @@ regexp mode using either @code{C-l r} or @code{C-r}.
 @end example
 
 @node Hooks,Limitations,Keymaps,Usage
-@anchor{usage hooks}@anchor{11}
+@anchor{usage hooks}@anchor{13}
 @subsection Hooks
 
 
@@ -654,7 +692,7 @@ can modify. You can use it to customize the behavior of the search or
 modify the regexp language.
 
 @node Limitations,,Hooks,Usage
-@anchor{usage limitations}@anchor{12}
+@anchor{usage limitations}@anchor{14}
 @subsection Limitations
 
 
@@ -674,7 +712,7 @@ function that increment an internal counter, will be executed too
 many times during preview, with unpredictable results.
 
 In all other cases, the preview should match what is eventually
-executed. If that’s not the case, please @ref{13,,report an issue}.
+executed. If that’s not the case, please @ref{15,,report an issue}.
 
 @item 
 If you use @code{visual-replace-apply-one} to replace single
@@ -683,7 +721,7 @@ matches are applied separately.
 @end itemize
 
 @node Contributing,,Usage,Contents
-@anchor{contrib doc}@anchor{14}@anchor{contrib contributing}@anchor{15}
+@anchor{contrib doc}@anchor{16}@anchor{contrib contributing}@anchor{17}
 @section Contributing
 
 
@@ -697,7 +735,7 @@ matches are applied separately.
 @end menu
 
 @node Reporting issues,Suggesting features,,Contributing
-@anchor{contrib reporting}@anchor{13}@anchor{contrib reporting-issues}@anchor{16}
+@anchor{contrib reporting}@anchor{15}@anchor{contrib reporting-issues}@anchor{18}
 @subsection Reporting issues
 
 
@@ -740,21 +778,21 @@ executing it and attach that to the issue.
 @end cartouche
 
 @node Suggesting features,Asking questions,Reporting issues,Contributing
-@anchor{contrib issue-tracker}@anchor{17}@anchor{contrib suggesting-features}@anchor{18}
+@anchor{contrib issue-tracker}@anchor{19}@anchor{contrib suggesting-features}@anchor{1a}
 @subsection Suggesting features
 
 
 Please add feature suggestions to the Issue Tracker@footnote{https://github.com/szermatt/visual-replace/issues}.
 
 @node Asking questions,Code contributions,Suggesting features,Contributing
-@anchor{contrib asking-questions}@anchor{19}
+@anchor{contrib asking-questions}@anchor{1b}
 @subsection Asking questions
 
 
 Open an issue on the Issue Tracker@footnote{https://github.com/szermatt/visual-replace/issues} with your question.
 
 @node Code contributions,Documentation contributions,Asking questions,Contributing
-@anchor{contrib code-contributions}@anchor{1a}
+@anchor{contrib code-contributions}@anchor{1c}
 @subsection Code contributions
 
 
@@ -774,7 +812,7 @@ matters.
 Please also make sure your commit message follows Conventional Commits 1.0.0@footnote{https://www.conventionalcommits.org/en/v1.0.0/}.
 
 @node Documentation contributions,,Code contributions,Contributing
-@anchor{contrib documentation-contributions}@anchor{1b}@anchor{contrib eldev}@anchor{1c}
+@anchor{contrib documentation-contributions}@anchor{1d}@anchor{contrib eldev}@anchor{1e}
 @subsection Documentation contributions
 
 

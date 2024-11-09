@@ -131,6 +131,43 @@ See `Search
 <https://www.gnu.org/software/emacs/manual/html_node/emacs/Search.html>`_
 in the Emacs manual for details of the different modes listed above.
 
+.. _yank:
+
+Yank and Pop
+------------
+
+.. index::
+
+   pair: function; visual-replace-yank
+   pair: function; visual-replace-yank-pop
+
+Yank, usually bound to :kbd:`C-y`, works differently in Visual Replace
+than it does normally. In Visual Replace mode, it calls
+:code:`visual-replace-yank`.
+
+* In the search section, yanking copies text from the current buffer
+  into the search section. This avoids typing text when it's right
+  under the point.
+
+  You can also move to a match with :kbd:`<up>` and :kbd:`<down>` to
+  capture more text from the buffer.
+
+* In the replacement section, yanking copies text from the search
+  section. This avoids typing the search string again when you just
+  want to make some small changes to it.
+
+The normal yank can be executed by calling :code:`yank-pop`, usually
+bound to :kbd:`M-y`.
+
+This can be configured by editing `visual-mode-map`. For example, to
+use the normal yank commands, you can do:
+
+.. code-block:: elisp
+
+  (define-key visual-replace-mode-map [remap yank] nil)
+  (define-key visual-replace-mode-map [remap yank-pop] nil)
+
+
 .. _single:
 
 Single replacements
