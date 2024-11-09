@@ -369,6 +369,14 @@
    (should (equal test-visual-replace-snapshot
                   '("Replace from point: from[] → world")))))
 
+(ert-deftest test-visual-replace-yank-in-from-after-next-match ()
+  (test-visual-replace-env
+   (save-excursion (insert "from-buffer\nfrom-region\nfrom-point\n"))
+   (test-visual-replace-run "from <down> <F1> y <F1> ! RET"
+                        (visual-replace-read))
+   (should (equal test-visual-replace-snapshot
+                  '("Replace from point: from-region[]")))))
+
 (ert-deftest test-visual-replace-yank-in-to ()
   (test-visual-replace-env
    (kill-new "from kill-ring")

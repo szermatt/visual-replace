@@ -673,16 +673,25 @@ When editing the replacement text, insert the original text.
 See also `visual-replace-yank-pop'."
   (interactive)
   (visual-replace--assert-in-minibuffer)
-  (let ((separator-start (visual-replace--separator-start))
-        (separator-end (visual-replace--separator-end)))
+  (let* ((separator-start (visual-replace--separator-start))
+         (separator-end (visual-replace--separator-end))
+         (from-text (buffer-substring-no-properties
+                     (minibuffer-prompt-end)
+                     (or separator-start (point-max)))))
     (cond
      ;; in the modification section
      ((and separator-start (>= (point) separator-end))
-      (insert (buffer-substring-no-properties (minibuffer-prompt-end)
-                                              separator-start)))
+      (insert from-text))
      ;; in the original section
      (t (insert (with-current-buffer visual-replace--calling-buffer
                   (let ((start (point)))
+                    ;; If the text we're looking at is exactly
+                    ;; from-text, we likely moved to that point with
+                    ;; visual-replace-next or -prev. Skip the matching
+                    ;; text.
+                    (when (and (> (length from-text) 0)
+                               (looking-at (regexp-quote from-text)))
+                      (setq start (match-end 0)))
                     (forward-symbol 1)
                     (buffer-substring-no-properties start (point)))))))))
 
