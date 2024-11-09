@@ -338,6 +338,9 @@ in the Emacs manual for details of the different modes listed above.
 @subsection Yank and Pop
 
 
+@geindex function; visual-replace-yank
+@geindex function; visual-replace-yank-pop
+
 Yank, usually bound to @code{C-y}, works differently in Visual Replace
 than it does normally. In Visual Replace mode, it calls
 @code{visual-replace-yank}.

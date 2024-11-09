@@ -137,7 +137,6 @@ Yank and Pop
 ------------
 
 .. index::
-
    pair: function; visual-replace-yank
    pair: function; visual-replace-yank-pop
 
