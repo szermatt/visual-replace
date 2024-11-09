@@ -507,8 +507,8 @@ The preview is a set of overlays stored in
 `visual-replace--match-ovs'. This variable keeps track of the
 state that was current when that set of overlays was created.
 
-If non-nil, this is a list:
- (ARGS RANGES POINT IS-COMPLETE SCOPE TOO-MANY-MATCHES).
+If non-nil, this is a vector:
+ [ARGS RANGES POINT IS-COMPLETE SCOPE TOO-MANY-MATCHES]
 
 ARGS is a `visual-replace-range' element that was used to produce
 these overlays.
@@ -530,43 +530,49 @@ attempted but hit the max matches limit.")
 
 (defsubst visual-replace--init-preview-state ()
   "Initialize `visual-replace--preview-state'."
-  (setq visual-replace--preview-state (list nil nil nil nil nil nil)))
+  (setq visual-replace--preview-state (make-vector 6 nil)))
 
 (defsubst visual-replace--preview-args ()
   "`visual-replace-args' current when the preview was last updated."
-  (nth 0 visual-replace--preview-state))
+  (when-let ((s visual-replace--preview-state))
+    (aref s 0)))
 (gv-define-setter visual-replace--preview-args (args)
-  `(setf (nth 0 visual-replace--preview-state) ,args))
+  `(setf (aref visual-replace--preview-state 0) ,args))
 
 (defsubst visual-replace--preview-ranges ()
   "Visible ranges current when the preview was last updated."
-  (nth 1 visual-replace--preview-state))
+  (when-let ((s visual-replace--preview-state))
+    (aref s 1)))
 (gv-define-setter visual-replace--preview-ranges (ranges)
-  `(setf (nth 1 visual-replace--preview-state) ,ranges))
+  `(setf (aref visual-replace--preview-state 1) ,ranges))
 
 (defsubst visual-replace--preview-point ()
   "Point current when the preview was last updated."
-  (nth 2 visual-replace--preview-state))
+  (when-let ((s visual-replace--preview-state))
+    (aref s 2)))
 (gv-define-setter visual-replace--preview-point (point)
-  `(setf (nth 2 visual-replace--preview-state) ,point))
+  `(setf (aref visual-replace--preview-state 2) ,point))
 
 (defsubst visual-replace--preview-is-complete ()
   "Non-nil once the set of match overlays is complete."
-  (nth 3 visual-replace--preview-state))
+  (when-let ((s visual-replace--preview-state))
+    (aref s 3)))
 (gv-define-setter visual-replace--preview-is-complete (is-complete)
-  `(setf (nth 3 visual-replace--preview-state) ,is-complete))
+  `(setf (aref visual-replace--preview-state 3) ,is-complete))
 
 (defsubst visual-replace--preview-scope ()
   "Scope that was current when the preview was last updated."
-  (nth 4 visual-replace--preview-state))
+  (when-let ((s visual-replace--preview-state))
+    (aref s 4)))
 (gv-define-setter visual-replace--preview-scope (scope)
-  `(setf (nth 4 visual-replace--preview-state) ,scope))
+  `(setf (aref visual-replace--preview-state 4) ,scope))
 
 (defsubst visual-replace--preview-too-many-matches ()
   "Scope that was current when the preview was last updated."
-  (nth 5 visual-replace--preview-state))
+  (when-let ((s visual-replace--preview-state))
+    (aref s 5)))
 (gv-define-setter visual-replace--preview-too-many-matches (val)
-  `(setf (nth 5 visual-replace--preview-state) ,val))
+  `(setf (aref visual-replace--preview-state 5) ,val))
 
 (defvar visual-replace--scope-ovs nil
   "Overlay that highlight the replacement region.")
