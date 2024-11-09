@@ -71,6 +71,22 @@
    (should (equal (test-visual-replace-content)
                    "hello 1\nhullo 2\nhello 3\n"))))
 
+(ert-deftest test-visual-replace-in-region-keep-initial-position ()
+  (test-visual-replace-env
+   (let ((visual-replace-keep-initial-position t))
+     (let ((mark-1) (mark-2))
+       (insert "hello 1\n")
+       (setq mark-1 (point))
+       (insert "hello 2\n")
+       (setq mark-2 (point))
+       (insert "hello 3\n")
+       (goto-char mark-1)
+       (set-mark mark-2))
+     (test-visual-replace-run "hello RET hullo RET"
+                              (call-interactively 'visual-replace))
+     (should (equal (test-visual-replace-content)
+                    "hello 1\nhullo 2\nhello 3\n")))))
+
 (ert-deftest test-visual-replace-regexp ()
   (test-visual-replace-env
    (insert "hello, world")
@@ -373,8 +389,10 @@
                 (test-visual-replace-highlight-face
                  (car snapshots) 'visual-replace-delete-match)))
 
-       ;; We're now back at the original position.
-       (should (equal 4 (line-number-at-pos (point))))))))
+       ;; The point is now at the first match.
+       (should (equal "this is repl" (buffer-substring-no-properties
+                                      (line-beginning-position)
+                                      (line-end-position))))))))
 
 (ert-deftest test-visual-replace-jump-backward-to-first-match ()
   (test-visual-replace-env
@@ -409,14 +427,17 @@
                              (test-visual-replace-highlight-face
                               (car snapshots) 'visual-replace-delete-match)))
 
-       ;; We're now back at the original position.
-       (should (equal (- (line-number-at-pos (point-max)) 3) (line-number-at-pos (point))))))))
+       ;; The point is now at the first match.
+       (should (equal "this is repl" (buffer-substring-no-properties
+                                      (line-beginning-position)
+                                      (line-end-position))))))))
 
 (ert-deftest test-visual-replace-restore-position-after-jump ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (let* ((snapshots)
             (win (selected-window))
+            (visual-replace-keep-initial-position t)
             (height (window-height win))
             (to-replace (* 2 height)))
        (dotimes (i (* 3 height))

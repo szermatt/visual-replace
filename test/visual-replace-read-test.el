@@ -246,7 +246,7 @@
    (let ((ranges (nth 1 (test-visual-replace-run "hello TAB world RET"
                                              (test-visual-replace-setup-region)
                                              (visual-replace-read)))))
-     (should (equal ranges (list (cons (mark) (point))))))))
+     (should (equal ranges (list (cons 1 7)))))))
 
 (ert-deftest test-visual-replace-read-noncontiguous-region ()
   (test-visual-replace-env

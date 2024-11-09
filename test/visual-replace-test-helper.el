@@ -45,7 +45,7 @@ are triggered by the key F1 ! when running test-visual-replace-run.")
            (visual-replace-highlight-match-at-point nil)
            (visual-replace-minibuffer-mode-hook nil)
            (visual-replace-defaults-hook nil)
-           (visual-replace-keep-initial-position t)
+           (visual-replace-keep-initial-position nil)
            (test-visual-replace-snapshot nil))
        (cl-letf (((symbol-function 'sit-for) (lambda (_))))
          (ert-with-test-buffer nil
