@@ -131,6 +131,15 @@ the result in the prompt, just before the arrow."
   :type 'boolean
   :group 'visual-replace)
 
+(defcustom visual-replace-max-matches-for-total 1000
+  "Maximum number of matches to process in the preview.
+
+If there are more than that many matches, stop attempting to
+compute the total even if `visual-replace-display-total' is
+non-nil."
+  :type 'number
+  :group 'visual-replace)
+
 (defcustom visual-replace-keep-initial-position nil
   "If non-nil, always go back to the point `visual-replace' was called from.
 
@@ -490,7 +499,7 @@ The preview is a set of overlays stored in
 state that was current when that set of overlays was created.
 
 If non-nil, this is a list:
- (ARGS RANGES POINT IS-COMPLETE SCOPE).
+ (ARGS RANGES POINT IS-COMPLETE SCOPE TOO-MANY-MATCHES).
 
 ARGS is a `visual-replace-range' element that was used to produce
 these overlays.
@@ -501,15 +510,18 @@ matches for the preview.
 POINT is the value of (point) that was last used to update the
 highlights of the overlays.
 
-IS-COMPLETE is t once the whole buffer was searched, so overlays
-are complete.
+IS-COMPLETE is non-nil once the whole buffer was searched, so
+overlays are complete.
 
 SCOPE is the scope that was current at the time the state was
-setup.")
+setup.
+
+TOO-MANY-MATCHES is non-nil if search for all matches was
+attempted but hit the max matches limit.")
 
 (defsubst visual-replace--init-preview-state ()
   "Initialize `visual-replace--preview-state'."
-  (setq visual-replace--preview-state (list nil nil nil nil nil)))
+  (setq visual-replace--preview-state (list nil nil nil nil nil nil)))
 
 (defsubst visual-replace--preview-args ()
   "`visual-replace-args' current when the preview was last updated."
@@ -540,6 +552,12 @@ setup.")
   (nth 4 visual-replace--preview-state))
 (gv-define-setter visual-replace--preview-scope (scope)
   `(setf (nth 4 visual-replace--preview-state) ,scope))
+
+(defsubst visual-replace--preview-too-many-matches ()
+  "Scope that was current when the preview was last updated."
+  (nth 5 visual-replace--preview-state))
+(gv-define-setter visual-replace--preview-too-many-matches (val)
+  `(setf (nth 5 visual-replace--preview-state) ,val))
 
 (defvar visual-replace--scope-ovs nil
   "Overlay that highlight the replacement region.")
@@ -1559,7 +1577,8 @@ matches to display unless NO-FIRST-MATCH is non-nil."
           (let ((first-match (and (not no-first-match)
                                   visual-replace-first-match))
                 (count-matches (and (not no-first-match)
-                                    visual-replace-display-total))
+                                    visual-replace-display-total
+                                    (not (visual-replace--preview-too-many-matches))))
                 work-queue consumers)
 
             (visual-replace--init-preview-state)
@@ -1583,8 +1602,15 @@ matches to display unless NO-FIRST-MATCH is non-nil."
             (when count-matches
               (push (lambda (ranges matches is-done)
                       (if (not is-done)
-                          (prog1 t ; continue until the end
-                            (visual-replace--highlight-matches ranges matches))
+                          (if (and matches
+                                   (<= visual-replace-max-matches-for-total
+                                       (+ (length matches)
+                                          (length visual-replace--match-ovs))))
+                              (prog1 nil ; stop counting matches
+                                (setf (visual-replace--preview-too-many-matches) t))
+                            (prog1 t ; continue counting matches
+                              (visual-replace--highlight-matches ranges matches)))
+
                         (when (visual-replace-args--equiv-for-match-p
                                args (visual-replace--preview-args))
                           (setf (visual-replace--preview-is-complete) t)

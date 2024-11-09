@@ -1022,8 +1022,9 @@
 
 (ert-deftest test-visual-replace-read-display-total-large-buffer ()
   (test-visual-replace-env
-   (let ((visual-replace-display-total t))
-     (dotimes (i 1024)
+   (let ((visual-replace-display-total t)
+         (visual-replace-max-matches-for-total 1000))
+     (dotimes (i 900)
        (insert (format "some text%d\n" i)))
      (goto-char (point-min))
      (set-window-buffer (selected-window) (current-buffer))
@@ -1032,12 +1033,42 @@
       (visual-replace-read))
      (should
       (equal (nth 0 test-visual-replace-snapshot)
-             "[1024] Replace from point: text[]"))
+             "[900] Replace from point: text[]"))
      (dolist (line (split-string (test-visual-replace-highlight-face
                                   (nth 1 test-visual-replace-snapshot)
                                   'visual-replace-match)
                                  "\n" 'omit-nulls))
        (should (string-match "^some \\[text\\]" line))))))
+
+(ert-deftest test-visual-replace-read-display-total-too-many-matches ()
+  (test-visual-replace-env
+   (let ((visual-replace-display-total t)
+         (visual-replace-max-matches-for-total 100))
+     (dotimes (i 300)
+       (insert (format "some text%d\n" i)))
+     (goto-char (point-min))
+     (set-window-buffer (selected-window) (current-buffer))
+     (test-visual-replace-run
+      "text <F1> ! <F1> _ <F1> x"
+      (visual-replace-read))
+     (should
+      (equal (nth 0 test-visual-replace-snapshot)
+             "Replace from point: text[]"))
+
+     ;; preview should be available in the visible range, but not
+     ;; past the 100 match mark
+     (let ((lines (split-string (test-visual-replace-highlight-face
+                                 (nth 1 test-visual-replace-snapshot)
+                                 'visual-replace-match)
+                                "\n" 'omit-nulls))
+           (i 0))
+       (dolist (line lines)
+         (cond
+          ((< i (window-height))
+           (should (string-match "^some \\[text\\]" line)))
+          ((>= i 100)
+           (should (string-match "^some text" line))))
+         (cl-incf i))))))
 
 (ert-deftest test-visual-replace-preview-display-window ()
   (save-window-excursion
