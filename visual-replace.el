@@ -140,6 +140,15 @@ non-nil."
   :type 'number
   :group 'visual-replace)
 
+(defcustom visual-replace-max-size-for-search (* 4 1024 1024)
+  "Maximum buffer region to search, in bytes.
+
+Visual replace will not attempt to count matches if the buffer is
+that large and will stop looking for a first match after going
+through that much data."
+  :type 'number
+  :group 'visual-replace)
+
 (defcustom visual-replace-keep-initial-position nil
   "If non-nil, always go back to the point `visual-replace' was called from.
 
@@ -1578,7 +1587,9 @@ matches to display unless NO-FIRST-MATCH is non-nil."
                                   visual-replace-first-match))
                 (count-matches (and (not no-first-match)
                                     visual-replace-display-total
-                                    (not (visual-replace--preview-too-many-matches))))
+                                    (not (visual-replace--preview-too-many-matches))
+                                    (< (- (point-max) (point))
+                                       visual-replace-max-size-for-search)))
                 work-queue consumers)
 
             (visual-replace--init-preview-state)
@@ -1633,9 +1644,14 @@ matches to display unless NO-FIRST-MATCH is non-nil."
                       consumers))
 
             (when (or count-matches first-match)
-              (let ((invisible-ranges (visual-replace--range-substract-sorted
-                                       ranges
-                                       visible-ranges))
+              (let ((invisible-ranges (mapcar
+                                       (lambda (range)
+                                         (if (> (cdr range) visual-replace-max-size-for-search)
+                                             (cons (car range) visual-replace-max-size-for-search)
+                                           range))
+                                       (visual-replace--range-substract-sorted
+                                        ranges
+                                        visible-ranges)))
                     (origin (save-excursion
                               (goto-char (visual-replace--scope-point
                                           visual-replace--scope))

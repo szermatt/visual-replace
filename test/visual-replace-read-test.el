@@ -1070,6 +1070,35 @@
            (should (string-match "^some text" line))))
          (cl-incf i))))))
 
+(ert-deftest test-visual-replace-read-display-total-too-large ()
+  (test-visual-replace-env
+   (let ((visual-replace-display-total t)
+         (visual-replace-max-matches-for-total 1000)
+         (visual-replace-max-size-for-search 1024))
+     (dotimes (i 300)
+       (insert (format "some text%d\n" i)))
+     (goto-char (point-min))
+     (set-window-buffer (selected-window) (current-buffer))
+     (test-visual-replace-run
+      "text <F1> ! <F1> _ <F1> x"
+      (visual-replace-read))
+     (should
+      (equal (nth 0 test-visual-replace-snapshot)
+             "Replace from point: text[]"))
+
+     ;; preview should be available in the visible range, but not
+     ;; past that.
+     (let ((lines (split-string (test-visual-replace-highlight-face
+                                 (nth 1 test-visual-replace-snapshot)
+                                 'visual-replace-match)
+                                "\n" 'omit-nulls))
+           (i 0))
+       (dolist (line lines)
+         (if (< i (window-height))
+             (should (string-match "^some \\[text\\]" line))
+           (should (string-match "^some text" line)))
+         (cl-incf i))))))
+
 (ert-deftest test-visual-replace-preview-display-window ()
   (save-window-excursion
     (with-temp-buffer

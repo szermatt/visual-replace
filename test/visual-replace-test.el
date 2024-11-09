@@ -514,6 +514,45 @@
                          (line-beginning-position)
                          (line-end-position))))))))
 
+(ert-deftest test-visual-replace-give-up-looking-for-first-match ()
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+     (let* ((snapshots)
+            (win (selected-window))
+            (visual-replace-max-size-for-search 1024))
+       (dotimes (i 1024)
+         (insert "some text.\n"))
+       (insert "the end.")
+       (goto-char (point-min))
+       (recenter)
+       (define-key
+        visual-replace-mode-map
+        (kbd "C-c t")
+        (lambda ()
+          (interactive)
+          (visual-replace--update-preview)
+          (while visual-replace--idle-search-timer
+            (cl-assert (memq visual-replace--idle-search-timer timer-idle-list))
+            (ert-run-idle-timers))
+          (push (visual-replace-test-window-content win) snapshots)))
+       (visual-replace-ert-simulate-keys (kbd "the SPC end TAB fin C-c t RET")
+         (call-interactively 'visual-replace))
+
+       ;; The text was replaced
+       (goto-char (point-max))
+       (should (equal "fin." (buffer-substring-no-properties
+                              (line-beginning-position)
+                              (line-end-position))))
+
+       ;; C-c t was called once to capture window content.
+       (should (equal 1 (length snapshots)))
+
+       ;; The replacement was NOT highlighted.
+       (should (string-match
+                "the end.$"
+                (test-visual-replace-highlight-face
+                 (car snapshots) 'visual-replace-delete-match)))))))
+
 (ert-deftest test-visual-replace-small-ranges ()
   (ert-with-test-buffer nil
     (dotimes (i 300)
