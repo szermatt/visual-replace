@@ -37,9 +37,10 @@
 ;; https://visual-replace.readthedocs.io/en/latest/ or in the Info
 ;; node visual-replace, if it is installed.
 
+(require 'gv)
+(require 'rect)
 (require 'seq)
 (require 'thingatpt)
-(require 'rect)
 (eval-when-compile (require 'subr-x)) ;; if-let
 
 ;;; Code:
@@ -488,14 +489,57 @@ The preview is a set of overlays stored in
 `visual-replace--match-ovs'. This variable keeps track of the
 state that was current when that set of overlays was created.
 
-If non-nil, this is a list of 2 elements:
- (ARGS VISIBLE-RANGES POINT IS-COMPLETE).
+If non-nil, this is a list:
+ (ARGS RANGES POINT IS-COMPLETE SCOPE).
 
 ARGS is a `visual-replace-range' element that was used to produce
-these overlays. VISIBLE-RANGES is the range within the buffer
-Visual Replace looked for matches for the preview. POINT is the
-value of (point). IS-COMPLETE is t once the whole buffer was
-searched, so overlays are complete.")
+these overlays.
+
+RANGES is the range within the buffer Visual Replace looked for
+matches for the preview.
+
+POINT is the value of (point) that was last used to update the
+highlights of the overlays.
+
+IS-COMPLETE is t once the whole buffer was searched, so overlays
+are complete.
+
+SCOPE is the scope that was current at the time the state was
+setup.")
+
+(defsubst visual-replace--init-preview-state ()
+  "Initialize `visual-replace--preview-state'."
+  (setq visual-replace--preview-state (list nil nil nil nil nil)))
+
+(defsubst visual-replace--preview-args ()
+  "`visual-replace-args' current when the preview was last updated."
+  (nth 0 visual-replace--preview-state))
+(gv-define-setter visual-replace--preview-args (args)
+  `(setf (nth 0 visual-replace--preview-state) ,args))
+
+(defsubst visual-replace--preview-ranges ()
+  "Visible ranges current when the preview was last updated."
+  (nth 1 visual-replace--preview-state))
+(gv-define-setter visual-replace--preview-ranges (ranges)
+  `(setf (nth 1 visual-replace--preview-state) ,ranges))
+
+(defsubst visual-replace--preview-point ()
+  "Point current when the preview was last updated."
+  (nth 2 visual-replace--preview-state))
+(gv-define-setter visual-replace--preview-point (point)
+  `(setf (nth 2 visual-replace--preview-state) ,point))
+
+(defsubst visual-replace--preview-is-complete ()
+  "Non-nil once the set of match overlays is complete."
+  (nth 3 visual-replace--preview-state))
+(gv-define-setter visual-replace--preview-is-complete (is-complete)
+  `(setf (nth 3 visual-replace--preview-state) ,is-complete))
+
+(defsubst visual-replace--preview-scope ()
+  "Scope that was current when the preview was last updated."
+  (nth 4 visual-replace--preview-state))
+(gv-define-setter visual-replace--preview-scope (scope)
+  `(setf (nth 4 visual-replace--preview-state) ,scope))
 
 (defvar visual-replace--scope-ovs nil
   "Overlay that highlight the replacement region.")
@@ -1422,7 +1466,7 @@ MATCH-DATA is the value of (match-data) for the match."
 This should be called whenever the total changes or the point
 changes."
   (when-let ((ov visual-replace--total-ov))
-    (when (nth 3 visual-replace--preview-state)
+    (when (visual-replace--preview-is-complete)
       (let ((total (length visual-replace--match-ovs)))
         (overlay-put
          ov 'before-string
@@ -1458,11 +1502,11 @@ matches to display unless NO-FIRST-MATCH is non-nil."
                               ranges
                               (visual-replace--visible-ranges
                                visual-replace--calling-buffer)))
-             (old-args (nth 0 visual-replace--preview-state))
-             (old-visible-ranges (nth 1 visual-replace--preview-state))
-             (old-point (nth 2 visual-replace--preview-state))
-             (is-complete (nth 3 visual-replace--preview-state))
-             (old-scope (nth 4 visual-replace--preview-state))
+             (old-args (visual-replace--preview-args))
+             (old-visible-ranges (visual-replace--preview-ranges))
+             (old-point (visual-replace--preview-point))
+             (is-complete (visual-replace--preview-is-complete))
+             (old-scope (visual-replace--preview-scope))
              equiv)
         (cond
          ;; Preview is turned off. Reset it if necessary.
@@ -1496,17 +1540,17 @@ matches to display unless NO-FIRST-MATCH is non-nil."
                    replacement-count
                    args))
               (cl-incf replacement-count)))
-          (setf (nth 0 visual-replace--preview-state) args)
+          (setf (visual-replace--preview-args) args)
           (when (not (equal (point) old-point))
             (visual-replace--update-total)
-            (setf (nth 2 visual-replace--preview-state) (point))))
+            (setf (visual-replace--preview-point) (point))))
 
          ;; Preview overlays are complete; highlight needs updating.
          ((and equiv (not (equal (point) old-point)))
           (visual-replace--set-ov-highlight-at-pos old-point)
           (visual-replace--set-ov-highlight-at-pos (point))
           (visual-replace--update-total)
-          (setf (nth 2 visual-replace--preview-state) (point)))
+          (setf (visual-replace--preview-point) (point)))
 
          ;; Preview overlays need to be re-created. Run searches to
          ;; build the preview, looking for a match to show if
@@ -1518,9 +1562,12 @@ matches to display unless NO-FIRST-MATCH is non-nil."
                                     visual-replace-display-total))
                 work-queue consumers)
 
-            (setq visual-replace--preview-state
-                  (list args visible-ranges (point) nil
-                        (visual-replace--scope-type visual-replace--scope)))
+            (visual-replace--init-preview-state)
+            (setf (visual-replace--preview-args) args)
+            (setf (visual-replace--preview-ranges) visible-ranges)
+            (setf (visual-replace--preview-point) (point))
+            (setf (visual-replace--preview-scope)
+                  (visual-replace--scope-type visual-replace--scope))
 
             ;; This section prepares searches in work-queue and runs
             ;; them. See visual-replace--run-idle-search for the
@@ -1539,8 +1586,8 @@ matches to display unless NO-FIRST-MATCH is non-nil."
                           (prog1 t ; continue until the end
                             (visual-replace--highlight-matches ranges matches))
                         (when (visual-replace-args--equiv-for-match-p
-                               args (nth 0 visual-replace--preview-state))
-                          (setf (nth 3 visual-replace--preview-state) t)
+                               args (visual-replace--preview-args))
+                          (setf (visual-replace--preview-is-complete) t)
                           (setq visual-replace--match-ovs
                                 (sort visual-replace--match-ovs
                                       (lambda (a b)
