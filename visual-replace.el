@@ -690,8 +690,11 @@ See also `visual-replace-yank-pop'."
                     ;; visual-replace-next or -prev. Skip the matching
                     ;; text.
                     (when (and (> (length from-text) 0)
-                               (looking-at (regexp-quote from-text)))
-                      (setq start (match-end 0)))
+                               (equal from-text (buffer-substring-no-properties
+                                                 (point)
+                                                 (min (+ (length from-text) (point))
+                                                      (point-max)))))
+                      (setq start (+ (length from-text) (point))))
                     (forward-symbol 1)
                     (buffer-substring-no-properties start (point)))))))))
 
