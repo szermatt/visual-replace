@@ -114,7 +114,7 @@ In that mode:
 * "M-% c" toggle case-fold
 * "M-% s" toggle lax whitespace
 
-If you started `visual-replace` with another keybinding, replace M-X with that keybinding. Modify `visual-replace-mode-map` and `visual-replace-secondary-mode-map` to customize the keybindings.
+If you started `visual-replace` with another keybinding, replace M-% with that keybinding. Modify `visual-replace-mode-map` and `visual-replace-secondary-mode-map` to customize the keybindings.
 
 `visual-replace-from-isearch` switches from an active isearch session
 to `visual-replace`.
