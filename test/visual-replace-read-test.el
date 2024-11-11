@@ -969,7 +969,7 @@
              "Replace from point: he[]"))
      (should
       (equal (nth 1 test-visual-replace-snapshot)
-             "[3] Replace from point: hell[]"))
+             "[1/3] Replace from point: hell[]"))
      (should
       (equal (test-visual-replace-highlight-face
               (nth 2 test-visual-replace-snapshot)
@@ -1002,9 +1002,9 @@
       "hello <F1> ! w <F1> ! DEL , <F1> ! DEL . <F1> ! <F1> x"
       (visual-replace-read))
      (should (equal test-visual-replace-snapshot
-                    (list "[3] Replace from point: hello[]"
-                          "[2] Replace from point: hellow[]"
-                          "[1] Replace from point: hello,[]"
+                    (list "[1/3] Replace from point: hello[]"
+                          "[1/2] Replace from point: hellow[]"
+                          "[1/1] Replace from point: hello,[]"
                           "[0] Replace from point: hello.[]"))))))
 
 (ert-deftest test-visual-replace-read-display-total-too-short ()
@@ -1018,7 +1018,7 @@
       (visual-replace-read))
      (should
       (equal (nth 0 test-visual-replace-snapshot)
-             "[3] Replace from point: hell[]"))
+             "[1/3] Replace from point: hell[]"))
      (should
       (equal (nth 1 test-visual-replace-snapshot)
              "Replace from point: he[]"))
@@ -1041,7 +1041,7 @@
       (visual-replace-read))
      (should
       (equal (nth 0 test-visual-replace-snapshot)
-             "[900] Replace from point: text[]"))
+             "[1/900] Replace from point: text[]"))
      (dolist (line (split-string (test-visual-replace-highlight-face
                                   (nth 1 test-visual-replace-snapshot)
                                   'visual-replace-match)
@@ -1124,11 +1124,8 @@
       "text <F1> ! <F1> _ <F1> x"
       (visual-replace-read))
      (should
-      (string-match "20\\] Replace in region (20L): text\\[\\]$"
-                    (nth 0 test-visual-replace-snapshot)))
-     ;; Not just using [20], because on Emacs 26.1, the point
-     ;; sometimes ends up on a match, for some reason.
-     ;; TODO: investigate this.
+      (equal "[13/20] Replace in region (20L): text[]"
+             (nth 0 test-visual-replace-snapshot)))
 
      ;; preview have highlighted all matches.
      (let ((lines (split-string (test-visual-replace-highlight-face
@@ -1196,5 +1193,32 @@
                                           (setf (visual-replace-args-regexp args) t)
                                           args))))
            (visual-replace-make-args :from "hello" :to "world" :regexp t)))))
+
+
+(ert-deftest test-visual-replace-goto-closest-match ()
+  (test-visual-replace-env
+   (let ((win (selected-window))
+         (buf (current-buffer)))
+     (insert "hello, world, hello, hello!")
+     (goto-char (point-min))
+     (search-forward "world")
+     (set-window-buffer win buf)
+     (test-visual-replace-run
+      "<F1> s hell <F1> _ <F1> x"
+      (define-key visual-replace-mode-map (kbd "<F1> _")
+                  (lambda ()
+                    (interactive)
+                    (with-current-buffer buf
+                      (visual-replace--update-preview)
+                      (test-visual-run-idle-search-timers)
+                      (push
+                       (concat (buffer-substring (point-min) (point))
+                               "[]"
+                               (buffer-substring (point) (point-max)))
+                       test-visual-replace-snapshot))))
+      (visual-replace-read))
+     (should (equal (test-visual-replace-highlight-face
+                     (car test-visual-replace-snapshot) 'visual-replace-match)
+                    "hello, world, []hello, hello!")))))
 
 ;;; visual-replace-test.el ends here

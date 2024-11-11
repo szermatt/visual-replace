@@ -1620,9 +1620,11 @@ matches to display unless NO-FIRST-MATCH is non-nil."
             ;; This section prepares searches in work-queue and runs
             ;; them. See visual-replace--run-idle-search for the
             ;; format of work-queue and consumers.
-            (push `(,(unless count-matches
-                       (list (lambda (ranges matches)
-                               (visual-replace--highlight-matches ranges matches))))
+            (push `(,(append
+                      (list #'visual-replace--goto-closest-match)
+                      (unless count-matches
+                        (list (lambda (ranges matches)
+                                (visual-replace--highlight-matches ranges matches)))))
 
                     ;; call (visual-replace-search args ...
                     ,visible-ranges ,visual-replace-preview-max-duration)
@@ -1701,6 +1703,26 @@ matches to display unless NO-FIRST-MATCH is non-nil."
             (visual-replace--run-idle-search
              args (nreverse work-queue) consumers))))))))
 
+(defun visual-replace--goto-closest-match (_ranges matches)
+  "Go to the match from MATCHES closest to the current point.
+
+This function works within the window targeted by Visual Replace.
+It does nothing if there isn't one."
+  (when-let ((win (visual-replace--find-window-noselect)))
+    (with-selected-window win
+      (let ((min-dist)
+            (closest-match)
+            (pos (point)))
+        (dolist (m matches)
+          (let ((dist (min (abs (- (car m) pos))
+                           (abs (- (nth 1 m) pos)))))
+            (when (or (not min-dist)
+                      (< dist min-dist))
+              (setq min-dist dist)
+              (setq closest-match m))))
+        (when closest-match
+          (goto-char (car closest-match)))))))
+
 (defun visual-replace--highlight-matches (ranges matches)
   "Create overlays to highlight MATCHES in the current buffer.
 
@@ -1735,15 +1757,7 @@ necessary if there only are overlays in the visible range."
       (prog1 ; match found
           nil ; stop searching for more matches
           (let ((pos (car (car matches)))
-                (win
-                 (let ((win visual-replace--calling-window)
-                       (buf visual-replace--calling-buffer))
-                   (or
-                    (when (and (window-live-p win)
-                               (eq buf (window-buffer win)))
-                      win)
-                    (when (buffer-live-p buf)
-                      (get-buffer-window buf))))))
+                (win (visual-replace--find-window-noselect)))
             (when (and win
                        (not (visual-replace--range-contains-sorted
                              visible-ranges pos)))
@@ -2212,6 +2226,21 @@ the buffer, if necessary."
       win)
      (t
       (error "No window for Visual Replace to work on")))))
+
+(defun visual-replace--find-window-noselect ()
+  "Find a live window to work on or return nil.
+
+Contrary to `visual-replace--find-window', this function will not
+display the buffer or fail if there's no window for it. It'll
+just return nil."
+  (let ((win visual-replace--calling-window)
+        (buf visual-replace--calling-buffer))
+    (or
+     (when (and (window-live-p win)
+                (eq buf (window-buffer win)))
+       win)
+     (when (buffer-live-p buf)
+       (get-buffer-window buf)))))
 
 (defun visual-replace--assert-in-minibuffer ()
   "Raise an error unless called from a minibuffer in the right mode."
