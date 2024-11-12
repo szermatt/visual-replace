@@ -361,6 +361,27 @@
                   '("Replace from point: from[]"
                     "Replace from point: from current[]")))))
 
+(ert-deftest test-visual-replace-yank-with-symbols ()
+  (test-visual-replace-env
+   (save-excursion (insert "(progn (when some-test some-value))"))
+   (goto-char (point-min))
+   (set-window-buffer (selected-window) (current-buffer))
+
+   ;; After typing "(when", the pointer goes to the beginning of the
+   ;; first match, then moves as more and more text is added.
+   (test-visual-replace-run
+    (concat
+     "<F1> s (when <F1> ! "
+     (mapconcat #'identity (make-list 4 "<F1> y <F1> !") " ")
+     " RET")
+    (visual-replace-read))
+   (should (equal test-visual-replace-snapshot
+                  '("Replace in buffer: (when[]"
+                    "Replace in buffer: (when some-test[]"
+                    "Replace in buffer: (when some-test some-value[]"
+                    "Replace in buffer: (when some-test some-value)[]"
+                    "Replace in buffer: (when some-test some-value))[]")))))
+
 (ert-deftest test-visual-replace-yank-in-from-with-prompt ()
   (test-visual-replace-env
    (save-excursion (insert "from buffer"))

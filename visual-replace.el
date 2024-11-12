@@ -684,18 +684,21 @@ See also `visual-replace-yank-pop'."
       (insert from-text))
      ;; in the original section
      (t (insert (with-current-buffer visual-replace--calling-buffer
+                  ;; If the text we're looking at is exactly
+                  ;; from-text, we likely moved to that point with
+                  ;; visual-replace-next or -prev. Skip the matching
+                  ;; text.
+                  (when (and (> (length from-text) 0)
+                             (equal from-text (buffer-substring-no-properties
+                                               (point)
+                                               (min (+ (length from-text) (point))
+                                                    (point-max)))))
+                    (goto-char (+ (length from-text) (point))))
                   (let ((start (point)))
-                    ;; If the text we're looking at is exactly
-                    ;; from-text, we likely moved to that point with
-                    ;; visual-replace-next or -prev. Skip the matching
-                    ;; text.
-                    (when (and (> (length from-text) 0)
-                               (equal from-text (buffer-substring-no-properties
-                                                 (point)
-                                                 (min (+ (length from-text) (point))
-                                                      (point-max)))))
-                      (setq start (+ (length from-text) (point))))
-                    (forward-symbol 1)
+                    (skip-syntax-forward " ")
+                    (or
+                     (> (skip-syntax-forward "w_") 0)
+                     (progn (goto-char (1+ (point))) t))
                     (buffer-substring-no-properties start (point)))))))))
 
 (defun visual-replace-yank-pop ()
