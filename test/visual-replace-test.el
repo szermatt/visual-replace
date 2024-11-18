@@ -457,8 +457,7 @@
 (ert-deftest test-visual-replace-restore-position-after-jump ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
-     (let* ((snapshots)
-            (win (selected-window))
+     (let* ((win (selected-window))
             (visual-replace-keep-initial-position t)
             (height (window-height win))
             (to-replace (* 2 height)))
@@ -487,8 +486,7 @@
 (ert-deftest test-visual-replace-stay-in-position-after-jump ()
   (test-visual-replace-env
      (with-selected-window (display-buffer (current-buffer))
-       (let* ((snapshots)
-              (win (selected-window))
+       (let* ((win (selected-window))
               (visual-replace-keep-initial-position nil)
               (height (window-height win))
               (to-replace (* 2 height)))
@@ -520,7 +518,7 @@
      (let* ((snapshots)
             (win (selected-window))
             (visual-replace-max-size-for-search 1024))
-       (dotimes (i 1024)
+       (dotimes (_ 1024)
          (insert "some text.\n"))
        (insert "the end.")
        (goto-char (point-min))
