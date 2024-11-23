@@ -261,10 +261,12 @@ The prompt also displays the mode of replacement:
 `text' →?.* `replacement' executes @cite{query-replace-regexp}
 @end itemize
 
-While @cite{visual-replace} is active, it scrolls the window to keep at
-least one example of matches visible. You can also press up and down
-to go through the matches. Don’t worry, though: the cursor goes back
-to the original position once you leave Visual Replace.
+After typing a few characters of the string to match @cite{visual-replace}
+enters preview mode, and highlights the matches. It also scrolls the
+window to keep at least one example of matches visible. You can also
+press up and down to go through the matches. Don’t worry, though: the
+cursor goes back to the original position once you leave Visual
+Replace.
 
 In Visual Replace mode:
 
@@ -415,6 +417,7 @@ also moving through the matches with @code{<down>} or @code{<up>}.
 @geindex variable; visual-replace-default-to-full-scope
 @geindex variable; visual-replace-defaults-hook
 @geindex variable; visual-replace-minibuffer-mode-hook
+@geindex variable; visual-replace-min-length
 
 This section lists a few of the most interesting customization options
 available in visual replace. Call @code{M-x customize-group
@@ -515,6 +518,14 @@ Rather than setting the as a customization, with
   [...]
   :hook ((visual-replace-minibuffer-mode . visual-replace-toggle-query))
 @end example
+
+@item 
+@code{M-x customize-option visual-replace-min-length} This specifies
+the minimum number of characters that need to be typed before Visual
+Replace enters preview mode.
+
+Setting this too low might result in strange highlights happening
+when starting to type in the match string.
 @end itemize
 
 @node Commands,Keymaps,Customization,Usage

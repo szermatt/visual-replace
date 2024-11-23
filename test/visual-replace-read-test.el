@@ -841,6 +841,17 @@
                    (nth 1 test-visual-replace-snapshot) 'visual-replace-match)
                   "hello, world, hello, hello!"))))
 
+(ert-deftest test-visual-disable-preview-customize-min-length ()
+  (test-visual-replace-env
+   (let ((visual-replace-min-length 0))
+     (insert "hello, world, hello, hello!")
+     (goto-char (point-min))
+     (set-window-buffer (selected-window) (current-buffer))
+     (test-visual-replace-run "he <F1> _ <F1> x" (visual-replace-read))
+     (should (equal (test-visual-replace-highlight-face
+                     (nth 0 test-visual-replace-snapshot) 'visual-replace-match)
+                    "[he]llo, world, [he]llo, [he]llo!")))))
+
 (ert-deftest test-visual-replace-read-read-only-buffer ()
   (test-visual-replace-env
    (insert "foo")

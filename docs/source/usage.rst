@@ -74,10 +74,12 @@ The prompt also displays the mode of replacement:
 * *text* →.* *replacement* executes `replace-regexp`
 * *text* →?.* *replacement* executes `query-replace-regexp`
 
-While `visual-replace` is active, it scrolls the window to keep at
-least one example of matches visible. You can also press up and down
-to go through the matches. Don't worry, though: the cursor goes back
-to the original position once you leave Visual Replace.
+After typing a few characters of the string to match `visual-replace`
+enters preview mode, and highlights the matches. It also scrolls the
+window to keep at least one example of matches visible. You can also
+press up and down to go through the matches. Don't worry, though: the
+cursor goes back to the original position once you leave Visual
+Replace.
 
 In Visual Replace mode:
 
@@ -203,6 +205,8 @@ Customization
    pair: variable; visual-replace-default-to-full-scope
    pair: variable; visual-replace-defaults-hook
    pair: variable; visual-replace-minibuffer-mode-hook
+   pair: variable; visual-replace-min-length
+
 
 This section lists a few of the most interesting customization options
 available in visual replace. Call :kbd:`M-x customize-group
@@ -282,6 +286,13 @@ faces.
     (use-package visual-replace
       [...]
       :hook ((visual-replace-minibuffer-mode . visual-replace-toggle-query))
+
+* :kbd:`M-x customize-option visual-replace-min-length` This specifies
+  the minimum number of characters that need to be typed before Visual
+  Replace enters preview mode.
+
+  Setting this too low might result in strange highlights happening
+  when starting to type in the match string.
 
 .. _commands:
 

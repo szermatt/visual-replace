@@ -149,6 +149,14 @@ through that much data."
   :type 'number
   :group 'visual-replace)
 
+(defcustom visual-replace-min-length 3
+  "Only do search or preview for string lengths >= this value.
+
+Setting this too low a number might result in strange highlights
+happening when starting to type, and possibly slowdowns."
+  :type 'number
+  :group 'visual-replace)
+
 (defcustom visual-replace-keep-initial-position nil
   "If non-nil, always go back to the point `visual-replace' was called from.
 
@@ -599,9 +607,6 @@ This marker is added to `buffer-undo-list' by the first call to
 
 This is a local variable in the minibuffer in visual replace
 mode.")
-
-(defconst visual-replace-min-length 3
-  "Only do search or preview for string lengths >= this value.")
 
 (defun visual-replace-enter ()
   "Confirm the current text to replace.
