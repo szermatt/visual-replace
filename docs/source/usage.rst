@@ -77,9 +77,7 @@ The prompt also displays the mode of replacement:
 After typing a few characters of the string to match `visual-replace`
 enters preview mode, and highlights the matches. It also scrolls the
 window to keep at least one example of matches visible. You can also
-press up and down to go through the matches. Don't worry, though: the
-cursor goes back to the original position once you leave Visual
-Replace.
+press up and down to go through the matches.
 
 In Visual Replace mode:
 
