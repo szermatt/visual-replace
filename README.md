@@ -57,10 +57,11 @@ If you leave `visual-replace` without confirming, with C-g, you can
 continue where you left off next time by going up in the history,
 with `C-p`.
 
-While `visual-replace` is active, it scrolls the window to keep at
-least one example of matches visible. You can also press up and down
-to go through the matches. (`C-p` and `C-n` remain available to
-navigate through history.)
+After typing a few characters of the string to match `visual-replace`
+enters preview mode, and highlights the matches. It also scrolls the
+window to keep at least one example of matches visible. You can also
+press up and down to go through the matches. (`C-p` and `C-n` remain
+available to navigate through history.)
 
 ## COMPARISON
 
