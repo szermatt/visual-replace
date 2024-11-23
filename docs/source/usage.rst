@@ -413,14 +413,21 @@ Hooks
 -----
 
 .. index::
-   pair: hook; visual-replace-mode-hook
+   pair: hook; visual-replace-minibuffer-mode-hook
    pair: hook; visual-replace-functions
+   pair: variable; visual-replace-defaults-hook
 
-`visual-replace-mode-hook` is a normal hook that is run when entering
-the visual replace mode, so you can set things up just before Visual
-Replace starts.
+:code:`visual-replace-minibuffer-mode-hook` is a normal hook that is
+run when entering the visual replace mode, so you can set things up
+just before Visual Replace starts.
 
-Functions in `visual-replace-functions` are called just before
+:code:`visual-replace-defaults-hook` is a normal hook that is run when
+entering the visual replace mode with no initial match or replacement,
+so you can provide some default mode without interfering with
+:code:`visual-replace-from-isearch` or
+:code:`visual-replace-thing-at-point`.
+
+Functions in :code:`visual-replace-functions` are called just before
 executing the replacement or just before building the previews. They
 are passed a struct of type :code:`visual-replace-args`, which they
 can modify. You can use it to customize the behavior of the search or
