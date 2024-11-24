@@ -41,6 +41,7 @@
 (require 'rect)
 (require 'seq)
 (require 'thingatpt)
+(require 'cl-lib)
 (eval-when-compile (require 'subr-x)) ;; if-let
 
 ;;; Code:
