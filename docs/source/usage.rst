@@ -205,13 +205,10 @@ Customization
    pair: variable; visual-replace-minibuffer-mode-hook
    pair: variable; visual-replace-min-length
 
-
 This section lists a few of the most interesting customization options
 available in visual replace. Call :kbd:`M-x customize-group
-visual-replace` to see all options.
-
-Notably, see that customization group for the available customizable
-faces.
+visual-replace` to see all options. For face customization, see the
+:ref`next section<faces>`.
 
 * :kbd:`M-x customize-option visual-replace-preview` With this option
   enabled, Visual Replace highlights matches and offer a preview of
@@ -291,6 +288,132 @@ faces.
 
   Setting this too low might result in strange highlights happening
   when starting to type in the match string.
+
+.. _options:
+
+Face Customization
+------------------
+
+.. index::
+   pair: variable; visual-replace-delete-match
+   pair: variable; visual-replace-delete-match-highlight
+   pair: variable; visual-replace-match
+   pair: variable; visual-replace-match-count
+   pair: variable; visual-replace-match-highlight
+   pair: variable; visual-replace-region
+   pair: variable; visual-replace-replacement
+   pair: variable; visual-replace-replacement-highlight
+   pair: variable; visual-replace-separator
+
+
+Visual Replace relies an a large number of faces to display things the way they should be:
+
+  * :code:`visual-replace-match`, for matches with no replacement
+
+  * :code:`visual-replace-match-highlight`, for matches at point with no replacement
+
+  * :code:`visual-replace-replacement`, for match replacement
+
+  * :code:`visual-replace-replacement-highlight`, for match replacement, at point
+
+  * :code:`visual-replace-delete-match`, for text to be deleted
+
+  * :code:`visual-replace-delete-match-highlight`, for text to be
+    deleted at point
+
+  * :code:`visual-replace-match-count`, for displaying the number of
+    matches before the prompt
+
+  * :code:`visual-replace-separator`, for displaying the separator
+    between the search and replacement strings in the prompt
+
+  * :code:`visual-replace-region`, for highlighting the area of the
+    buffer to which search and replace apply
+
+The defaults values for this faces attempt to reuse existing faces as
+much as possible to try and look reasonable whatever the current Emacs
+theme, but the result isn't always too great. In particular,
+:code:`visual-replace-region`, which uses the same face as the region,
+is typically too bright and in-your-face. It should ideally use a
+fainter color than the region, still visible, but not too different
+from the normal background as to cause readability issues.
+
+Therefore, it's a good idea to configure the Visual Replace faces to
+match your theme and preferences.
+
+The sections below list my attempts at configuring Visual Replace for
+the `Modus themes <https://protesilaos.com/emacs/modus-themes>`_, now
+installed in Emacs by default, and the `Ef themes
+<https://protesilaos.com/emacs/ef-themes>`_, by the same author. This
+should hopefully help you get started.
+
+The code snippets rely on :code:`after-enable-theme-hook` to detect
+theme changes, from the `Section 5.23 of the Emacs 29 Manual
+<https://www.gnu.org/software/emacs/manual/html_node/modus-themes/A-theme_002dagnostic-hook-for-theme-loading.html>`_:
+
+.. code-block:: elisp
+
+  (defun run-after-enable-theme-hook (&rest _args)
+     "Run `after-enable-theme-hook'."
+     (run-hooks 'after-enable-theme-hook))
+
+  (advice-add 'enable-theme :after #'run-after-enable-theme-hook)
+
+Modus Themes
+^^^^^^^^^^^^
+
+.. code-block:: elisp
+
+  (defun my-modus-themes-custom-faces ()
+    (when (delq nil (mapcar (lambda (t) (string-prefix-p "modus-" (symbol-name t)))
+                            custom-enabled-themes))
+      (modus-themes-with-colors
+        (custom-set-faces
+         `(visual-replace-match-count ((t :inherit modus-themes-prompts)))
+         `(visual-replace-separator ((t :inherit modus-themes-prompts)))
+         `(visual-replace-match ((t :inherit modus-themes-search-success-lazy)))
+         `(visual-replace-replacement ((t :background ,bg-diff-added :foreground ,fg-diff-added)))
+         `(visual-replace-delete-match ((t :strike-through t :background ,bg-diff-removed :foreground ,fg-diff-removed)))
+         `(visual-replace-match-highlight ((t  :inherit modus-themes-search-success)))
+         `(visual-replace-delete-match-highlight ((t :strike-through t :background ,bg-diff-refine-removed :foreground ,fg-diff-refine-removed)))
+         `(visual-replace-replacement-highlight ((t :background ,bg-diff-refine-added :foreground ,fg-diff-refine-added)))
+         `(visual-replace-region ((t :background ,bg-special-faint-cold :extend t )))))))
+  (add-hook 'after-enable-theme-hook #'my-modus-themes-custom-faces)
+
+Ef Themes
+^^^^^^^^^
+
+.. code-block:: elisp
+
+   (defun my-ef-themes-custom-faces ()
+    (when (delq nil (mapcar (lambda (t) (string-prefix-p "ef-" (symbol-name t)))
+                            custom-enabled-themes))
+      (ef-themes-with-colors
+        (let ((bg-region-fainter (my-color-closer bg-region bg-main 0.3)))
+          (custom-set-faces
+           `(visual-replace-match-count ((,c :foreground ,prompt)))
+           `(visual-replace-separator ((,c :foreground ,prompt)))
+           `(visual-replace-match ((,c :background ,bg-search-lazy :foreground ,fg-intense)))
+           `(visual-replace-replacement ((,c :background ,bg-added :foreground ,fg-added)))
+           `(visual-replace-delete-match ((,c :strike-through t :background ,bg-removed-faint :foreground ,fg-removed)))
+           `(visual-replace-match-highlight ((,c  :background ,bg-search-match :foreground ,fg-intense )))
+           `(visual-replace-delete-match-highlight ((,c :strike-through t :background ,bg-removed-refine :foreground ,fg-intense)))
+           `(visual-replace-replacement-highlight ((,c :background ,bg-added-refine :foreground ,fg-intense)))
+           `(visual-replace-region ((,c :background ,bg-region-fainter :extend t ))))))))
+
+    (defun my-color-closer (from to fraction)
+    "Move FROM luminance closer to TO by the given FRACTION."
+    (let* ((from-hsl (apply 'color-rgb-to-hsl (color-name-to-rgb from)))
+           (to-hsl (apply 'color-rgb-to-hsl (color-name-to-rgb to))))
+      (apply 'color-rgb-to-hex
+             (color-hsl-to-rgb
+              (nth 0 from-hsl)
+              (nth 1 from-hsl)
+              (+ (nth 2 from-hsl) (* fraction (- (nth 2 to-hsl) (nth 2 from-hsl))))))))
+
+  (add-hook 'after-enable-theme-hook #'my-ef-themes-custom-faces)
+
+
 
 .. _commands:
 
