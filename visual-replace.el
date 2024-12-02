@@ -176,9 +176,17 @@ This is the face that's used to highlight matches, before a
 replacement has been defined."
   :group 'visual-replace)
 
-(defface visual-replace-total
+(defface visual-replace-match-count
   '((t :inherit minibuffer-prompt))
-  "How to display match count in the prompt."
+  "How to display match count in the prompt.
+
+To further configure what the match count looks like, see
+`visual-replace-match-count-format'."
+  :group 'visual-replace)
+
+(defface visual-replace-separator
+  '((t :inherit minibuffer-prompt))
+  "Face used to display the arrow between search and replace fields."
   :group 'visual-replace)
 
 (defface visual-replace-delete-match
@@ -225,6 +233,18 @@ the pointer is currently inside the match."
 (defface visual-replace-region
   '((t :inherit region))
   "Highlight for the region in which replacements occur."
+  :group 'visual-replace)
+
+(defcustom visual-replace-match-count-format "[%s]"
+  "Format used to decorate the match count in the prompt.
+
+It must be a string acceptable to `format' that contains a single
+%s."
+  :type '(choice
+          (const :tag "Brackets" "[%s]")
+          (const :tag "Parentheses" "(%s)")
+          (const :tag "No decorations" "%s")
+          string)
   :group 'visual-replace)
 
 (defcustom visual-replace-highlight-match-at-point t
@@ -854,7 +874,7 @@ If PUSH-MARK is non-nil, push a mark to the current point."
                 (setq visual-replace--total-ov
                       (when visual-replace-display-total
                         (let ((ov (make-overlay (point-min) (point-min))))
-                          (overlay-put ov 'face 'visual-replace-total)
+                          (overlay-put ov 'face 'visual-replace-match-count)
                           ov)))
                 (when visual-replace-keep-incomplete
                   (add-hook 'after-change-functions #'visual-replace--after-change 0 'local))
@@ -1121,12 +1141,11 @@ nil, it is built based on ARGS."
   (let* ((flag-text (or flag-text (visual-replace-args--flag-text args))))
     (propertize
      " "
-     'display (concat " →" flag-text " ")
+     'display (concat " " (propertize (concat "→" flag-text) 'face 'visual-replace-separator) " ")
      'visual-replace-args (let ((args (visual-replace-copy-args args)))
                             (setf (visual-replace-args-from args) nil)
                             (setf (visual-replace-args-to args) nil)
                             args)
-     'face 'minibuffer-prompt
      'front-sticky nil
      'rear-nonsticky t
      'insert-behind-hooks (list #'visual-replace--insert-replace-field)
@@ -1524,13 +1543,18 @@ changes."
       (let ((total (length visual-replace--match-ovs)))
         (overlay-put
          ov 'before-string
-         (if-let ((ov
-                   (seq-find
-                    (lambda (ov) (overlay-get ov 'visual-replace-idx))
-                    (with-current-buffer visual-replace--calling-buffer
-                      (overlays-at (point))))))
-             (format "[%d/%d] " (1+ (overlay-get ov 'visual-replace-idx)) total)
-           (format "[%d] " total)))))))
+         (concat
+          (propertize
+           (format visual-replace-match-count-format
+                   (if-let ((ov
+                             (seq-find
+                              (lambda (ov) (overlay-get ov 'visual-replace-idx))
+                              (with-current-buffer visual-replace--calling-buffer
+                                (overlays-at (point))))))
+                       (format "%d/%d" (1+ (overlay-get ov 'visual-replace-idx)) total)
+                     (number-to-string total)))
+           'face 'visual-replace-match-count)
+          " "))))))
 
 (defun visual-replace--reset-preview ()
   "Reset the preview state and rebuild the preview."
