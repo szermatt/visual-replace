@@ -38,6 +38,7 @@
 ;; node visual-replace, if it is installed.
 
 (require 'gv)
+(require 'isearch)
 (require 'rect)
 (require 'seq)
 (require 'thingatpt)
@@ -911,6 +912,7 @@ If PUSH-MARK is non-nil, push a mark to the current point."
       (visual-replace--reset-idle-search-timer)
       (when timer
         (cancel-timer timer))
+      (isearch-clean-overlays)
       (visual-replace--clear-scope)
       (visual-replace--clear-preview))
     (unless quit-flag (setq visual-replace--incomplete nil))
@@ -1586,6 +1588,8 @@ matches to display unless NO-FIRST-MATCH is non-nil."
              (is-complete (visual-replace--preview-is-complete))
              (old-scope (visual-replace--preview-scope))
              equiv)
+        (unless (equal (point) old-point)
+          (isearch-close-unnecessary-overlays (point) (point)))
         (cond
          ;; Preview is turned off. Reset it if necessary.
          ((< (length (visual-replace-args-from args))
@@ -1729,7 +1733,6 @@ matches to display unless NO-FIRST-MATCH is non-nil."
                           ,(if count-matches nil 1)
                           backward)
                         work-queue))))
-
             (visual-replace--run-idle-search
              args (nreverse work-queue) consumers))))))))
 
@@ -1765,17 +1768,20 @@ necessary when only highlighting matches in the visible ranges."
   (not
    (when-let ((win (visual-replace--find-window-noselect)))
      (with-selected-window win
-       (let ((min-dist)
-             (closest-match)
-             (pos (point)))
-         (dolist (m matches)
-           (let ((dist (min (abs (- (car m) pos))
-                            (abs (- (nth 1 m) pos)))))
-             (when (or (not min-dist)
-                       (< dist min-dist))
-               (setq min-dist dist)
-               (setq closest-match m))))
-         (when closest-match
+      (let* ((pos (point))
+             (sorted-matches
+              (mapcar
+               'car
+               (sort (mapcar (lambda (m)
+                               (cons m (min (abs (- (car m) pos))
+                                            (abs (- (nth 1 m) pos)))))
+                             matches)
+                     (lambda (a b) (< (cdr a) (cdr b)))))))
+        (while (and sorted-matches
+                    (isearch-range-invisible (nth 0 (car sorted-matches))
+                                             (nth 1 (car sorted-matches))))
+          (setq sorted-matches (cdr sorted-matches)))
+        (when-let ((closest-match (car sorted-matches)))
            (let ((orig-start (window-start win)))
              (goto-char (car closest-match))
              (visual-replace--set-ov-highlight-at-pos pos)
@@ -2039,29 +2045,37 @@ Also skips empty ranges."
   "Move the point to the next match."
   (interactive)
   (with-selected-window (visual-replace--find-window)
-    (let ((match (car (visual-replace--search
-                       (visual-replace-args--from-minibuffer)
-                       (visual-replace--range-intersect-sorted
-                        (visual-replace--scope-ranges)
-                        `((,(1+ (point)) . ,(point-max))))
-                       nil 1))))
-      (unless match
-        (error "No next match"))
-      (goto-char (car match)))))
+    (while
+        (let ((match (car (visual-replace--search
+                           (visual-replace-args--from-minibuffer)
+                           (visual-replace--range-intersect-sorted
+                            (visual-replace--scope-ranges)
+                            `((,(1+ (point)) . ,(point-max))))
+                           nil 1))))
+          (unless match
+            (error "No next match"))
+          (if (isearch-range-invisible (nth 0 match) (nth 1 match))
+              (prog1 t ; continue looping
+                (goto-char (nth 1 match)))
+            (prog1 nil ; end loop
+              (goto-char (nth 0 match))))))))
 
 (defun visual-replace-prev-match ()
   "Move the point to the previous match."
   (interactive)
   (with-selected-window (visual-replace--find-window)
-    (let ((match (car (visual-replace--search
-                       (visual-replace-args--from-minibuffer)
-                       (visual-replace--range-intersect-sorted
-                        (visual-replace--scope-ranges)
-                        `((,(point-min) . ,(point))))
-                       nil 1 'backward))))
-      (unless match
-        (error "No previous match"))
-      (goto-char (car match)))))
+    (while
+        (let ((match (car (visual-replace--search
+                           (visual-replace-args--from-minibuffer)
+                           (visual-replace--range-intersect-sorted
+                            (visual-replace--scope-ranges)
+                            `((,(point-min) . ,(point))))
+                           nil 1 'backward))))
+          (unless match
+            (error "No previous match"))
+          (goto-char (nth 0 match))
+          ;; continue looping if invisible
+          (isearch-range-invisible (nth 0 match) (nth 1 match))))))
 
 (defun visual-replace--col (pos)
   "Return the column at POS."
