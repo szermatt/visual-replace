@@ -1466,10 +1466,10 @@ Returned ranges are sorted and non-overlapping."
              (cons (window-start win)
                    ;; This approximates (window-end win), in a way
                    ;; that doesn't require a redisplay.
-                   (with-current-buffer buf
+                   (with-selected-window win
                      (save-excursion
                        (goto-char (window-start win))
-                       (forward-line (window-height win))
+                       (vertical-motion (window-height win) win 0)
                        (point)))))
            (get-buffer-window-list buf))))
 
