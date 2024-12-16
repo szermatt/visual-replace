@@ -18,6 +18,8 @@
 
 (require 'ert)
 (require 'ert-x)
+(require 'turtles)
+(require 'turtles-ert)
 
 (require 'visual-replace)
 (require 'visual-replace-test-helper)
@@ -944,5 +946,30 @@
                     (buffer-substring-no-properties
                      (point-min) (point-max)))))))
 
+(ert-deftest test-visual-replace-turtles-smoke ()
+  (turtles-ert-test)
+
+  (let (capture testbuf)
+    (ert-with-test-buffer ()
+      (setq testbuf (current-buffer))
+      (insert "hello, world, hello, hello!")
+      (goto-char (point-min))
+
+      (with-selected-window (display-buffer (current-buffer))
+        (turtles-read-from-minibuffer
+            (visual-replace-read)
+          (execute-kbd-macro (kbd "hello TAB hullo"))
+          (visual-replace--update-preview t)
+          (should (equal "Replace from point: hello → hullo" (turtles-to-string)))
+          (turtles-with-grab-buffer (:buf testbuf :faces '((visual-replace-delete-match "[]")
+                                                           (visual-replace-delete-match-highlight "[]")
+                                                           (visual-replace-replacement "{}")
+                                                           (visual-replace-replacement-highlight "{}")))
+            (turtles-trim-buffer)
+            (should (equal
+                     "[hello]{hullo}, world, [hello]{hullo}, [hello]{hullo}!"
+                     (buffer-string))))
+
+          (execute-kbd-macro (kbd "RET")))))))
 
 ;;; visual-replace-test.el ends here
