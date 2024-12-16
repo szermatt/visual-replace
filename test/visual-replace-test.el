@@ -1010,6 +1010,8 @@
       (goto-char (point-min))
 
       (with-selected-window (display-buffer (current-buffer))
+        (delete-other-windows (selected-window))
+
         (turtles-read-from-minibuffer
             (visual-replace-read)
 
