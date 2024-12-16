@@ -1070,13 +1070,14 @@
           (exit-minibuffer))
 
         (turtles-with-grab-buffer (:name "end with block 3 unfolded" :buf testbuf :faces grab-faces)
+          (turtles-mark-point "<>")
           (turtles-trim-buffer)
           (should (equal
                    (concat "(defun test-1 ()...)\n"
                            "\n"
                            "(defun test-2 ()...)\n"
                            "(defun test-3 ()\n"
-                           " \"This is another test function.\"\n"
+                           " \"This is another test <>function.\"\n"
                            " (message \"test, the third\"))")
                    (buffer-string))))))))
 
