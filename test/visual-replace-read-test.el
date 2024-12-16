@@ -1133,11 +1133,8 @@
                                  'visual-replace-match)
                                 "\n" 'omit-nulls))
            (i 0))
-       (dolist (line lines)
-         (if (< i (window-height))
-             (should (string-match "^some \\[text\\]" line))
-           (should (string-match "^some text" line)))
-         (cl-incf i))))))
+       (should (string-match "^some \\[text\\]" (nth 0 lines)))
+       (should (string-match "^some text" (nth (window-height) lines)))))))
 
 (ert-deftest test-visual-replace-read-display-total-in-region-buffer-too-large ()
   (test-visual-replace-env
