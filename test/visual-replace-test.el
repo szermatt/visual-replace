@@ -1078,5 +1078,82 @@
                            " (message \"test, the third\"))")
                    (buffer-string))))))))
 
+(ert-deftest test-visual-replace-scroll-then-open-hideshow-block ()
+  (turtles-ert-test)
+
+  (let (testbuf
+        (grab-faces '((visual-replace-match "[]")
+                      (visual-replace-match-highlight "{}"))))
+    (ert-with-test-buffer ()
+      (setq testbuf (current-buffer))
+      (insert "(defun test-1 ()\n")
+      (dotimes (i 20)
+        (insert (format " (message \"line %d\"))\n" i)))
+      (insert "\n")
+      ;; This is out of the default turtles screen (80x20) if test-1
+      ;; is unfolded.
+      (insert "(defun test-2 ()\n")
+      (insert " \"This is another test function.\"\n")
+      (insert " (message \"test, the second\"))\n")
+      (insert "(defun test-3 ()\n")
+      (insert " \"This is another test function.\"\n")
+      (insert " (message \"test, the third\"))\n")
+      (goto-char (point-min))
+
+      (emacs-lisp-mode)
+      (hs-minor-mode)
+
+      (goto-char (point-min))
+
+      (search-forward "test-2")
+      (hs-hide-block)
+
+      (goto-char (point-min))
+
+      (with-selected-window (display-buffer (current-buffer))
+        (delete-other-windows (selected-window))
+
+        (turtles-read-from-minibuffer
+            (visual-replace-read)
+
+          (execute-kbd-macro (kbd "function"))
+          (visual-replace--update-preview)
+          (test-visual-run-idle-search-timers)
+
+          (turtles-with-grab-buffer (:name "scroll and unfold test-2" :buf testbuf :faces grab-faces)
+            (goto-char (point-min))
+            (search-forward "test-2")
+            (delete-region (point-min) (line-beginning-position))
+            (turtles-trim-buffer)
+
+            (should (equal
+                     (concat "(defun test-2 ()\n"
+                             " \"This is another test {function}.\"\n"
+                             " (message \"test, the second\"))\n"
+                             "(defun test-3 ()\n"
+                             " \"This is another test [function].\"\n"
+                             " (message \"test, the third\"))")
+                     (buffer-string))))
+
+          (visual-replace-next-match)
+          (visual-replace--update-preview t)
+
+          (turtles-with-grab-buffer (:name "re-fold test-2" :buf testbuf :faces grab-faces)
+            (goto-char (point-min))
+            (search-forward "test-2")
+            (delete-region (point-min) (line-beginning-position))
+            (turtles-trim-buffer)
+
+            (should (equal
+                     (concat "(defun test-2 ()...)\n"
+                             "(defun test-3 ()\n"
+                             " \"This is another test {function}.\"\n"
+                             " (message \"test, the third\"))")
+                     (buffer-string))))
+
+          (should-error (visual-replace-next-match))
+
+          (exit-minibuffer))))))
+
 
 ;;; visual-replace-test.el ends here
