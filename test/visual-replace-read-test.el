@@ -1107,35 +1107,67 @@
        (should (string-match "^some \\[text\\]" line))))))
 
 (ert-deftest test-visual-replace-read-display-total-too-many-matches ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (let ((visual-replace-display-total t)
+   (let ((testbuf (current-buffer))
+         (visual-replace-display-total t)
          (visual-replace-max-matches-for-total 100))
      (dotimes (i 300)
        (insert (format "some text%d\n" i)))
      (goto-char (point-min))
-     (set-window-buffer (selected-window) (current-buffer))
-     (test-visual-replace-run
-      "text <F1> ! <F1> _ <F1> x"
-      (visual-replace-read))
-     (should
-      (equal (nth 0 test-visual-replace-snapshot)
-             "Replace from point: text[]"))
 
-     ;; preview should be available in the visible range, but not
-     ;; past the 100 match mark
-     (let ((lines (split-string (test-visual-replace-highlight-face
-                                 (nth 1 test-visual-replace-snapshot)
-                                 'visual-replace-match
-                                 'visual-replace-match-highlight)
-                                "\n" 'omit-nulls))
-           (i 0))
-       (dolist (line lines)
-         (cond
-          ((< i (window-height))
-           (should (string-match "^some \\[text\\]" line)))
-          ((>= i 100)
-           (should (string-match "^some text" line))))
-         (cl-incf i))))))
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         (execute-kbd-macro (kbd "text"))
+
+         (visual-replace--update-preview)
+         (test-visual-run-idle-search-timers)
+
+         (turtles-with-grab-buffer (:name "minibuffer")
+           (turtles-trim-buffer)
+           (should (equal "Replace from point: text" (buffer-string))))
+
+         ;; All visible text must be highlighted
+         (turtles-with-grab-buffer (:name "buffer" :buf testbuf :faces test-visual-replace-faces)
+           (turtles-trim-buffer)
+           (should (equal (concat "some [text]*0\n"
+                                  "some [text]1\n"
+                                  "some [text]2\n"
+                                  "some [text]3\n"
+                                  "some [text]4\n"
+                                  "some [text]5\n"
+                                  "some [text]6\n"
+                                  "some [text]7\n"
+                                  "some [text]8\n"
+                                  "some [text]9\n"
+                                  "some [text]10\n"
+                                  "some [text]11\n"
+                                  "some [text]12\n"
+                                  "some [text]13\n"
+                                  "some [text]14\n"
+                                  "some [text]15\n"
+                                  "some [text]16\n"
+                                  "some [text]17")
+                          (buffer-string))))
+
+         ;; Matches past the 100 mark must not be highlighted.
+         (with-current-buffer testbuf
+           (save-excursion
+             (goto-char (point-min))
+             (search-forward "some text100")
+             (goto-char (match-beginning 0))
+             (while (search-forward "text" nil 'noerror)
+               (when (get-text-property (match-beginning 0) 'face)
+                 (error "Should not have been highlighted: %s"
+                        (buffer-substring (line-beginning-position)
+                                          (line-end-position)))))))
+
+         (exit-minibuffer))))))
 
 (ert-deftest test-visual-replace-read-display-total-too-large ()
   (turtles-ert-test)
