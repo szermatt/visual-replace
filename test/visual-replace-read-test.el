@@ -1200,30 +1200,31 @@
          (cl-incf i))))))
 
 (ert-deftest test-visual-replace-preview-display-window ()
-  (save-window-excursion
-    (with-temp-buffer
-      (let ((other-buffer (current-buffer))
-            (win (selected-window))
-            test-buffer)
-        (delete-other-windows)
-        (test-visual-replace-env
-         (insert "hello, world, hello, hello!")
-         (goto-char (point-min))
-         (setq test-buffer (current-buffer))
-         (set-window-buffer win test-buffer)
-         (test-visual-replace-run
-          "hello C-c t <down> <F1> x"
-          ;; <F1> w hides test-buffer. This is called just before
-          ;; <down>, which should then display test-buffer.
-          (define-key visual-replace-mode-map
-                      (kbd "C-c t")
-                      (lambda ()
-                        (interactive)
-                        (set-window-buffer win other-buffer)))
-          (visual-replace-read))
-         ;; <down> should have made sure that test-buffer is displayed
-         ;; again.
-         (should (equal test-buffer (window-buffer (selected-window)))))))))
+  (turtles-ert-test)
+
+  (test-visual-replace-env
+   (let ((testbuf (current-buffer)))
+     (insert "hello, world, hello, hello!")
+     (goto-char (point-min))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         (execute-kbd-macro (kbd "hello"))
+
+         ;; Hide the test buffer
+         (select-window (display-buffer (get-scratch-buffer-create)))
+         (delete-other-windows)
+
+         ;; This should redisplay the test buffer
+         (visual-replace-next-match)
+
+         (should (get-buffer-window testbuf))
+
+         (exit-minibuffer))))))
 
 (ert-deftest test-visual-replace-read-toggle-query-from-hook ()
   (test-visual-replace-env
