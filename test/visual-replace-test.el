@@ -19,7 +19,6 @@
 (require 'ert)
 (require 'ert-x)
 (require 'turtles)
-(require 'turtles-ert)
 (require 'hideshow)
 (require 'elisp-mode)
 
