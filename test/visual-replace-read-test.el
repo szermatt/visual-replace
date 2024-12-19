@@ -1130,6 +1130,47 @@
 
          (turtles-with-grab-buffer (:name "minibuffer")
            (turtles-trim-buffer)
+           (should (equal "[1/900] Replace from point: text" (buffer-string))))
+
+         ;; All matches must be highlighted
+         (with-current-buffer testbuf
+           (save-excursion
+             (goto-char (point-min))
+             (while (search-forward "text" nil 'noerror)
+               (unless (memq
+                        (get-char-property (match-beginning 0) 'face) '(visual-replace-match-highlight
+                                                                        visual-replace-match))
+                 (error "Should have been highlighted: %s"
+                        (buffer-substring (line-beginning-position)
+                                          (line-end-position)))))))
+
+         (exit-minibuffer))))))
+
+
+(ert-deftest test-visual-replace-read-display-total-too-many-matches ()
+  (turtles-ert-test)
+
+  (test-visual-replace-env
+   (let ((testbuf (current-buffer))
+         (visual-replace-display-total t)
+         (visual-replace-max-matches-for-total 100))
+     (dotimes (i 300)
+       (insert (format "some text%d\n" i)))
+     (goto-char (point-min))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         (execute-kbd-macro (kbd "text"))
+
+         (visual-replace--update-preview)
+         (test-visual-run-idle-search-timers)
+
+         (turtles-with-grab-buffer (:name "minibuffer")
+           (turtles-trim-buffer)
            (should (equal "Replace from point: text" (buffer-string))))
 
          ;; All visible text must be highlighted
@@ -1155,17 +1196,13 @@
                                   "some [text]17")
                           (buffer-string))))
 
-         ;; Matches past the 100 mark must not be highlighted.
+         ;; Not all matches should have been highlighted.
          (with-current-buffer testbuf
            (save-excursion
              (goto-char (point-min))
-             (search-forward "some text100")
-             (goto-char (match-beginning 0))
-             (while (search-forward "text" nil 'noerror)
-               (when (get-text-property (match-beginning 0) 'face)
-                 (error "Should not have been highlighted: %s"
-                        (buffer-substring (line-beginning-position)
-                                          (line-end-position)))))))
+             (search-forward "some text299")
+             (should-not (memq (get-char-property (match-beginning 0) 'face)
+                               '(visual-replace-match visual-replace-match-highlight)))))
 
          (exit-minibuffer))))))
 
