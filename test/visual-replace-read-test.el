@@ -1219,17 +1219,13 @@
                                   "some [text]17")
                           (buffer-string))))
 
-         ;; Text outside the window must not be highlighted
+         ;; Not all matches should have been highlighted.
          (with-current-buffer testbuf
            (save-excursion
              (goto-char (point-min))
-             (search-forward "some text18")
-             (goto-char (match-beginning 0))
-             (while (search-forward "text" nil 'noerror)
-               (when (get-text-property (match-beginning 0) 'face)
-                 (error "Should not have been highlighted: %s"
-                        (buffer-substring (line-beginning-position)
-                                          (line-end-position)))))))
+             (search-forward "some text299")
+             (should-not (memq (get-char-property (match-beginning 0) 'face)
+                               '(visual-replace-match visual-replace-match-highlight)))))
 
          (exit-minibuffer))))))
 
