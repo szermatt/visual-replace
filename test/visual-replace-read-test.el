@@ -1260,12 +1260,11 @@
 
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
-     (setq testbuf (current-buffer))
      (insert "hello, world, hello, hello!")
      (goto-char (point-min))
      (search-forward "world")
 
-     (with-selected-window (display-buffer (current-buffer))
+     (with-selected-window (display-buffer testbuf)
        (delete-other-windows (selected-window))
 
        (turtles-read-from-minibuffer
@@ -1288,7 +1287,6 @@
 
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
-     (setq testbuf (current-buffer))
      (insert "(defun test-1 ()\n")
      (insert " \"This is my first test function.\"\n")
      (insert " (message \"test, the first\"))\n")
@@ -1393,7 +1391,6 @@
 
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
-     (setq testbuf (current-buffer))
      (insert "(defun test-1 ()\n")
      (dotimes (i 20)
        (insert (format " (message \"line %d\"))\n" i)))
