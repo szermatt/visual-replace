@@ -718,10 +718,12 @@
    (set-window-buffer (selected-window) (current-buffer))
    (test-visual-replace-run "hel <F1> _ l <F1> _ <F1> x" (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
-                   (nth 0 test-visual-replace-snapshot) 'visual-replace-match)
+                   (nth 0 test-visual-replace-snapshot)
+                   'visual-replace-match 'visual-replace-match-highlight)
                   "[hel]lo, world, [hel]lo, [hel]lo!"))
    (should (equal (test-visual-replace-highlight-face
-                   (nth 1 test-visual-replace-snapshot) 'visual-replace-match)
+                   (nth 1 test-visual-replace-snapshot)
+                   'visual-replace-match 'visual-replace-match-highlight)
                   "[hell]o, world, [hell]o, [hell]o!"))))
 
 (ert-deftest test-visual-replace-preview-case-fold ()
@@ -731,10 +733,12 @@
    (set-window-buffer (selected-window) (current-buffer))
    (test-visual-replace-run "hello <F1> _ <F1> c <F1> _ <F1> x" (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
-                   (nth 0 test-visual-replace-snapshot) 'visual-replace-match)
+                   (nth 0 test-visual-replace-snapshot)
+                   'visual-replace-match 'visual-replace-match-highlight)
                   "[Hello], world, [hello], [heLLO]!"))
    (should (equal (test-visual-replace-highlight-face
-                   (nth 1 test-visual-replace-snapshot) 'visual-replace-delete-match)
+                   (nth 1 test-visual-replace-snapshot)
+                   'visual-replace-delete-match-highlight)
                   "Hello, world, [hello], heLLO!"))))
 
 (ert-deftest test-visual-replace-preview-case-fold-uppercase ()
@@ -744,10 +748,14 @@
    (set-window-buffer (selected-window) (current-buffer))
    (test-visual-replace-run "HELLO <F1> _ <F1> c <F1> _ <F1> x" (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
-                   (nth 0 test-visual-replace-snapshot) 'visual-replace-match)
+                   (nth 0 test-visual-replace-snapshot)
+                   'visual-replace-match
+                   'visual-replace-match-highlight)
                   "Hello, world, hello, [HELLO]!"))
    (should (equal (test-visual-replace-highlight-face
-                   (nth 1 test-visual-replace-snapshot) 'visual-replace-delete-match)
+                   (nth 1 test-visual-replace-snapshot)
+                   'visual-replace-delete-match
+                   'visual-replace-delete-match-highlight)
                   "Hello, world, hello, [HELLO]!"))))
 
 (ert-deftest test-visual-replace-preview-delete ()
@@ -757,7 +765,9 @@
    (set-window-buffer (selected-window) (current-buffer))
    (test-visual-replace-run "hell TAB <F1> _ <F1> x" (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
-                   (car test-visual-replace-snapshot) 'visual-replace-delete-match)
+                   (car test-visual-replace-snapshot)
+                   'visual-replace-delete-match
+                   'visual-replace-delete-match-highlight)
                   "[hell]o, world, [hell]o, [hell]o!"))))
 
 (ert-deftest test-visual-replace-preview-replace ()
@@ -767,10 +777,14 @@
    (set-window-buffer (selected-window) (current-buffer))
    (test-visual-replace-run "hell TAB hul <F1> _ <F1> x" (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
-                   (car test-visual-replace-snapshot) 'visual-replace-delete-match)
+                   (car test-visual-replace-snapshot)
+                   'visual-replace-delete-match
+                   'visual-replace-delete-match-highlight)
                   "[hell]hulo, world, [hell]hulo, [hell]hulo!"))
    (should (equal (test-visual-replace-highlight-face
-                   (car test-visual-replace-snapshot) 'visual-replace-replacement)
+                   (car test-visual-replace-snapshot)
+                   'visual-replace-replacement
+                   'visual-replace-replacement-highlight)
                   "hell[hul]o, world, hell[hul]o, hell[hul]o!"))))
 
 (ert-deftest test-visual-replace-preview-regex ()
@@ -780,7 +794,9 @@
    (set-window-buffer (selected-window) (current-buffer))
    (test-visual-replace-run "hel+ <F1> r <F1> _ <F1> x" (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
-                   (car test-visual-replace-snapshot) 'visual-replace-delete-match)
+                   (car test-visual-replace-snapshot)
+                   'visual-replace-delete-match
+                   'visual-replace-delete-match-highlight)
                   "[hell]o, world, [hell]o, [hell]o!"))))
 
 (ert-deftest test-visual-replace-preview-lax-ws ()
@@ -790,7 +806,8 @@
    (set-window-buffer (selected-window) (current-buffer))
    (test-visual-replace-run "hello SPC world <F1> l <F1> _ <F1> x" (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
-                   (car test-visual-replace-snapshot) 'visual-replace-delete-match)
+                   (car test-visual-replace-snapshot)
+                   'visual-replace-delete-match 'visual-replace-delete-match-highlight)
                   "[hello   world]!"))))
 
 (ert-deftest test-visual-replace-preview-bad-regex ()
@@ -811,7 +828,9 @@
    (test-visual-replace-run "h\\(el+\\) TAB \\#\\,(upcase SPC \\1) <F1> r <F1> _ <F1> x"
                             (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
-                   (car test-visual-replace-snapshot) 'visual-replace-replacement)
+                   (car test-visual-replace-snapshot)
+                   'visual-replace-replacement
+                   'visual-replace-replacement-highlight)
                   "hell[0ELL]o, world, hell[1ELL]o"))))
 
 (ert-deftest test-visual-replace-preview-skip-readonly ()
@@ -828,7 +847,8 @@
    (test-visual-replace-run "hel TAB hol <F1> _ RET"
                         (call-interactively 'visual-replace))
    (should (equal (test-visual-replace-highlight-face
-                   (nth 0 test-visual-replace-snapshot) 'visual-replace-replacement)
+                   (nth 0 test-visual-replace-snapshot)
+                   'visual-replace-replacement 'visual-replace-replacement-highlight)
                   "hel[hol]lo, world, hello, hel[hol]lo!"))
    (should (equal
             "hollo, world, hello, hollo!"
@@ -841,10 +861,10 @@
    (set-window-buffer (selected-window) (current-buffer))
    (test-visual-replace-run "hel <F1> _ DEL <F1> _ <F1> x" (visual-replace-read))
    (should (equal (test-visual-replace-highlight-face
-                   (nth 0 test-visual-replace-snapshot) 'visual-replace-match)
+                   (nth 0 test-visual-replace-snapshot) 'visual-replace-match 'visual-replace-match-highlight)
                   "[hel]lo, world, [hel]lo, [hel]lo!"))
    (should (equal (test-visual-replace-highlight-face
-                   (nth 1 test-visual-replace-snapshot) 'visual-replace-match)
+                   (nth 1 test-visual-replace-snapshot) 'visual-replace-match 'visual-replace-match-highlight)
                   "hello, world, hello, hello!"))))
 
 (ert-deftest test-visual-disable-preview-customize-min-length ()
@@ -855,7 +875,7 @@
      (set-window-buffer (selected-window) (current-buffer))
      (test-visual-replace-run "he <F1> _ <F1> x" (visual-replace-read))
      (should (equal (test-visual-replace-highlight-face
-                     (nth 0 test-visual-replace-snapshot) 'visual-replace-match)
+                     (nth 0 test-visual-replace-snapshot) 'visual-replace-match 'visual-replace-match-highlight)
                     "[he]llo, world, [he]llo, [he]llo!")))))
 
 (ert-deftest test-visual-replace-read-read-only-buffer ()
@@ -1011,7 +1031,7 @@
      (should
       (equal (test-visual-replace-highlight-face
               (nth 2 test-visual-replace-snapshot)
-              'visual-replace-match)
+              'visual-replace-match 'visual-replace-match-highlight)
              "I say, [hell]o, world, [hell]o, [hell]o!")))))
 
 (ert-deftest test-visual-replace-read-display-index ()
@@ -1082,7 +1102,7 @@
              "[1/900] Replace from point: text[]"))
      (dolist (line (split-string (test-visual-replace-highlight-face
                                   (nth 1 test-visual-replace-snapshot)
-                                  'visual-replace-match)
+                                  'visual-replace-match  'visual-replace-match-highlight)
                                  "\n" 'omit-nulls))
        (should (string-match "^some \\[text\\]" line))))))
 
@@ -1105,7 +1125,8 @@
      ;; past the 100 match mark
      (let ((lines (split-string (test-visual-replace-highlight-face
                                  (nth 1 test-visual-replace-snapshot)
-                                 'visual-replace-match)
+                                 'visual-replace-match
+                                 'visual-replace-match-highlight)
                                 "\n" 'omit-nulls))
            (i 0))
        (dolist (line lines)
@@ -1136,7 +1157,8 @@
      ;; past that.
      (let ((lines (split-string (test-visual-replace-highlight-face
                                  (nth 1 test-visual-replace-snapshot)
-                                 'visual-replace-match)
+                                 'visual-replace-match
+                                 'visual-replace-match-highlight)
                                 "\n" 'omit-nulls))
            (i 0))
        (should (string-match "^some \\[text\\]" (nth 0 lines)))
@@ -1168,7 +1190,7 @@
      ;; preview have highlighted all matches.
      (let ((lines (split-string (test-visual-replace-highlight-face
                                  (nth 1 test-visual-replace-snapshot)
-                                 'visual-replace-match)
+                                 'visual-replace-match  'visual-replace-match-highlight)
                                 "\n" 'omit-nulls))
            (i 0))
        (dolist (line lines)

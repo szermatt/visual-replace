@@ -387,7 +387,7 @@
        (should (string-match
                 (regexp-quote (format "[text %d.]repl" to-replace))
                 (test-visual-replace-highlight-face
-                 (car snapshots) 'visual-replace-delete-match)))
+                 (car snapshots) 'visual-replace-delete-match 'visual-replace-delete-match-highlight)))
 
        ;; The point is now at the first match.
        (should (equal "this is repl" (buffer-substring-no-properties
@@ -438,7 +438,7 @@
        ;; The replacement was highlighted, even though it required scrolling the window.
        (should (string-match (regexp-quote "[text 5.]repl")
                              (test-visual-replace-highlight-face
-                              (car snapshots) 'visual-replace-delete-match)))
+                              (car snapshots) 'visual-replace-delete-match 'visual-replace-delete-match-highlight)))
 
        ;; The point is now at the first match.
        (should (equal "this is repl" (buffer-substring-no-properties
