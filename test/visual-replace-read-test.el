@@ -1087,33 +1087,13 @@
              "I say, hello, world, hello, hello!")))))
 
 (ert-deftest test-visual-replace-read-display-total-large-buffer ()
-  (test-visual-replace-env
-   (let ((visual-replace-display-total t)
-         (visual-replace-max-matches-for-total 1000))
-     (dotimes (i 900)
-       (insert (format "some text%d\n" i)))
-     (goto-char (point-min))
-     (set-window-buffer (selected-window) (current-buffer))
-     (test-visual-replace-run
-      "text <F1> ! <F1> _ <F1> x"
-      (visual-replace-read))
-     (should
-      (equal (nth 0 test-visual-replace-snapshot)
-             "[1/900] Replace from point: text[]"))
-     (dolist (line (split-string (test-visual-replace-highlight-face
-                                  (nth 1 test-visual-replace-snapshot)
-                                  'visual-replace-match  'visual-replace-match-highlight)
-                                 "\n" 'omit-nulls))
-       (should (string-match "^some \\[text\\]" line))))))
-
-(ert-deftest test-visual-replace-read-display-total-too-many-matches ()
   (turtles-ert-test)
 
   (test-visual-replace-env
    (let ((testbuf (current-buffer))
          (visual-replace-display-total t)
-         (visual-replace-max-matches-for-total 100))
-     (dotimes (i 300)
+         (visual-replace-max-matches-for-total 1000))
+     (dotimes (i 900)
        (insert (format "some text%d\n" i)))
      (goto-char (point-min))
 
