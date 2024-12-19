@@ -25,6 +25,15 @@
   "Variable filled with snapshots of the minibuffer. Snapshots
 are triggered by the key F1 ! when running test-visual-replace-run.")
 
+(defconst test-visual-replace-faces
+  '((visual-replace-match "[]")
+    (visual-replace-match-highlight "[]*")
+    (visual-replace-delete-match "[]")
+    (visual-replace-delete-match-highlight "[]*")
+    (visual-replace-replacement "{}")
+    (visual-replace-replacement-highlight "{}*"))
+  "Convenient settings grab-face argument of `turtles-with-grab-buffer'.")
+
 (defmacro test-visual-replace-env (&rest body)
   "Run BODY within a test buffer and environment."
   `(save-window-excursion
