@@ -1165,8 +1165,11 @@
        (should (string-match "^some text" (nth (window-height) lines)))))))
 
 (ert-deftest test-visual-replace-read-display-total-in-region-buffer-too-large ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (let ((visual-replace-display-total t)
+   (let ((testbuf (current-buffer))
+         (visual-replace-display-total t)
          (visual-replace-max-matches-for-total 1000)
          (visual-replace-max-size-for-search 1024))
      (dotimes (i 300)
@@ -1174,30 +1177,46 @@
      (goto-char (point-min))
      (forward-line 10)
      (set-mark (point))
-     (forward-line 20)
+     (forward-line 5)
 
-     (set-window-buffer (selected-window) (current-buffer))
-     (test-visual-replace-run
-      "text <F1> ! <F1> _ <F1> x"
-      (visual-replace-read))
-     (should
-      (string-match "20\\] Replace in region (20L): text\\[\\]$"
-                    (nth 0 test-visual-replace-snapshot)))
-     ;; Not just using [20], because on Emacs 26.1, the point
-     ;; sometimes ends up on a match, for some reason.
-     ;; TODO: investigate this.
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
 
-     ;; preview have highlighted all matches.
-     (let ((lines (split-string (test-visual-replace-highlight-face
-                                 (nth 1 test-visual-replace-snapshot)
-                                 'visual-replace-match  'visual-replace-match-highlight)
-                                "\n" 'omit-nulls))
-           (i 0))
-       (dolist (line lines)
-         (if (and (>= i 10) (< i 30))
-             (should (string-match "^some \\[text\\]" line))
-           (should (string-match "^some text" line)))
-         (cl-incf i))))))
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         (execute-kbd-macro (kbd "text"))
+
+         (visual-replace--update-preview)
+         (test-visual-run-idle-search-timers)
+
+         (turtles-with-grab-buffer (:name "minibuffer")
+           (turtles-trim-buffer)
+           (should (equal "[5/5] Replace in region (5L): text" (buffer-string))))
+
+         (turtles-with-grab-buffer (:name "buffer" :buf testbuf :faces test-visual-replace-faces)
+           (turtles-trim-buffer)
+           (should (equal (concat "some text0\n"
+                                  "some text1\n"
+                                  "some text2\n"
+                                  "some text3\n"
+                                  "some text4\n"
+                                  "some text5\n"
+                                  "some text6\n"
+                                  "some text7\n"
+                                  "some text8\n"
+                                  "some text9\n"
+                                  "some [text]10\n"
+                                  "some [text]11\n"
+                                  "some [text]12\n"
+                                  "some [text]13\n"
+                                  "some [text]*14\n"
+                                  "some text15\n"
+                                  "some text16\n"
+                                  "some text17")
+                          (buffer-string))))
+
+         (exit-minibuffer))))))
 
 (ert-deftest test-visual-replace-preview-display-window ()
   (turtles-ert-test)
