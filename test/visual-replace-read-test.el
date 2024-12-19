@@ -1066,25 +1066,48 @@
                           "[0] Replace from point: hello.[]"))))))
 
 (ert-deftest test-visual-replace-read-display-total-too-short ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (let ((visual-replace-display-total t))
+   (let ((testbuf (current-buffer))
+         (visual-replace-display-total t))
      (insert "I say, hello, world, hello, hello!")
      (goto-char (point-min))
-     (set-window-buffer (selected-window) (current-buffer))
-     (test-visual-replace-run
-      "hell <F1> ! DEL DEL <F1> ! <F1> _ <F1> x"
-      (visual-replace-read))
-     (should
-      (equal (nth 0 test-visual-replace-snapshot)
-             "[1/3] Replace from point: hell[]"))
-     (should
-      (equal (nth 1 test-visual-replace-snapshot)
-             "Replace from point: he[]"))
-     (should
-      (equal (test-visual-replace-highlight-face
-              (nth 2 test-visual-replace-snapshot)
-              'visual-replace-match)
-             "I say, hello, world, hello, hello!")))))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         (execute-kbd-macro (kbd "hell"))
+
+         (visual-replace--update-preview)
+         (test-visual-run-idle-search-timers)
+
+         (turtles-with-grab-buffer (:name "minibuffer with total")
+           (turtles-trim-buffer)
+           (should (equal "[1/3] Replace from point: hell" (buffer-string))))
+
+         (turtles-with-grab-buffer (:name "buffer with matches" :buf testbuf :faces test-visual-replace-faces)
+           (turtles-trim-buffer)
+           (should (equal "I say, [hell]*o, world, [hell]o, [hell]o!" (buffer-string))))
+
+         ;; "he" is too short, it won't be previewed or counted
+         (execute-kbd-macro (kbd "DEL DEL"))
+
+         (visual-replace--update-preview)
+         (test-visual-run-idle-search-timers)
+
+         (turtles-with-grab-buffer (:name "minibuffer too short")
+           (turtles-trim-buffer)
+           (should (equal "Replace from point: he" (buffer-string))))
+
+         (turtles-with-grab-buffer (:name "buffer too short" :buf testbuf :faces test-visual-replace-faces)
+           (turtles-trim-buffer)
+           (should (equal "I say, hello, world, hello, hello!" (buffer-string))))
+
+         (exit-minibuffer))))))
 
 (ert-deftest test-visual-replace-read-display-total-large-buffer ()
   (turtles-ert-test)
