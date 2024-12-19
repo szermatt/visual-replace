@@ -1232,32 +1232,33 @@
                                           args))))
            (visual-replace-make-args :from "hello" :to "world" :regexp t)))))
 
-
 (ert-deftest test-visual-replace-goto-closest-match ()
-  (test-visual-replace-env
-   (let ((win (selected-window))
-         (buf (current-buffer)))
-     (insert "hello, world, hello, hello!")
-     (goto-char (point-min))
-     (search-forward "world")
-     (set-window-buffer win buf)
-     (test-visual-replace-run
-      "<F1> s hell <F1> _ <F1> x"
-      (define-key visual-replace-mode-map (kbd "<F1> _")
-                  (lambda ()
-                    (interactive)
-                    (with-current-buffer buf
-                      (visual-replace--update-preview)
-                      (test-visual-run-idle-search-timers)
-                      (push
-                       (concat (buffer-substring (point-min) (point))
-                               "[]"
-                               (buffer-substring (point) (point-max)))
-                       test-visual-replace-snapshot))))
-      (visual-replace-read))
-     (should (equal (test-visual-replace-highlight-face
-                     (car test-visual-replace-snapshot) 'visual-replace-match)
-                    "hello, world, []hello, hello!")))))
+  (turtles-ert-test)
+
+  (let (testbuf)
+    (ert-with-test-buffer ()
+      (setq testbuf (current-buffer))
+      (insert "hello, world, hello, hello!")
+      (goto-char (point-min))
+      (search-forward "world")
+
+      (with-selected-window (display-buffer (current-buffer))
+        (delete-other-windows (selected-window))
+
+        (turtles-read-from-minibuffer
+            (visual-replace-read)
+
+          (execute-kbd-macro (kbd "hello"))
+
+          (visual-replace--update-preview)
+          (test-visual-run-idle-search-timers)
+
+          (turtles-with-grab-buffer (:name "closest match" :buf testbuf :faces test-visual-replace-faces)
+            (turtles-mark-point "<>")
+            (turtles-trim-buffer)
+            (should (equal "hello, world, <>[hello]*, [hello]!" (buffer-string))))
+
+          (exit-minibuffer))))))
 
 (ert-deftest test-visual-replace-open-hideshow-blocks ()
   (turtles-ert-test)
