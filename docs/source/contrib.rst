@@ -54,7 +54,8 @@ Before you do that, please make sure the any new features is covered
 by tests and that the tests pass.
 
 To run the tests, install and setup `eldev`_, checkout git submodules
-with :command:`git submodule init`, then run :command:`eldev test`.
+with :command:`git submodule update --init--recursive`, then run
+:command:`eldev test`.
 
 Tests can also be run from inside of Emacs, using `M-x
 ert-run-tests-interactively` but when you do so, be aware that there
