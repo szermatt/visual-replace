@@ -1031,23 +1031,20 @@
          (execute-kbd-macro (kbd "he"))
          (visual-replace--update-preview)
          (turtles-with-grab-buffer (:name "not enough chars")
-           (turtles-trim-buffer)
            (should (equal "Replace from point: he"
                           (buffer-string))))
 
          (execute-kbd-macro (kbd "ll"))
          (visual-replace--update-preview)
          (turtles-with-grab-buffer (:name "hell")
-           (turtles-trim-buffer)
            (should (equal "[1/3] Replace from point: hell"
                           (buffer-string))))
          (turtles-with-grab-buffer
              (:name "hell preview" :buf testbuf :faces test-visual-replace-faces)
-           (turtles-trim-buffer)
            (should (equal "I say, [hell]*o, world, [hell]o, [hell]o!"
                           (buffer-string))))
 
-         (exit-minibuffer))))))
+         )))))
 
 (ert-deftest test-visual-replace-read-display-index ()
   (turtles-ert-test)
@@ -1067,27 +1064,22 @@
          (visual-replace-next-match)
          (visual-replace--update-preview)
          (turtles-with-grab-buffer (:name "1/3")
-           (turtles-trim-buffer)
            (should (equal "[1/3] Replace from point: hello"
                           (buffer-string))))
 
          (visual-replace-next-match)
          (visual-replace--update-preview)
          (turtles-with-grab-buffer (:name "2/3")
-           (turtles-trim-buffer)
            (should (equal "[2/3] Replace from point: hello"
                           (buffer-string))))
 
          (visual-replace-next-match)
          (visual-replace--update-preview)
          (turtles-with-grab-buffer (:name "3/3")
-           (turtles-trim-buffer)
            (should (equal "[3/3] Replace from point: hello"
                           (buffer-string))))
 
-         (should-error (visual-replace-next-match))
-
-         (exit-minibuffer))))))
+         (should-error (visual-replace-next-match)))))))
 
 (ert-deftest test-visual-replace-read-display-total-update ()
   (turtles-ert-test)
@@ -1106,14 +1098,12 @@
          (execute-kbd-macro (kbd "hello"))
          (visual-replace--update-preview)
          (turtles-with-grab-buffer (:name "hello")
-           (turtles-trim-buffer)
            (should (equal "[1/3] Replace from point: hello"
                           (buffer-string))))
 
          (execute-kbd-macro (kbd "w"))
          (visual-replace--update-preview)
          (turtles-with-grab-buffer (:name "hellow")
-           (turtles-trim-buffer)
            (should (equal "[1/2] Replace from point: hellow"
                           (buffer-string))))
 
@@ -1121,18 +1111,14 @@
          (execute-kbd-macro (kbd "DEL ,"))
          (visual-replace--update-preview)
          (turtles-with-grab-buffer (:name "hello,")
-           (turtles-trim-buffer)
            (should (equal "[1/1] Replace from point: hello,"
                           (buffer-string))))
 
          (execute-kbd-macro (kbd "DEL ."))
          (visual-replace--update-preview)
          (turtles-with-grab-buffer (:name "hello.")
-           (turtles-trim-buffer)
            (should (equal "[0] Replace from point: hello."
-                          (buffer-string))))
-
-         (exit-minibuffer))))))
+                          (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-read-display-total-too-short ()
   (turtles-ert-test)
@@ -1155,11 +1141,9 @@
          (test-visual-run-idle-search-timers)
 
          (turtles-with-grab-buffer (:name "minibuffer with total")
-           (turtles-trim-buffer)
            (should (equal "[1/3] Replace from point: hell" (buffer-string))))
 
          (turtles-with-grab-buffer (:name "buffer with matches" :buf testbuf :faces test-visual-replace-faces)
-           (turtles-trim-buffer)
            (should (equal "I say, [hell]*o, world, [hell]o, [hell]o!" (buffer-string))))
 
          ;; "he" is too short, it won't be previewed or counted
@@ -1169,14 +1153,10 @@
          (test-visual-run-idle-search-timers)
 
          (turtles-with-grab-buffer (:name "minibuffer too short")
-           (turtles-trim-buffer)
            (should (equal "Replace from point: he" (buffer-string))))
 
          (turtles-with-grab-buffer (:name "buffer too short" :buf testbuf :faces test-visual-replace-faces)
-           (turtles-trim-buffer)
-           (should (equal "I say, hello, world, hello, hello!" (buffer-string))))
-
-         (exit-minibuffer))))))
+           (should (equal "I say, hello, world, hello, hello!" (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-read-display-total-large-buffer ()
   (turtles-ert-test)
@@ -1201,7 +1181,6 @@
          (test-visual-run-idle-search-timers)
 
          (turtles-with-grab-buffer (:name "minibuffer")
-           (turtles-trim-buffer)
            (should (equal "[1/900] Replace from point: text" (buffer-string))))
 
          ;; All matches must be highlighted
@@ -1214,9 +1193,7 @@
                                                                         visual-replace-match))
                  (error "Should have been highlighted: %s"
                         (buffer-substring (line-beginning-position)
-                                          (line-end-position)))))))
-
-         (exit-minibuffer))))))
+                                          (line-end-position))))))))))))
 
 
 (ert-deftest test-visual-replace-read-display-total-too-many-matches ()
@@ -1242,12 +1219,10 @@
          (test-visual-run-idle-search-timers)
 
          (turtles-with-grab-buffer (:name "minibuffer")
-           (turtles-trim-buffer)
            (should (equal "Replace from point: text" (buffer-string))))
 
          ;; All visible text must be highlighted
          (turtles-with-grab-buffer (:name "buffer" :buf testbuf :faces test-visual-replace-faces)
-           (turtles-trim-buffer)
            (should (equal (concat "some [text]*0\n"
                                   "some [text]1\n"
                                   "some [text]2\n"
@@ -1274,9 +1249,7 @@
              (goto-char (point-min))
              (search-forward "some text299")
              (should-not (memq (get-char-property (match-beginning 0) 'face)
-                               '(visual-replace-match visual-replace-match-highlight)))))
-
-         (exit-minibuffer))))))
+                               '(visual-replace-match visual-replace-match-highlight))))))))))
 
 (ert-deftest test-visual-replace-read-display-total-too-large ()
   (turtles-ert-test)
@@ -1302,12 +1275,10 @@
          (test-visual-run-idle-search-timers)
 
          (turtles-with-grab-buffer (:name "minibuffer")
-           (turtles-trim-buffer)
            (should (equal "Replace from point: text" (buffer-string))))
 
          ;; All visible text must be highlighted
          (turtles-with-grab-buffer (:name "buffer" :buf testbuf :faces test-visual-replace-faces)
-           (turtles-trim-buffer)
            (should (equal (concat "some [text]*0\n"
                                   "some [text]1\n"
                                   "some [text]2\n"
@@ -1334,9 +1305,7 @@
              (goto-char (point-min))
              (search-forward "some text299")
              (should-not (memq (get-char-property (match-beginning 0) 'face)
-                               '(visual-replace-match visual-replace-match-highlight)))))
-
-         (exit-minibuffer))))))
+                               '(visual-replace-match visual-replace-match-highlight))))))))))
 
 (ert-deftest test-visual-replace-read-display-total-in-region-buffer-too-large ()
   (turtles-ert-test)
@@ -1365,11 +1334,9 @@
          (test-visual-run-idle-search-timers)
 
          (turtles-with-grab-buffer (:name "minibuffer")
-           (turtles-trim-buffer)
            (should (equal "[5/5] Replace in region (5L): text" (buffer-string))))
 
          (turtles-with-grab-buffer (:name "buffer" :buf testbuf :faces test-visual-replace-faces)
-           (turtles-trim-buffer)
            (should (equal (concat "some text0\n"
                                   "some text1\n"
                                   "some text2\n"
@@ -1388,9 +1355,7 @@
                                   "some text15\n"
                                   "some text16\n"
                                   "some text17")
-                          (buffer-string))))
-
-         (exit-minibuffer))))))
+                          (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-preview-display-window ()
   (turtles-ert-test)
@@ -1415,9 +1380,7 @@
          ;; This should redisplay the test buffer
          (visual-replace-next-match)
 
-         (should (get-buffer-window testbuf))
-
-         (exit-minibuffer))))))
+         (should (get-buffer-window testbuf)))))))
 
 (ert-deftest test-visual-replace-read-toggle-query-from-hook ()
   (test-visual-replace-env
@@ -1470,10 +1433,8 @@
 
          (turtles-with-grab-buffer (:name "closest match" :buf testbuf :faces test-visual-replace-faces)
            (turtles-mark-point "<>")
-           (turtles-trim-buffer)
-           (should (equal "hello, world, <>[hello]*, [hello]!" (buffer-string))))
 
-         (exit-minibuffer))))))
+           (should (equal "hello, world, <>[hello]*, [hello]!" (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-open-hideshow-blocks ()
   (turtles-ert-test)
@@ -1515,8 +1476,6 @@
 
          (visual-replace--update-preview t)
          (turtles-with-grab-buffer (:name "folded block" :buf testbuf :faces test-visual-replace-faces)
-           (turtles-trim-buffer)
-
            (goto-char (point-min))
            (search-forward "(defun test-1 ()...)")
            (search-forward "(defun test-2 ()...)")
@@ -1526,7 +1485,6 @@
          (visual-replace--update-preview t)
 
          (turtles-with-grab-buffer (:name "block 1 unfolded" :buf testbuf :faces test-visual-replace-faces)
-           (turtles-trim-buffer)
            (should (equal
                     (concat "(defun test-1 ()\n"
                             " \"This is my first test [function]*.\"\n"
@@ -1539,7 +1497,6 @@
          (visual-replace--update-preview t)
 
          (turtles-with-grab-buffer (:name "block 2 unfolded" :buf testbuf :faces test-visual-replace-faces)
-           (turtles-trim-buffer)
            (should (equal
                     (concat "(defun test-1 ()...)\n"
                             "\n"
@@ -1553,7 +1510,6 @@
          (visual-replace--update-preview t)
 
          (turtles-with-grab-buffer (:name "block 3 unfolded" :buf testbuf :faces test-visual-replace-faces)
-           (turtles-trim-buffer)
            (should (equal
                     (concat "(defun test-1 ()...)\n"
                             "\n"
@@ -1563,13 +1519,11 @@
                             " (message \"test, the third\"))")
                     (buffer-string))))
 
-         (should-error (visual-replace-next-match))
-
-         (exit-minibuffer))
+         (should-error (visual-replace-next-match)))
 
        (turtles-with-grab-buffer (:name "end with block 3 unfolded" :buf testbuf :faces test-visual-replace-faces)
          (turtles-mark-point "<>")
-         (turtles-trim-buffer)
+
          (should (equal
                   (concat "(defun test-1 ()...)\n"
                           "\n"
@@ -1622,7 +1576,7 @@
            (goto-char (point-min))
            (search-forward "test-2")
            (delete-region (point-min) (line-beginning-position))
-           (turtles-trim-buffer)
+
 
            (should (equal
                     (concat "(defun test-2 ()\n"
@@ -1640,7 +1594,6 @@
            (goto-char (point-min))
            (search-forward "test-2")
            (delete-region (point-min) (line-beginning-position))
-           (turtles-trim-buffer)
 
            (should (equal
                     (concat "(defun test-2 ()...)\n"
@@ -1649,8 +1602,6 @@
                             " (message \"test, the third\"))")
                     (buffer-string))))
 
-         (should-error (visual-replace-next-match))
-
-         (exit-minibuffer))))))
+         (should-error (visual-replace-next-match)))))))
 
 ;;; visual-replace-test.el ends here
