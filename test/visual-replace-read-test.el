@@ -1001,17 +1001,35 @@
                   "Lee fi fo fum!"))))
 
 (ert-deftest test-visual-replace-read-apply-undo-everything-then-redo ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (insert "Fee fi fo fum!")
-   (goto-char (point-min))
-   (set-window-buffer (selected-window) (current-buffer))
-   (test-visual-replace-run
-    "f TAB l <F1> a <F1> u <F1> _ <F1> a <F1> a <F1> u <F1> _<F1> x"
-    (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  (list
-                   "Fee fi fo fum!"
-                   "Lee fi fo fum!")))))
+   (let ((testbuf (current-buffer)))
+     (insert "Fee fi fo fum!")
+     (goto-char (point-min))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         (execute-kbd-macro (kbd "f TAB l"))
+         (execute-kbd-macro (kbd "M-x visual-replace-apply-one"))
+         (turtles-with-grab-buffer (:name "after apply" :buf testbuf)
+           (should (equal "Lee fi fo fum!" (buffer-string))))
+
+         (execute-kbd-macro (kbd "M-x visual-replace-undo"))
+         (turtles-with-grab-buffer (:name "after undo" :buf testbuf)
+           (should (equal "Fee fi fo fum!" (buffer-string))))
+
+         (execute-kbd-macro (kbd "M-x visual-replace-apply-one"))
+         (execute-kbd-macro (kbd "M-x visual-replace-apply-one"))
+         (execute-kbd-macro (kbd "M-x visual-replace-undo"))
+         ;; Executing commands using M-x guarantees that undo breaks
+         ;; are applied as they would normally be.
+         (turtles-with-grab-buffer (:name "after second undo" :buf testbuf)
+           (should (equal "Lee fi fo fum!" (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-read-display-total ()
   (turtles-ert-test)
