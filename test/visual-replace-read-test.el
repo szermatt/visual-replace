@@ -1014,56 +1014,125 @@
                    "Lee fi fo fum!")))))
 
 (ert-deftest test-visual-replace-read-display-total ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (let ((visual-replace-display-total t))
+   (let ((testbuf (current-buffer))
+         (visual-replace-display-total t))
      (insert "I say, hello, world, hello, hello!")
      (goto-char (point-min))
-     (set-window-buffer (selected-window) (current-buffer))
-     (test-visual-replace-run
-      "he <F1> ! ll <F1> ! <F1> _ <F1> x"
-      (visual-replace-read))
-     (should
-      (equal (nth 0 test-visual-replace-snapshot)
-             "Replace from point: he[]"))
-     (should
-      (equal (nth 1 test-visual-replace-snapshot)
-             "[1/3] Replace from point: hell[]"))
-     (should
-      (equal (test-visual-replace-highlight-face
-              (nth 2 test-visual-replace-snapshot)
-              'visual-replace-match 'visual-replace-match-highlight)
-             "I say, [hell]o, world, [hell]o, [hell]o!")))))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         (execute-kbd-macro (kbd "he"))
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer (:name "not enough chars")
+           (turtles-trim-buffer)
+           (should (equal "Replace from point: he"
+                          (buffer-string))))
+
+         (execute-kbd-macro (kbd "ll"))
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer (:name "hell")
+           (turtles-trim-buffer)
+           (should (equal "[1/3] Replace from point: hell"
+                          (buffer-string))))
+         (turtles-with-grab-buffer
+             (:name "hell preview" :buf testbuf :faces test-visual-replace-faces)
+           (turtles-trim-buffer)
+           (should (equal "I say, [hell]*o, world, [hell]o, [hell]o!"
+                          (buffer-string))))
+
+         (exit-minibuffer))))))
 
 (ert-deftest test-visual-replace-read-display-index ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
    (let ((visual-replace-display-total t))
      (insert "I say, hello, world, hello, hello!")
      (goto-char (point-min))
-     (set-window-buffer (selected-window) (current-buffer))
-     (test-visual-replace-run
-      "hello <down> <F1> ! <down> <F1> ! <down> <F1> ! <F1> x"
-      (visual-replace-read))
-     (should
-      (equal test-visual-replace-snapshot
-             (list
-              "[1/3] Replace from point: hello[]"
-              "[2/3] Replace from point: hello[]"
-              "[3/3] Replace from point: hello[]"))))))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         (execute-kbd-macro (kbd "hello"))
+         (visual-replace-next-match)
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer (:name "1/3")
+           (turtles-trim-buffer)
+           (should (equal "[1/3] Replace from point: hello"
+                          (buffer-string))))
+
+         (visual-replace-next-match)
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer (:name "2/3")
+           (turtles-trim-buffer)
+           (should (equal "[2/3] Replace from point: hello"
+                          (buffer-string))))
+
+         (visual-replace-next-match)
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer (:name "3/3")
+           (turtles-trim-buffer)
+           (should (equal "[3/3] Replace from point: hello"
+                          (buffer-string))))
+
+         (should-error (visual-replace-next-match))
+
+         (exit-minibuffer))))))
 
 (ert-deftest test-visual-replace-read-display-total-update ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
    (let ((visual-replace-display-total t))
      (insert "I say, hello, world, hellow, hellow!")
      (goto-char (point-min))
-     (set-window-buffer (selected-window) (current-buffer))
-     (test-visual-replace-run
-      "hello <F1> ! w <F1> ! DEL , <F1> ! DEL . <F1> ! <F1> x"
-      (visual-replace-read))
-     (should (equal test-visual-replace-snapshot
-                    (list "[1/3] Replace from point: hello[]"
-                          "[1/2] Replace from point: hellow[]"
-                          "[1/1] Replace from point: hello,[]"
-                          "[0] Replace from point: hello.[]"))))))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         (execute-kbd-macro (kbd "hello"))
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer (:name "hello")
+           (turtles-trim-buffer)
+           (should (equal "[1/3] Replace from point: hello"
+                          (buffer-string))))
+
+         (execute-kbd-macro (kbd "w"))
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer (:name "hellow")
+           (turtles-trim-buffer)
+           (should (equal "[1/2] Replace from point: hellow"
+                          (buffer-string))))
+
+
+         (execute-kbd-macro (kbd "DEL ,"))
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer (:name "hello,")
+           (turtles-trim-buffer)
+           (should (equal "[1/1] Replace from point: hello,"
+                          (buffer-string))))
+
+         (execute-kbd-macro (kbd "DEL ."))
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer (:name "hello.")
+           (turtles-trim-buffer)
+           (should (equal "[0] Replace from point: hello."
+                          (buffer-string))))
+
+         (exit-minibuffer))))))
 
 (ert-deftest test-visual-replace-read-display-total-too-short ()
   (turtles-ert-test)
