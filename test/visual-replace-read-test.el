@@ -834,25 +834,36 @@
                   "hell[0ELL]o, world, hell[1ELL]o"))))
 
 (ert-deftest test-visual-replace-preview-skip-readonly ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (insert "hello, world, ")
-   (let ((start-read-only (point))
-         (end-read-only nil))
-     (insert "hello")
-     (setq end-read-only (point))
-     (insert ", hello!")
-     (set-text-properties start-read-only end-read-only '(read-only t)))
-   (goto-char (point-min))
-   (set-window-buffer (selected-window) (current-buffer))
-   (test-visual-replace-run "hel TAB hol <F1> _ RET"
-                        (call-interactively 'visual-replace))
-   (should (equal (test-visual-replace-highlight-face
-                   (nth 0 test-visual-replace-snapshot)
-                   'visual-replace-replacement 'visual-replace-replacement-highlight)
-                  "hel[hol]lo, world, hello, hel[hol]lo!"))
-   (should (equal
-            "hollo, world, hello, hollo!"
-            (buffer-substring-no-properties (point-min) (point-max))))))
+   (let ((visual-replace-min-length 3)
+         (testbuf (current-buffer)))
+     (insert "hello, world, ")
+     (let ((start-read-only (point))
+           (end-read-only nil))
+       (insert "hello")
+       (setq end-read-only (point))
+       (insert ", hello!")
+       (set-text-properties start-read-only end-read-only '(read-only t)))
+     (goto-char (point-min))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (call-interactively #'visual-replace)
+
+         :keys "hel TAB hol"
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer (:buf testbuf :faces test-visual-replace-faces)
+           (should (equal "[hel]*{hol}*lo, world, hello, [hel]{hol}lo!"
+                          (buffer-string))))
+         (exit-minibuffer))
+
+       (should (equal
+                "hollo, world, hello, hollo!"
+                (buffer-string)))))))
 
 (ert-deftest test-visual-replace-disable-preview-if-too-short ()
   (turtles-ert-test)
