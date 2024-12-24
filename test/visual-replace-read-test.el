@@ -811,27 +811,57 @@
                   "[hello   world]!"))))
 
 (ert-deftest test-visual-replace-preview-bad-regex ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (insert "hello, world, hello, hello!")
-   (goto-char (point-min))
-   (set-window-buffer (selected-window) (current-buffer))
-   ;; This is just a smoke test. \b\b\b matches empty strings, which
-   ;; cannot be displayed and might cause some implementations to
-   ;; enter an infinite loop.
-   (test-visual-replace-run "<F1> r \\b\\b\\b <F1> _ <F1> x" (visual-replace-read))))
+   (let ((visual-replace-min-length 3)
+         (testbuf (current-buffer)))
+     (insert "hello, world, hello")
+     (goto-char (point-min))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (call-interactively 'visual-replace)
+
+         ;; This is just a smoke test. \b\b\b matches empty strings, which
+         ;; cannot be displayed and might cause some implementations to
+         ;; enter an infinite loop.
+         (visual-replace-toggle-regexp)
+         :keys "\\b\\b\\b"
+         (visual-replace--update-preview)
+
+         (turtles-with-grab-buffer (:name "minibuffer")
+           (should (equal "Replace from point: \\b\\b\\b →.*" (buffer-string))))
+         (turtles-with-grab-buffer (:name "buffer" :buf testbuf :faces test-visual-replace-faces)
+           (should (equal "hello, world, hello" (buffer-string)))))
+       (should (equal "hello, world, hello" (buffer-string)))))))
 
 (ert-deftest test-visual-replace-preview-regex-eval ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (insert "hello, world, hello")
-   (goto-char (point-min))
-   (set-window-buffer (selected-window) (current-buffer))
-   (test-visual-replace-run "h\\(el+\\) TAB \\#\\,(upcase SPC \\1) <F1> r <F1> _ <F1> x"
-                            (visual-replace-read))
-   (should (equal (test-visual-replace-highlight-face
-                   (car test-visual-replace-snapshot)
-                   'visual-replace-replacement
-                   'visual-replace-replacement-highlight)
-                  "hell[0ELL]o, world, hell[1ELL]o"))))
+   (let ((visual-replace-min-length 3)
+         (testbuf (current-buffer)))
+     (insert "hello, world, hello")
+     (goto-char (point-min))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         :keys "h\\(el+\\) TAB \\#\\,(upcase SPC \\1)"
+         (visual-replace-toggle-regexp)
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer (:name "minibuffer")
+           (should (equal "Replace from point: h\\(el+\\) →.* \\#\\,(upcase \\1)"
+                          (buffer-string))))
+         (turtles-with-grab-buffer (:name "buffer" :buf testbuf :faces test-visual-replace-faces)
+           (should (equal "[hell]*{0ELL}*o, world, [hell]{1ELL}o"
+                          (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-preview-skip-readonly ()
   (turtles-ert-test)
