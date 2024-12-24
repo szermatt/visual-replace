@@ -608,31 +608,66 @@
            (visual-replace-make-args :from "hello" :to "world")))))
 
 (ert-deftest test-visual-replace-warn-newline ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (ert-with-message-capture captured-message
-     (test-visual-replace-run "a\\n RET b <F1> r RET" (visual-replace-read))
-     (should (string-match-p "^Note.*" captured-message)))))
+   (with-selected-window (display-buffer (current-buffer))
+     (turtles-read-from-minibuffer
+         (ert-with-message-capture captured-message
+           (visual-replace-read)
+           (should (equal "Note: ‘\\n’ here doesn’t match a newline; to do that, type C-q C-j instead\n"
+                          captured-message)))
+
+       :keys "a\\n RET b"
+       (visual-replace-toggle-regexp)))))
 
 (ert-deftest test-visual-replace-warn-tab ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (ert-with-message-capture captured-message
-     (test-visual-replace-run "a\\t RET b <F1> r RET" (visual-replace-read))
-     (should (string-match-p "^Note.*" captured-message)))))
+   (with-selected-window (display-buffer (current-buffer))
+     (turtles-read-from-minibuffer
+         (ert-with-message-capture captured-message
+           (visual-replace-read)
+           (should (equal "Note: ‘\\t’ here doesn’t match a tab; to do that, just type TAB\n"
+                          captured-message)))
+
+       :keys "a\\t RET b"
+       (visual-replace-toggle-regexp)))))
 
 (ert-deftest test-visual-replace-warn-only-for-regexp ()
-  (test-visual-replace-env
-   (ert-with-message-capture captured-message
-     (test-visual-replace-run "a\\n RET b RET" (visual-replace-read))
-     (should (equal "" captured-message)))))
+  (turtles-ert-test)
 
-(ert-deftest test-visual-replace-warn-only-the-first-time ()
   (test-visual-replace-env
-   (ert-with-message-capture captured-message
-     (test-visual-replace-run "a\\n RET b <F1> r RET" (visual-replace-read))
-     (should-not (equal "" captured-message)))
-   (ert-with-message-capture captured-message
-     (test-visual-replace-run "RET" (visual-replace-read))
-     (should (equal "" captured-message)))))
+   (with-selected-window (display-buffer (current-buffer))
+     (turtles-read-from-minibuffer
+         (ert-with-message-capture captured-message
+           (visual-replace-read)
+           (should (equal "" captured-message)))
+
+       :keys "a\\n RET b"))))
+
+(ert-deftest test-visual-replace-warn-the-first-time ()
+  (turtles-ert-test)
+
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+     (turtles-read-from-minibuffer
+         (ert-with-message-capture captured-message
+           (visual-replace-read)
+           (should (equal "Note: ‘\\n’ here doesn’t match a newline; to do that, type C-q C-j instead\n"
+                          captured-message)))
+
+       :keys "a\\n RET b"
+       (visual-replace-toggle-regexp))
+
+     (turtles-read-from-minibuffer
+         (ert-with-message-capture captured-message
+           (visual-replace-read)
+           (should (equal "" captured-message)))
+
+       :keys "RET"
+       (visual-replace-toggle-regexp)))))
 
 (ert-deftest test-visual-replace-kill-and-yank-separator ()
   (turtles-ert-test)
