@@ -635,17 +635,28 @@
      (should (equal "" captured-message)))))
 
 (ert-deftest test-visual-replace-kill-and-yank-separator ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run "hello TAB TAB C-a <F1> q <F1> ! <F1> u <F1> ! TAB <F1> ! RET"
-                        (define-key visual-replace-mode-map (kbd "<F1> q")
-                          (lambda () (interactive) (call-interactively 'kill-line)))
-                        (define-key visual-replace-mode-map (kbd "<F1> u")
-                          (lambda () (interactive) (call-interactively 'yank)))
-                        (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: [] → "
-                    "Replace from point: hello[] → "
-                    "Replace from point: hello → []")))))
+   (with-selected-window (display-buffer (current-buffer))
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+
+       :keys "hello TAB"
+       (turtles-with-grab-buffer (:name "initial")
+         (should (equal "Replace from point: hello →" (buffer-string))))
+
+       :keys "TAB C-a" ;; go to start of 1st field
+       (kill-line)
+       (turtles-with-grab-buffer (:name "kill-line in 1st field")
+         (should (equal "Replace from point:  →" (buffer-string))))
+
+       (yank)
+       (turtles-with-grab-buffer (:name "after yank")
+         (should (equal "Replace from point: hello →" (buffer-string))))
+
+       ;; Don't complain about "nothing to replace"
+       (setq quit-flag t)))))
 
 (ert-deftest test-visual-replace-initial-input ()
   (turtles-ert-test)
