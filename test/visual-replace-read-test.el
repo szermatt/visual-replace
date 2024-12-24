@@ -941,64 +941,136 @@
     (visual-replace-read))
    (should (equal (nth 0 test-visual-replace-snapshot)
                   "Lee li lo fum!"))))
-
 (ert-deftest test-visual-replace-read-undo ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (insert "Fee fi fo fum!")
-   (goto-char (point-min))
-   (set-window-buffer (selected-window) (current-buffer))
-   (test-visual-replace-run
-    "f TAB l <F1> a <F1> a <F1> u <F1> _ <F1> x"
-    (visual-replace-read))
-   (should (equal (car test-visual-replace-snapshot)
-                  "Lee fi fo fum!"))))
+   (let ((testbuf (current-buffer)))
+     (insert "Fee fi fo fum!")
+     (goto-char (point-min))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         :keys "f TAB l"
+         :command #'visual-replace-apply-one
+         :command #'visual-replace-apply-one
+         (turtles-with-grab-buffer (:name "before undo" :buf testbuf)
+           (should (equal "Lee li fo fum!" (buffer-string))))
+
+         :command #'visual-replace-undo
+         (turtles-with-grab-buffer (:name "after undo 1" :buf testbuf)
+           (should (equal "Lee fi fo fum!" (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-read-undo-further ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (insert "Fee fi fo fum!")
-   (goto-char (point-min))
-   (set-window-buffer (selected-window) (current-buffer))
-   (test-visual-replace-run
-    "f TAB l <F1> a <F1> a <F1> u <F1> u <F1> _ <F1> x"
-    (visual-replace-read))
-   (should (equal (car test-visual-replace-snapshot)
-                  "Fee fi fo fum!"))))
+   (let ((testbuf (current-buffer)))
+     (insert "Fee fi fo fum!")
+     (goto-char (point-min))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         :keys "f TAB l"
+         :command #'visual-replace-apply-one
+         :command #'visual-replace-apply-one
+         (turtles-with-grab-buffer (:name "before undo" :buf testbuf)
+           (should (equal "Lee li fo fum!" (buffer-string))))
+
+         :command #'visual-replace-undo
+         :command #'visual-replace-undo
+         (turtles-with-grab-buffer (:name "after undo 2" :buf testbuf)
+           (should (equal "Fee fi fo fum!" (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-read-undo-multiple ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (insert "Fee fi fo fum!")
-   (goto-char (point-min))
-   (set-window-buffer (selected-window) (current-buffer))
-   (test-visual-replace-run
-    "f TAB l <F1> a <F1> a <F1> a ESC 2 <F1> u <F1> _ <F1> x"
-    (visual-replace-read))
-   (should (equal (car test-visual-replace-snapshot)
-                  "Lee fi fo fum!"))))
+   (let ((testbuf (current-buffer)))
+     (insert "Fee fi fo fum!")
+     (goto-char (point-min))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         :keys "f TAB l"
+         :command #'visual-replace-apply-one
+         :command #'visual-replace-apply-one
+         :command #'visual-replace-apply-one
+         (turtles-with-grab-buffer (:name "before undo" :buf testbuf)
+           (should (equal "Lee li lo fum!" (buffer-string))))
+
+         :command #'visual-replace-undo
+         :command #'visual-replace-undo
+         (turtles-with-grab-buffer (:name "after undo" :buf testbuf)
+           (should (equal "Lee fi fo fum!" (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-read-undo-everything ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (insert "Fee fi fo fum!")
-   (goto-char (point-min))
-   (set-window-buffer (selected-window) (current-buffer))
-   (test-visual-replace-run
-    "f TAB l <F1> a <F1> a <F1> a <F1> a ESC 1000 <F1> u <F1> _ <F1> x"
-    (visual-replace-read))
-   ;; Undo should not have reverted past visual-replace; the text should still be there.
-   (should (equal (car test-visual-replace-snapshot)
-                  "Fee fi fo fum!"))))
+   (let ((testbuf (current-buffer)))
+     (insert "Fee fi fo fum!")
+     (goto-char (point-min))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         :keys "f TAB l"
+         :command #'visual-replace-apply-one
+         :command #'visual-replace-apply-one
+         :command #'visual-replace-apply-one
+         (turtles-with-grab-buffer (:name "before undo" :buf testbuf)
+           (should (equal "Lee li lo fum!" (buffer-string))))
+
+         :keys "ESC 1000"
+         :command #'visual-replace-undo
+
+         ;; Undo should not have reverted past visual-replace; the
+         ;; text should still be there.
+         (turtles-with-grab-buffer (:name "after undo" :buf testbuf)
+           (should (equal "Fee fi fo fum!" (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-read-apply-multiple-undo-once ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (insert "Fee fi fo fum!")
-   (goto-char (point-min))
-   (set-window-buffer (selected-window) (current-buffer))
-   (test-visual-replace-run
-    "f TAB l <F1> a ESC 2 <F1> a <F1> u <F1> _<F1> x"
-    (visual-replace-read))
-   ;; Undo undoes 2 of the 3 replacements executed, because they were
-   ;; executed in one command.
-   (should (equal (car test-visual-replace-snapshot)
-                  "Lee fi fo fum!"))))
+   (let ((testbuf (current-buffer)))
+     (insert "Fee fi fo fum!")
+     (goto-char (point-min))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         :keys "f TAB l"
+         :command #'visual-replace-apply-one
+         :keys "ESC 2"
+         :command #'visual-replace-apply-one
+         (turtles-with-grab-buffer (:name "before undo" :buf testbuf)
+           (should (equal "Lee li lo fum!" (buffer-string))))
+
+         :command #'visual-replace-undo
+         ;; Undo undoes 2 of the 3 replacements executed, because they
+         ;; were executed in one command.
+         (turtles-with-grab-buffer (:name "after undo" :buf testbuf)
+           (should (equal "Lee fi fo fum!" (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-read-apply-undo-everything-then-redo ()
   (turtles-ert-test)
@@ -1014,18 +1086,18 @@
        (turtles-read-from-minibuffer
            (visual-replace-read)
 
-         (execute-kbd-macro (kbd "f TAB l"))
-         (execute-kbd-macro (kbd "M-x visual-replace-apply-one"))
+         :keys "f TAB l"
+         :command #'visual-replace-apply-one
          (turtles-with-grab-buffer (:name "after apply" :buf testbuf)
            (should (equal "Lee fi fo fum!" (buffer-string))))
 
-         (execute-kbd-macro (kbd "M-x visual-replace-undo"))
+         :command #'visual-replace-undo
          (turtles-with-grab-buffer (:name "after undo" :buf testbuf)
            (should (equal "Fee fi fo fum!" (buffer-string))))
 
-         (execute-kbd-macro (kbd "M-x visual-replace-apply-one"))
-         (execute-kbd-macro (kbd "M-x visual-replace-apply-one"))
-         (execute-kbd-macro (kbd "M-x visual-replace-undo"))
+         :command #'visual-replace-apply-one
+         :command #'visual-replace-apply-one
+         :command #'visual-replace-undo
          ;; Executing commands using M-x guarantees that undo breaks
          ;; are applied as they would normally be.
          (turtles-with-grab-buffer (:name "after second undo" :buf testbuf)
