@@ -1118,13 +1118,13 @@
        (turtles-read-from-minibuffer
            (visual-replace-read)
 
-         (execute-kbd-macro (kbd "he"))
+         :keys "he"
          (visual-replace--update-preview)
          (turtles-with-grab-buffer (:name "not enough chars")
            (should (equal "Replace from point: he"
                           (buffer-string))))
 
-         (execute-kbd-macro (kbd "ll"))
+         :keys "ll"
          (visual-replace--update-preview)
          (turtles-with-grab-buffer (:name "hell")
            (should (equal "[1/3] Replace from point: hell"
@@ -1150,7 +1150,7 @@
        (turtles-read-from-minibuffer
            (visual-replace-read)
 
-         (execute-kbd-macro (kbd "hello"))
+         :keys "hello"
          (visual-replace-next-match)
          (visual-replace--update-preview)
          (turtles-with-grab-buffer (:name "1/3")
@@ -1185,26 +1185,26 @@
        (turtles-read-from-minibuffer
            (visual-replace-read)
 
-         (execute-kbd-macro (kbd "hello"))
+         :keys "hello"
          (visual-replace--update-preview)
          (turtles-with-grab-buffer (:name "hello")
            (should (equal "[1/3] Replace from point: hello"
                           (buffer-string))))
 
-         (execute-kbd-macro (kbd "w"))
+         :keys "w"
          (visual-replace--update-preview)
          (turtles-with-grab-buffer (:name "hellow")
            (should (equal "[1/2] Replace from point: hellow"
                           (buffer-string))))
 
 
-         (execute-kbd-macro (kbd "DEL ,"))
+         :keys "DEL ,"
          (visual-replace--update-preview)
          (turtles-with-grab-buffer (:name "hello,")
            (should (equal "[1/1] Replace from point: hello,"
                           (buffer-string))))
 
-         (execute-kbd-macro (kbd "DEL ."))
+         :keys "DEL ."
          (visual-replace--update-preview)
          (turtles-with-grab-buffer (:name "hello.")
            (should (equal "[0] Replace from point: hello."
@@ -1225,7 +1225,7 @@
        (turtles-read-from-minibuffer
            (visual-replace-read)
 
-         (execute-kbd-macro (kbd "hell"))
+         :keys "hell"
 
          (visual-replace--update-preview)
          (test-visual-run-idle-search-timers)
@@ -1237,7 +1237,7 @@
            (should (equal "I say, [hell]*o, world, [hell]o, [hell]o!" (buffer-string))))
 
          ;; "he" is too short, it won't be previewed or counted
-         (execute-kbd-macro (kbd "DEL DEL"))
+         :keys "DEL DEL"
 
          (visual-replace--update-preview)
          (test-visual-run-idle-search-timers)
@@ -1265,7 +1265,7 @@
        (turtles-read-from-minibuffer
            (visual-replace-read)
 
-         (execute-kbd-macro (kbd "text"))
+         :keys "text"
 
          (visual-replace--update-preview)
          (test-visual-run-idle-search-timers)
@@ -1303,7 +1303,7 @@
        (turtles-read-from-minibuffer
            (visual-replace-read)
 
-         (execute-kbd-macro (kbd "text"))
+         :keys "text"
 
          (visual-replace--update-preview)
          (test-visual-run-idle-search-timers)
@@ -1359,7 +1359,7 @@
        (turtles-read-from-minibuffer
            (visual-replace-read)
 
-         (execute-kbd-macro (kbd "text"))
+         :keys "text"
 
          (visual-replace--update-preview)
          (test-visual-run-idle-search-timers)
@@ -1418,7 +1418,7 @@
        (turtles-read-from-minibuffer
            (visual-replace-read)
 
-         (execute-kbd-macro (kbd "text"))
+         :keys "text"
 
          (visual-replace--update-preview)
          (test-visual-run-idle-search-timers)
@@ -1461,7 +1461,7 @@
        (turtles-read-from-minibuffer
            (visual-replace-read)
 
-         (execute-kbd-macro (kbd "hello"))
+         :keys "hello"
 
          ;; Hide the test buffer
          (select-window (display-buffer (get-scratch-buffer-create)))
@@ -1516,7 +1516,7 @@
        (turtles-read-from-minibuffer
            (visual-replace-read)
 
-         (execute-kbd-macro (kbd "hello"))
+         :keys "hello"
 
          (visual-replace--update-preview)
          (test-visual-run-idle-search-timers)
@@ -1571,7 +1571,7 @@
            (search-forward "(defun test-2 ()...)")
            (search-forward "(defun test-3 ()...)"))
 
-         (execute-kbd-macro (kbd "function"))
+         :keys "function"
          (visual-replace--update-preview t)
 
          (turtles-with-grab-buffer (:name "block 1 unfolded" :buf testbuf :faces test-visual-replace-faces)
@@ -1658,7 +1658,7 @@
        (turtles-read-from-minibuffer
            (visual-replace-read)
 
-         (execute-kbd-macro (kbd "function"))
+         :keys "function"
          (visual-replace--update-preview)
          (test-visual-run-idle-search-timers)
 
