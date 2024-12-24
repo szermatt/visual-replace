@@ -648,68 +648,121 @@
                     "Replace from point: hello → []")))))
 
 (ert-deftest test-visual-replace-initial-input ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run
-    "<F1> ! <F1> g" (visual-replace-read (visual-replace-make-args :from "initial")))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: initial[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+     (turtles-read-from-minibuffer
+         (visual-replace-read (visual-replace-make-args :from "initial"))
+
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point: initial" (buffer-string))))
+
+       ;; Don't complain about "nothing to replace"
+       (setq quit-flag t)))))
 
 (ert-deftest test-visual-replace-initial-input-complete ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run
-    "<F1> ! <F1> g"
-    (visual-replace-read (visual-replace-make-args :from "foo" :to "bar")))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: foo → bar[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+     (turtles-read-from-minibuffer
+         (visual-replace-read (visual-replace-make-args :from "foo" :to "bar"))
+
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point: foo → bar" (buffer-string))))
+
+       ;; Don't complain about "nothing to replace"
+       (setq quit-flag t)))))
 
 (ert-deftest test-visual-replace-initial-word ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run
-    "<F1> ! <F1> g"
-    (visual-replace-read (visual-replace-make-args :word t)))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: [] →w ")))))
+   (with-selected-window (display-buffer (current-buffer))
+     (turtles-read-from-minibuffer
+         (visual-replace-read (visual-replace-make-args :word t))
+
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point:  →w" (buffer-string))))
+
+       ;; Don't complain about "nothing to replace"
+       (setq quit-flag t)))))
 
 (ert-deftest test-visual-replace-initial-regexp ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run
-    "<F1> ! <F1> g"
-    (visual-replace-read (visual-replace-make-args :regexp t)))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: [] →.* ")))))
+   (with-selected-window (display-buffer (current-buffer))
+     (turtles-read-from-minibuffer
+         (visual-replace-read (visual-replace-make-args :regexp t))
+
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point:  →.*" (buffer-string))))
+
+       ;; Don't complain about "nothing to replace"
+       (setq quit-flag t)))))
 
 (ert-deftest test-visual-replace-initial-query ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run
-    "<F1> ! <F1> g"
-    (visual-replace-read (visual-replace-make-args :query t)))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: [] →? ")))))
+   (with-selected-window (display-buffer (current-buffer))
+     (turtles-read-from-minibuffer
+         (visual-replace-read (visual-replace-make-args :query t))
+
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point:  →?" (buffer-string))))
+
+       ;; Don't complain about "nothing to replace"
+       (setq quit-flag t)))))
 
 (ert-deftest test-visual-replace-initial-case-fold-enable ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (let ((case-fold-search nil))
-     (test-visual-replace-run
-      "<F1> ! <F1> g"
-      (visual-replace-read (visual-replace-make-args :case-fold t)))
-     (should (equal test-visual-replace-snapshot
-                    '("Replace from point: [] →i "))))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (let ((case-fold-search nil))
+       (turtles-read-from-minibuffer
+           (visual-replace-read (visual-replace-make-args :case-fold t))
+
+         (turtles-with-grab-buffer ()
+           (should (equal "Replace from point:  →i" (buffer-string))))
+
+         ;; Don't complain about "nothing to replace"
+         (setq quit-flag t))))))
 
 (ert-deftest test-visual-replace-initial-case-fold-disable ()
-  (test-visual-replace-env
-   (test-visual-replace-run
-    "<F1> ! <F1> g"
-    (visual-replace-read (visual-replace-make-args :case-fold nil)))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: [] →c ")))))
+  (turtles-ert-test)
 
-(ert-deftest test-visual-replace-initial-case-fold-matches-default ()
   (test-visual-replace-env
-   (test-visual-replace-run
-    "<F1> ! <F1> g"
-    (visual-replace-read (visual-replace-make-args :case-fold t)))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: []")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (let ((case-fold-search t))
+       (turtles-read-from-minibuffer
+           (visual-replace-read (visual-replace-make-args :case-fold nil))
+
+         (turtles-with-grab-buffer ()
+           (should (equal "Replace from point:  →c" (buffer-string))))
+
+         ;; Don't complain about "nothing to replace"
+         (setq quit-flag t))))))
+
+(ert-deftest test-visual-replace-initial-case-fold-default ()
+  (turtles-ert-test)
+
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point:" (buffer-string))))
+
+       ;; Don't complain about "nothing to replace"
+       (setq quit-flag t)))))
 
 (ert-deftest test-visual-replace-preview ()
   (turtles-ert-test)
