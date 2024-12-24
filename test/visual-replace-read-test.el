@@ -800,15 +800,27 @@
                   "[hell]o, world, [hell]o, [hell]o!"))))
 
 (ert-deftest test-visual-replace-preview-lax-ws ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (insert "hello   world!")
-   (goto-char (point-min))
-   (set-window-buffer (selected-window) (current-buffer))
-   (test-visual-replace-run "hello SPC world <F1> l <F1> _ <F1> x" (visual-replace-read))
-   (should (equal (test-visual-replace-highlight-face
-                   (car test-visual-replace-snapshot)
-                   'visual-replace-delete-match 'visual-replace-delete-match-highlight)
-                  "[hello   world]!"))))
+   (let ((visual-replace-min-length 3)
+         (testbuf (current-buffer)))
+     (insert "hello   world!")
+     (goto-char (point-min))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         :keys "hello SPC world"
+         (visual-replace-toggle-lax-ws)
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer (:name "minibuffer")
+           (should (equal "Replace from point: hello world →(lax ws)" (buffer-string))))
+         (turtles-with-grab-buffer (:name "buffer" :buf testbuf :faces test-visual-replace-faces)
+           (should (equal "[hello  world]*!" (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-preview-bad-regex ()
   (turtles-ert-test)
