@@ -1532,7 +1532,11 @@
                                   "some [text]14\n"
                                   "some [text]15\n"
                                   "some [text]16\n"
-                                  "some [text]17")
+                                  "some [text]17\n"
+                                  "some [text]18\n"
+                                  "some [text]19\n"
+                                  "some [text]20\n"
+                                  "some [text]21")
                           (buffer-string))))
 
          ;; Not all matches should have been highlighted.
@@ -1588,7 +1592,11 @@
                                   "some [text]14\n"
                                   "some [text]15\n"
                                   "some [text]16\n"
-                                  "some [text]17")
+                                  "some [text]17\n"
+                                  "some [text]18\n"
+                                  "some [text]19\n"
+                                  "some [text]20\n"
+                                  "some [text]21")
                           (buffer-string))))
 
          ;; Not all matches should have been highlighted.
@@ -1646,7 +1654,11 @@
                                   "some [text]*14\n"
                                   "some text15\n"
                                   "some text16\n"
-                                  "some text17")
+                                  "some text17\n"
+                                  "some text18\n"
+                                  "some text19\n"
+                                  "some text20\n"
+                                  "some text21")
                           (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-preview-display-window ()
