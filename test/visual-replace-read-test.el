@@ -712,87 +712,109 @@
                   '("Replace from point: []")))))
 
 (ert-deftest test-visual-replace-preview ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (insert "hello, world, hello, hello!")
-   (goto-char (point-min))
-   (set-window-buffer (selected-window) (current-buffer))
-   (test-visual-replace-run "hel <F1> _ l <F1> _ <F1> x" (visual-replace-read))
-   (should (equal (test-visual-replace-highlight-face
-                   (nth 0 test-visual-replace-snapshot)
-                   'visual-replace-match 'visual-replace-match-highlight)
-                  "[hel]lo, world, [hel]lo, [hel]lo!"))
-   (should (equal (test-visual-replace-highlight-face
-                   (nth 1 test-visual-replace-snapshot)
-                   'visual-replace-match 'visual-replace-match-highlight)
-                  "[hell]o, world, [hell]o, [hell]o!"))))
+   (let ((testbuf (current-buffer)))
+     (insert "hello, world, hello, hello!")
+     (goto-char (point-min))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         :keys "hel"
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer
+             (:name "hel" :buf testbuf :faces test-visual-replace-faces)
+           (should (equal "[hel]*lo, world, [hel]lo, [hel]lo!" (buffer-string))))
+
+         :keys "l"
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer
+             (:name "hell" :buf testbuf :faces test-visual-replace-faces)
+           (should (equal "[hell]*o, world, [hell]o, [hell]o!" (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-preview-case-fold ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (insert "Hello, world, hello, heLLO!")
-   (goto-char (point-min))
-   (set-window-buffer (selected-window) (current-buffer))
-   (test-visual-replace-run "hello <F1> _ <F1> c <F1> _ <F1> x" (visual-replace-read))
-   (should (equal (test-visual-replace-highlight-face
-                   (nth 0 test-visual-replace-snapshot)
-                   'visual-replace-match 'visual-replace-match-highlight)
-                  "[Hello], world, [hello], [heLLO]!"))
-   (should (equal (test-visual-replace-highlight-face
-                   (nth 1 test-visual-replace-snapshot)
-                   'visual-replace-delete-match-highlight)
-                  "Hello, world, [hello], heLLO!"))))
+   (let ((testbuf (current-buffer)))
+     (insert "Hello, world, hello, heLLO!")
+     (goto-char (point-min))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         :keys "hello"
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer
+             (:name "on" :buf testbuf :faces test-visual-replace-faces)
+           (should (equal "[Hello]*, world, [hello], [heLLO]!" (buffer-string))))
+
+         (visual-replace-toggle-case-fold)
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer
+             (:name "off" :buf testbuf :faces test-visual-replace-faces)
+           (should (equal "Hello, world, [hello]*, heLLO!" (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-preview-case-fold-uppercase ()
-  (test-visual-replace-env
-   (insert "Hello, world, hello, HELLO!")
-   (goto-char (point-min))
-   (set-window-buffer (selected-window) (current-buffer))
-   (test-visual-replace-run "HELLO <F1> _ <F1> c <F1> _ <F1> x" (visual-replace-read))
-   (should (equal (test-visual-replace-highlight-face
-                   (nth 0 test-visual-replace-snapshot)
-                   'visual-replace-match
-                   'visual-replace-match-highlight)
-                  "Hello, world, hello, [HELLO]!"))
-   (should (equal (test-visual-replace-highlight-face
-                   (nth 1 test-visual-replace-snapshot)
-                   'visual-replace-delete-match
-                   'visual-replace-delete-match-highlight)
-                  "Hello, world, hello, [HELLO]!"))))
+  (turtles-ert-test)
 
-(ert-deftest test-visual-replace-preview-delete ()
   (test-visual-replace-env
-   (insert "hello, world, hello, hello!")
-   (goto-char (point-min))
-   (set-window-buffer (selected-window) (current-buffer))
-   (test-visual-replace-run "hell TAB <F1> _ <F1> x" (visual-replace-read))
-   (should (equal (test-visual-replace-highlight-face
-                   (car test-visual-replace-snapshot)
-                   'visual-replace-delete-match
-                   'visual-replace-delete-match-highlight)
-                  "[hell]o, world, [hell]o, [hell]o!"))))
+   (let ((testbuf (current-buffer)))
+     (insert "Hello, world, hello, HELLO!")
+     (goto-char (point-min))
 
-(ert-deftest test-visual-replace-preview-replace ()
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         :keys "HELLO"
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer
+             (:name "on" :buf testbuf :faces test-visual-replace-faces)
+           (should (equal "Hello, world, hello, [HELLO]*!" (buffer-string))))
+
+         (visual-replace-toggle-case-fold)
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer
+             (:name "off" :buf testbuf :faces test-visual-replace-faces)
+           (should (equal "Hello, world, hello, [HELLO]*!" (buffer-string)))))))))
+
+(ert-deftest test-visual-replace-preview-delete-replace ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (insert "hello, world, hello, hello!")
-   (goto-char (point-min))
-   (set-window-buffer (selected-window) (current-buffer))
-   (test-visual-replace-run "hell TAB hul <F1> _ <F1> x" (visual-replace-read))
-   (should (equal (test-visual-replace-highlight-face
-                   (car test-visual-replace-snapshot)
-                   'visual-replace-delete-match
-                   'visual-replace-delete-match-highlight)
-                  "[hell]hulo, world, [hell]hulo, [hell]hulo!"))
-   (should (equal (test-visual-replace-highlight-face
-                   (car test-visual-replace-snapshot)
-                   'visual-replace-replacement
-                   'visual-replace-replacement-highlight)
-                  "hell[hul]o, world, hell[hul]o, hell[hul]o!"))))
+   (let ((testbuf (current-buffer)))
+     (insert "hello, world, hello, hello!")
+     (goto-char (point-min))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-read-from-minibuffer
+           (visual-replace-read)
+
+         :keys "hell TAB hul"
+         (visual-replace--update-preview)
+         (turtles-with-grab-buffer
+             (:buf testbuf :faces test-visual-replace-faces)
+           (should (equal "[hell]*{hul}*o, world, [hell]{hul}o, [hell]{hul}o!"
+                          (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-preview-regex ()
   (turtles-ert-test)
 
   (test-visual-replace-env
-   (let ((visual-replace-min-length 3)
-         (testbuf (current-buffer)))
+   (let ((testbuf (current-buffer)))
      (insert "hello, world, hello, hello!")
      (goto-char (point-min))
 
@@ -814,8 +836,7 @@
   (turtles-ert-test)
 
   (test-visual-replace-env
-   (let ((visual-replace-min-length 3)
-         (testbuf (current-buffer)))
+   (let ((testbuf (current-buffer)))
      (insert "hello   world!")
      (goto-char (point-min))
 
@@ -831,14 +852,13 @@
          (turtles-with-grab-buffer (:name "minibuffer")
            (should (equal "Replace from point: hello world →(lax ws)" (buffer-string))))
          (turtles-with-grab-buffer (:name "buffer" :buf testbuf :faces test-visual-replace-faces)
-           (should (equal "[hello  world]*!" (buffer-string)))))))))
+           (should (equal "[hello   world]*!" (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-preview-bad-regex ()
   (turtles-ert-test)
 
   (test-visual-replace-env
-   (let ((visual-replace-min-length 3)
-         (testbuf (current-buffer)))
+   (let ((testbuf (current-buffer)))
      (insert "hello, world, hello")
      (goto-char (point-min))
 
@@ -865,8 +885,7 @@
   (turtles-ert-test)
 
   (test-visual-replace-env
-   (let ((visual-replace-min-length 3)
-         (testbuf (current-buffer)))
+   (let ((testbuf (current-buffer)))
      (insert "hello, world, hello")
      (goto-char (point-min))
 
@@ -890,8 +909,7 @@
   (turtles-ert-test)
 
   (test-visual-replace-env
-   (let ((visual-replace-min-length 3)
-         (testbuf (current-buffer)))
+   (let ((testbuf (current-buffer)))
      (insert "hello, world, ")
      (let ((start-read-only (point))
            (end-read-only nil))
