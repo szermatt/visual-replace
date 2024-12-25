@@ -19,7 +19,6 @@
 (require 'visual-replace)
 (require 'ert)
 (require 'ert-x)
-(require 'seq)
 
 (defconst test-visual-replace-faces
   '((visual-replace-match "[]")
@@ -62,14 +61,6 @@
     (cl-assert (memq visual-replace--idle-search-timer timer-idle-list))
     (ert-run-idle-timers)))
 
-(defun test-visual-replace-highlight-face (text &rest faces)
-  "Return a copy of TEXT with FACES highlighted.
-
-FACES should be one or more face to highlight.
-
-The region of text with FACES are surrounded with []."
-  (apply #'test-visual-replace-highlight-property text 'face faces))
-
 (defun test-visual-replace-highlight-property (text property &rest values)
   "Return a copy of TEXT with PROPERTY set to VALUES highlighted.
 
@@ -100,21 +91,6 @@ The matching regions of text are surrounded with []."
 (defun visual-replace-ert-explain-string-match (a b)
   `(string-match ,a ,b))
 (put 'equal 'ert-explainer 'visual-replace-ert-explain-string-match)
-
-(defun visual-replace-test-window-content (&optional win)
-  "Return the visible portion of WIN.
-
-If WIN is unspecified or nil, return the content of the selected
-window. See `visual-replace-content' for details on the captured
-text.
-
-This requires `window-end' to be up-to-date. See
-`test-visual-window-end'."
-  (let ((win (or win (selected-window))))
-    (with-current-buffer (window-buffer win)
-      (save-restriction
-        (narrow-to-region (window-start win) (window-end win))
-        (buffer-string)))))
 
 (provide 'visual-replace-test-helper)
 
