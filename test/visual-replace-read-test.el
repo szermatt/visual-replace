@@ -318,147 +318,302 @@
                   "hello [world]"))))
 
 (ert-deftest test-visual-replace-kill ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run
-    "hello TAB world TAB C-a <right> C-k <F1> ! TAB C-a <right> C-k <F1> ! RET"
-    (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: h[] → world"
-                    "Replace from point: h → w[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "hello TAB world TAB C-a <right>"
+       :command #'kill-line
+       (turtles-with-grab-buffer (:name "1st kill")
+         (should (equal "Replace from point: h → world"
+                        (buffer-string))))
+
+       :keys "TAB C-a <right>"
+       :command #'kill-line
+       (turtles-with-grab-buffer (:name "2nd kill")
+         (should (equal "Replace from point: h → w"
+                        (buffer-string))))))))
 
 (ert-deftest test-visual-replace-kill-no-separator ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run "hello <left> C-k <F1> ! RET" (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: hell[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "hello <left>"
+       :command #'kill-line
+       (turtles-with-grab-buffer (:point "<>")
+         (should (equal "Replace from point: hell<>"
+                        (buffer-string))))))))
 
 (ert-deftest test-visual-replace-kill-whole-line ()
-  (test-visual-replace-env
-   (test-visual-replace-run
-    "hello TAB world <F1> k <F1> ! TAB <F1> k <F1> ! <F1> g"
-    (define-key visual-replace-mode-map (kbd "<F1> k") 'kill-whole-line)
-    (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: hello → []"
-                    "Replace from point: []")))))
+  (turtles-ert-test)
 
-(ert-deftest test-visual-replace-yank-in-from ()
   (test-visual-replace-env
-   (save-excursion (insert "from buffer"))
-   (test-visual-replace-run "<F1> y TAB <F1> ! RET"
-                        (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: from → []")))))
+   (with-selected-window (display-buffer (current-buffer))
 
-(ert-deftest test-visual-replace-yank-symbol-in-from- ()
-  (test-visual-replace-env
-   (save-excursion (insert "from-a buffer"))
-   (test-visual-replace-run "<F1> y TAB <F1> ! RET"
-                        (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: from-a → []")))))
+     (save-excursion (insert "from buffer"))
 
-(ert-deftest test-visual-replace-multiple-yank-in-from ()
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+
+       :keys "hello TAB world"
+       (turtles-with-grab-buffer (:name "before kill" :point "<>")
+         (should (equal "Replace from point: hello → world<>"
+                        (buffer-string))))
+
+       :command #'kill-whole-line
+       (turtles-with-grab-buffer (:name "after 1st kill" :point "<>")
+         (should (equal "Replace from point: hello → <>"
+                        (buffer-string))))
+
+       :keys "TAB"
+       :command #'kill-whole-line
+       (turtles-with-grab-buffer (:name "after 2nd kill" :point "<>")
+         (should (equal "Replace from point: <>"
+                        (buffer-string))))))))
+
+(ert-deftest test-visual-replace-yank-in-match-field ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (save-excursion (insert "from current buffer"))
-   (test-visual-replace-run "<F1> y <F1> ! <F1> y <F1> ! TAB RET"
-                        (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: from[]"
-                    "Replace from point: from current[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (save-excursion (insert "from buffer"))
+
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :command #'visual-replace-yank
+       :keys "TAB"
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point: from →"
+                        (buffer-string))))))))
+
+(ert-deftest test-visual-replace-yank-symbol-in-match-field ()
+  (turtles-ert-test)
+
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+
+     (save-excursion (insert "from-a buffer"))
+
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :command #'visual-replace-yank
+       :keys "TAB"
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point: from-a →"
+                        (buffer-string))))))))
+
+(ert-deftest test-visual-replace-multiple-yank-in-match-field ()
+  (turtles-ert-test)
+
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+
+     (save-excursion (insert "from current buffer"))
+
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :command #'visual-replace-yank
+       (turtles-with-grab-buffer (:name "1st yank" :point "<>")
+         (should (equal "Replace from point: from<>"
+                        (buffer-string))))
+
+       :command #'visual-replace-yank
+       (turtles-with-grab-buffer (:name "2nd yank" :point "<>")
+         (should (equal "Replace from point: from current<>"
+                        (buffer-string))))))))
 
 (ert-deftest test-visual-replace-yank-with-symbols ()
-  (test-visual-replace-env
-   (save-excursion (insert "(progn (when some-test some-value))"))
-   (goto-char (point-min))
-   (set-window-buffer (selected-window) (current-buffer))
+  (turtles-ert-test)
 
-   ;; After typing "(when", the pointer goes to the beginning of the
-   ;; first match, then moves as more and more text is added.
-   (test-visual-replace-run
-    (concat
-     "<F1> s (when <F1> ! "
-     (mapconcat #'identity (make-list 4 "<F1> y <F1> !") " ")
-     " RET")
-    (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace in buffer: (when[]"
-                    "Replace in buffer: (when some-test[]"
-                    "Replace in buffer: (when some-test some-value[]"
-                    "Replace in buffer: (when some-test some-value)[]"
-                    "Replace in buffer: (when some-test some-value))[]")))))
-
-(ert-deftest test-visual-replace-yank-in-from-with-prompt ()
   (test-visual-replace-env
-   (save-excursion (insert "from buffer"))
-   (test-visual-replace-run "TAB world TAB <F1> y <F1> ! RET"
-                        (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: from[] → world")))))
+   (with-selected-window (display-buffer (current-buffer))
 
-(ert-deftest test-visual-replace-yank-in-from-after-next-match ()
-  (test-visual-replace-env
-   (save-excursion (insert "from-buffer\nfrom-region\nfrom-point\n"))
-   (test-visual-replace-run "from <down> <F1> y <F1> ! RET"
-                        (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: from-region[]")))))
+     (insert "(progn (when some-test some-value))")
+     (goto-char (point-min))
 
-(ert-deftest test-visual-replace-yank-in-to ()
-  (test-visual-replace-env
-   (kill-new "from kill-ring")
-   (test-visual-replace-run "hello TAB <F1> y <F1> ! RET"
-                        (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: hello → hello[]")))))
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "TAB world TAB"
 
-(ert-deftest test-visual-replace-multiple-yank-in-to ()
-  (test-visual-replace-env
-   (kill-new "from kill-ring")
-   (test-visual-replace-run "hello TAB <F1> y <F1> y <F1> ! RET"
-                        (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: hello → hellohello[]")))))
+       ;; After typing "(when", the pointer goes to the beginning of
+       ;; the first match, then moves as more and more text is added
+       ;; by visual-replace-yank.
+       :keys "(when"
+       (visual-replace--update-preview)
+       (test-visual-run-idle-search-timers)
+       (turtles-with-grab-buffer (:name "after when")
+         (should (equal "Replace from point: (when → world"
+                        (buffer-string))))
 
-(ert-deftest test-visual-replace-yank-pop-in-from ()
-  (test-visual-replace-env
-   (kill-new "prev3")
-   (kill-new "prev2")
-   (kill-new "prev1")
-   (test-visual-replace-run "<F1> Y <F1> ! RET"
-                        (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: prev1[]")))))
+       :command #'visual-replace-yank
+       (turtles-with-grab-buffer (:name "1st yank")
+         (should (equal "Replace from point: (when some-test → world"
+                        (buffer-string))))
 
-(ert-deftest test-visual-replace-multiple-yank-pop-in-from ()
-  (test-visual-replace-env
-   (kill-new "prev3")
-   (kill-new "prev2")
-   (kill-new "prev1")
-   (test-visual-replace-run "<F1> Y <F1> Y <F1> ! RET"
-                        (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: prev2[]")))))
+       :command #'visual-replace-yank
+       (turtles-with-grab-buffer (:name "2nd yank")
+         (should (equal "Replace from point: (when some-test some-value → world"
+                        (buffer-string))))
 
-(ert-deftest test-visual-replace-yank-then-yank-pop-in-to ()
-  (test-visual-replace-env
-   (kill-new "prev3")
-   (kill-new "prev2")
-   (kill-new "prev1")
-   (test-visual-replace-run "hello TAB <F1> y <F1> Y <F1> ! RET"
-                        (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: hello → helloprev1[]")))))
+       :command #'visual-replace-yank
+       (turtles-with-grab-buffer (:name "3rd yank")
+         (should (equal "Replace from point: (when some-test some-value) → world"
+                        (buffer-string))))
 
-(ert-deftest test-visual-replace-multiple-yank-pop-in-to ()
+       :command #'visual-replace-yank
+       (turtles-with-grab-buffer (:name "4th yank")
+         (should (equal "Replace from point: (when some-test some-value)) → world"
+                        (buffer-string))))))))
+
+(ert-deftest test-visual-replace-yank-in-match-field-with-prompt ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (kill-new "prev3")
-   (kill-new "prev2")
-   (kill-new "prev1")
-   (test-visual-replace-run "hello TAB <F1> Y <F1> Y <F1> ! RET"
-                        (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: hello → prev2[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (save-excursion (insert "from buffer"))
+
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "TAB world TAB"
+       :command #'visual-replace-yank
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point: from → world"
+                        (buffer-string))))))))
+
+(ert-deftest test-visual-replace-yank-in-match-field-after-next-match ()
+  (turtles-ert-test)
+
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+
+     (save-excursion (insert "from-buffer\nfrom-region\nfrom-point\n"))
+
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "from"
+       :command #'visual-replace-next-match
+       :command #'visual-replace-yank
+       (turtles-with-grab-buffer (:point "<>")
+         (should (equal "Replace from point: from-region<>"
+                        (buffer-string))))))))
+
+(ert-deftest test-visual-replace-yank-in-replacement-field ()
+  (turtles-ert-test)
+
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+
+     (kill-new "from kill-ring")
+
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "hello TAB"
+       :command #'visual-replace-yank
+       (turtles-with-grab-buffer (:point "<>")
+         (should (equal "Replace from point: hello → hello<>"
+                        (buffer-string))))))))
+
+
+(ert-deftest test-visual-replace-multiple-yank-in-replacement-field ()
+  (turtles-ert-test)
+
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+
+     (kill-new "from kill-ring")
+
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "hello TAB"
+       :command #'visual-replace-yank
+       :keys "SPC"
+       :command #'visual-replace-yank
+       (turtles-with-grab-buffer (:point "<>")
+         (should (equal "Replace from point: hello → hello hello<>"
+                        (buffer-string))))))))
+
+(ert-deftest test-visual-replace-yank-pop-in-match-field ()
+  (turtles-ert-test)
+
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+
+     (kill-new "prev3")
+     (kill-new "prev2")
+     (kill-new "prev1")
+
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :command #'visual-replace-yank-pop
+       (turtles-with-grab-buffer (:point "<>")
+         (should (equal "Replace from point: prev1<>"
+                        (buffer-string))))))))
+
+(ert-deftest test-visual-replace-multiple-yank-pop-in-match-field ()
+  (turtles-ert-test)
+
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+
+     (kill-new "prev3")
+     (kill-new "prev2")
+     (kill-new "prev1")
+
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :command #'visual-replace-yank-pop
+       :command #'visual-replace-yank-pop
+       (turtles-with-grab-buffer (:point "<>")
+         (should (equal "Replace from point: prev2<>"
+                        (buffer-string))))))))
+
+(ert-deftest test-visual-replace-yank-then-yank-pop-in-replacement-field ()
+  (turtles-ert-test)
+
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+
+     (kill-new "prev3")
+     (kill-new "prev2")
+     (kill-new "prev1")
+
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "hello TAB"
+       :command #'visual-replace-yank
+       :keys "SPC"
+       :command #'visual-replace-yank-pop
+       (turtles-with-grab-buffer (:point "<>")
+         (should (equal "Replace from point: hello → hello prev1<>"
+                        (buffer-string))))))))
+
+(ert-deftest test-visual-replace-multiple-yank-pop-in-replacement-field ()
+  (turtles-ert-test)
+
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+
+     (kill-new "prev3")
+     (kill-new "prev2")
+     (kill-new "prev1")
+
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "hello TAB"
+       :command #'visual-replace-yank-pop
+       :command #'visual-replace-yank-pop
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point: hello → prev2"
+                        (buffer-string))))))))
 
 (ert-deftest test-visual-replace-history-by-default ()
   (turtles-ert-test)
