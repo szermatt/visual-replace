@@ -114,62 +114,7 @@ This requires `window-end' to be up-to-date. See
     (with-current-buffer (window-buffer win)
       (save-restriction
         (narrow-to-region (window-start win) (window-end win))
-        (visual-replace-test-content)))))
-
-(defun visual-replace-test-content ()
-  "Return the content of the current buffer.
-
-Sections that are invisible are not included into the text.
-
-Section with a \\='display overlay property are included instead
-of the text, with the display text put within curly braces.
-
-Other overlay properties are stored into the returned text as
-text properties."
-  (save-excursion
-    (let ((last (point-min))
-          (sections)
-          (ov-props)
-          (ov-lists (overlay-lists)))
-      (dolist (ov (append (car ov-lists) (cdr ov-lists)))
-        (let ((props (overlay-properties ov)))
-          (while props
-            (cl-pushnew (car props) ov-props)
-            (setq props (cdr (cdr props))))))
-      (setq ov-props (delq 'invisible ov-props))
-      (setq ov-props (delq 'display ov-props))
-      (setq ov-props (delq 'before-string ov-props))
-      (setq ov-props (delq 'after-string ov-props))
-
-      (goto-char (point-min))
-      (while (not (eobp))
-        (setq last (point))
-        (goto-char (next-char-property-change (point) (point-max)))
-        (let* ((invisible (invisible-p last))
-               (display (get-char-property last 'display))
-               (before-string (get-char-property last 'before-string))
-               (after-string (get-char-property last 'after-string)))
-          (dolist (ov (overlays-in last last))
-            (when (= (overlay-start ov) (overlay-end ov))
-              (when-let ((str (overlay-get ov 'before-string)))
-                (push str sections))
-              (when-let ((str (overlay-get ov 'after-string)))
-                (push str sections))))
-          (when before-string
-            (push before-string sections))
-          (push (cond
-                 (invisible "")
-                 (display (concat display))
-                 (t
-                  (let ((text (buffer-substring-no-properties (point) last)))
-                    (dolist (ov-prop ov-props)
-                      (let ((val (get-char-property last ov-prop)))
-                        (put-text-property 0 (length text) ov-prop val text)))
-                    text)))
-                sections)
-          (when after-string
-            (push after-string sections))))
-      (apply 'concat (nreverse sections)))))
+        (buffer-string)))))
 
 (provide 'visual-replace-test-helper)
 
