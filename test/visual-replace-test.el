@@ -368,43 +368,36 @@
                      (point-min) (point-max)))))))
 
 (ert-deftest test-visual-replace-jump-forward-to-first-match ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (with-selected-window (display-buffer (current-buffer))
-     (let* ((snapshots)
-            (win (selected-window))
-            (height (window-height win))
-            (to-replace (* 2 height)))
-       (dotimes (i (* 3 height))
-         (insert (format "this is text %d.\n" i)))
-       (goto-char (point-min))
-       (forward-line 3)
-       (recenter)
-       (define-key
-        visual-replace-mode-map
-        (kbd "C-c t")
-        (lambda ()
-          (interactive)
-          (visual-replace--update-preview)
-          (while visual-replace--idle-search-timer
-            (cl-assert (memq visual-replace--idle-search-timer timer-idle-list))
-            (ert-run-idle-timers))
-          (push (visual-replace-test-window-content win) snapshots)))
-       (visual-replace-ert-simulate-keys (kbd (format "t e x t SPC %d . TAB r e p l C-c t RET" to-replace))
-         (call-interactively 'visual-replace))
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows)
 
-       ;; C-c t was called once to capture window content.
-       (should (equal 1 (length snapshots)))
+       (let ((testbuf (current-buffer)))
+         (dotimes (i 100)
+           (insert (format "this is text %d.\n" i)))
+         (goto-char (point-min))
+         (forward-line 3)
+         (recenter)
 
-       ;; The replacement was highlighted, even though it required scrolling the window.
-       (should (string-match
-                (regexp-quote (format "[text %d.]repl" to-replace))
-                (test-visual-replace-highlight-face
-                 (car snapshots) 'visual-replace-delete-match 'visual-replace-delete-match-highlight)))
+         (turtles-read-from-minibuffer
+             (call-interactively 'visual-replace)
+
+           :keys "text SPC 40 TAB repl"
+           (visual-replace--update-preview)
+           (test-visual-run-idle-search-timers)
+
+           (turtles-with-grab-buffer (:buf testbuf :faces test-visual-replace-faces)
+             (should (equal "this is [text 40]*{repl}*."
+                            (buffer-substring (line-beginning-position)
+                                              (line-end-position))))))
 
        ;; The point is now at the first match.
-       (should (equal "this is repl" (buffer-substring-no-properties
-                                      (line-beginning-position)
-                                      (line-end-position))))
+       (should (equal "this is repl."
+                      (buffer-substring-no-properties
+                       (line-beginning-position)
+                       (line-end-position))))
 
        ;; The mark is at the original position, but inactive.
        (should-not (region-active-p))
@@ -416,46 +409,40 @@
                          (line-end-position)))))))))
 
 (ert-deftest test-visual-replace-jump-backward-to-first-match ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (with-selected-window (display-buffer (current-buffer))
-     (let* ((snapshots)
-            (win (selected-window))
-            (visual-replace-default-to-full-scope t)
-            (height (window-height win))
-            (start-line))
-       (dotimes (i (* 3 height))
-         (insert (format "this is text %d.\n" i)))
-       (goto-char (point-max))
-       (forward-line -3)
-       (setq start-line (buffer-substring-no-properties
-                         (line-beginning-position)
-                         (line-end-position)))
-       (recenter)
-       (define-key
-        visual-replace-mode-map
-        (kbd "C-c t")
-        (lambda ()
-          (interactive)
-          (visual-replace--update-preview)
-          (while visual-replace--idle-search-timer
-            (cl-assert (memq visual-replace--idle-search-timer timer-idle-list))
-            (ert-run-idle-timers))
-          (push (visual-replace-test-window-content win) snapshots)))
-       (visual-replace-ert-simulate-keys (kbd "t e x t SPC 5 . TAB repl C-c t RET")
-         (call-interactively 'visual-replace))
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows)
 
-       ;; C-c t was called once to capture window content.
-       (should (equal 1 (length snapshots)))
+       (let ((testbuf (current-buffer)))
+         (dotimes (i 100)
+           (insert (format "this is text %d.\n" i)))
+         (goto-char (point-max))
+         (forward-line -3)
+         (setq start-line (buffer-substring-no-properties
+                           (line-beginning-position)
+                           (line-end-position)))
+         (recenter)
 
-       ;; The replacement was highlighted, even though it required scrolling the window.
-       (should (string-match (regexp-quote "[text 5.]repl")
-                             (test-visual-replace-highlight-face
-                              (car snapshots) 'visual-replace-delete-match 'visual-replace-delete-match-highlight)))
+         (turtles-read-from-minibuffer
+             (call-interactively 'visual-replace)
+
+           :command #'visual-replace-toggle-scope
+           :keys "text SPC 5. TAB repl"
+           (visual-replace--update-preview)
+           (test-visual-run-idle-search-timers)
+
+           (turtles-with-grab-buffer (:buf testbuf :faces test-visual-replace-faces)
+             (should (equal "this is [text 5.]*{repl}*"
+                            (buffer-substring (line-beginning-position)
+                                              (line-end-position))))))
 
        ;; The point is now at the first match.
-       (should (equal "this is repl" (buffer-substring-no-properties
-                                      (line-beginning-position)
-                                      (line-end-position))))
+       (should (equal "this is repl"
+                      (buffer-substring-no-properties
+                       (line-beginning-position)
+                       (line-end-position))))
 
        ;; The mark is at the original position, but inactive.
        (should-not (region-active-p))
