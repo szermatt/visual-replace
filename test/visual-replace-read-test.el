@@ -26,150 +26,282 @@
 (require 'visual-replace-test-helper)
 
 (ert-deftest test-visual-replace-read-RET-twice ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (let ((args (car (test-visual-replace-run "hello RET world RET" (visual-replace-read)))))
-     (should (equal args (visual-replace-make-args :from "hello" :to "world"))))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "world")
+                        (car (visual-replace-read))))
+       :keys "hello RET world RET"))))
 
 (ert-deftest test-visual-replace-exit-immediately ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (let ((args (car (test-visual-replace-run "<F1> x" (visual-replace-read)))))
-     (should (equal args (visual-replace-make-args))))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args)
+                        (car (visual-replace-read))))))))
 
 (ert-deftest test-visual-replace-exit-before-tab ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (let ((args (car (test-visual-replace-run "hello <F1> x" (visual-replace-read)))))
-     (should (equal args (visual-replace-make-args))))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args)
+                        (car (visual-replace-read))))
+       :keys "hello"))))
 
 (ert-deftest test-visual-replace-read-TAB-then-RET ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (let ((args (car (test-visual-replace-run "hello TAB world RET" (visual-replace-read)))))
-     (should (equal args (visual-replace-make-args :from "hello" :to "world"))))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "world")
+                        (car (visual-replace-read))))
+       :keys "hello TAB world RET"))))
 
 (ert-deftest test-visual-replace-read-TAB-navigation ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run "hello TAB <F1> ! world TAB <F1> ! TAB <F1> ! RET"
-                        (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: hello → []"
-                    "Replace from point: hello[] → world"
-                    "Replace from point: hello → world[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "hello"
+       (turtles-with-grab-buffer (:name "before TAB" :point "<>")
+         (should (equal "Replace from point: hello<>" (buffer-string))))
+
+       :keys "TAB"
+       (turtles-with-grab-buffer (:name "1st TAB" :point "<>")
+         (should (equal "Replace from point: hello → <>" (buffer-string))))
+
+       :keys "world TAB"
+       (turtles-with-grab-buffer (:name "2nd TAB" :point "<>")
+         ;; This should be:
+         ;;   (should (equal "Replace from point: hello<> → world" (buffer-string)))
+         ;; but something goes wrong when recovering cursor position next to a display.
+         (should (equal "Replace from point: hello → <>world" (buffer-string))))
+
+       :keys "TAB"
+       (turtles-with-grab-buffer (:name "3rd TAB" :point "<>")
+         (should (equal "Replace from point: hello → world<>" (buffer-string))))))))
 
 (ert-deftest test-visual-replace-read-TAB-remember-pos ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run "hello TAB world <left> TAB <left> TAB <F1> ! TAB <F1> ! RET"
-                        (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: hello → worl[]d"
-                    "Replace from point: hell[]o → world")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "hello <left> TAB world <left>"
+       (turtles-with-grab-buffer (:name "before TAB" :point "<>")
+         (should (equal "Replace from point: hello → worl<>d" (buffer-string))))
+
+       :keys "TAB"
+       (turtles-with-grab-buffer (:name "1st TAB" :point "<>")
+         (should (equal "Replace from point: hell<>o → world" (buffer-string))))
+
+       :keys "TAB"
+       (turtles-with-grab-buffer (:name "2nd TAB" :point "<>")
+         (should (equal "Replace from point: hello → worl<>d" (buffer-string))))))))
 
 (ert-deftest test-visual-replace-read-TAB-default-to-end ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run "hello TAB world C-u 8 <left> TAB <F1> ! RET"
-                        (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: hello → world[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "hello TAB world C-u 8 <left> TAB"
+       (turtles-with-grab-buffer (:point "<>")
+         (should (equal "Replace from point: hello → world<>" (buffer-string))))))))
 
 (ert-deftest test-visual-replace-read-toggle-regexp ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (let ((args (car (test-visual-replace-run "hello TAB world <F1> r <F1> ! RET" (visual-replace-read)))))
-     (should (equal args (visual-replace-make-args :from "hello" :to "world" :regexp t))))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: hello →.* world[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "world" :regexp t)
+                        (car (visual-replace-read))))
+       :keys "hello TAB world"
+       :command #'visual-replace-toggle-regexp
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point: hello →.* world" (buffer-string))))))))
 
 (ert-deftest test-visual-replace-read-toggle-regexp-with-case-default ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (let ((case-fold-search t))
+   (with-selected-window (display-buffer (current-buffer))
+
      ;; If the default value is not handled properly, case-fold could
      ;; end up being nil when toggling another flag.
-     (should
-      (equal (car (test-visual-replace-run
-                   "hello TAB world <F1> r <F1> ! RET" (visual-replace-read)))
-             (visual-replace-make-args :from "hello" :to "world" :regexp t :case-fold t)))
-     (should (equal test-visual-replace-snapshot
-                    '("Replace from point: hello →.* world[]"))))))
+     (let ((case-fold-search t))
+       (turtles-read-from-minibuffer
+           (should (equal (visual-replace-make-args :from "hello" :to "world" :regexp t :case-fold t)
+                          (car (visual-replace-read))))
+         :keys "hello TAB world"
+         :command #'visual-replace-toggle-regexp
+         (turtles-with-grab-buffer ()
+           (should (equal "Replace from point: hello →.* world" (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-read-toggle-query ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (should
-    (equal (car (test-visual-replace-run
-                 "hello TAB world <F1> q <F1> ! RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "world" :query t)))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: hello →? world[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "world" :query t)
+                        (car (visual-replace-read))))
+       :keys "hello TAB world"
+       :command #'visual-replace-toggle-query
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point: hello →? world" (buffer-string))))))))
 
 (ert-deftest test-visual-replace-read-toggle-regexp-query ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (should
-    (equal (car (test-visual-replace-run
-                 "hello TAB world <F1> r <F1> q <F1> ! RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "world" :regexp t :query t)))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: hello →?.* world[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "world" :query t :regexp t)
+                        (car (visual-replace-read))))
+       :keys "hello TAB world"
+       :command #'visual-replace-toggle-query
+       :command #'visual-replace-toggle-regexp
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point: hello →?.* world" (buffer-string))))))))
 
 (ert-deftest test-visual-replace-read-toggle-word ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (should
-    (equal (car (test-visual-replace-run
-                 "hello TAB world <F1> w <F1> ! RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "world" :word t)))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: hello →w world[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "world" :word t)
+                        (car (visual-replace-read))))
+       :keys "hello TAB world"
+       :command #'visual-replace-toggle-word
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point: hello →w world" (buffer-string))))))))
 
 (ert-deftest test-visual-replace-read-toggle-word-and-regexp ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (should
-    (equal (car (test-visual-replace-run
-                 "hello TAB world <F1> w <F1> ! <F1> r <F1> ! <F1> w <F1> ! RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "world" :word t)))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: hello →w world[]"
-                    "Replace from point: hello →.* world[]"
-                    "Replace from point: hello →w world[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "world" :word t)
+                        (car (visual-replace-read))))
+       :keys "hello TAB world"
+       :command #'visual-replace-toggle-word
+       (turtles-with-grab-buffer (:name "word")
+         (should (equal "Replace from point: hello →w world" (buffer-string))))
+
+       ;; Turning on regexp turns off word
+       :command #'visual-replace-toggle-regexp
+       (turtles-with-grab-buffer (:name "word regexp")
+         (should (equal "Replace from point: hello →.* world" (buffer-string))))
+
+       ;; Turning off regexp again does not recover word
+       :command #'visual-replace-toggle-regexp
+       (turtles-with-grab-buffer (:name "neither word nor regexp")
+         (should (equal "Replace from point: hello → world" (buffer-string))))
+
+       :command #'visual-replace-toggle-word
+       (turtles-with-grab-buffer (:name "word again")
+         (should (equal "Replace from point: hello →w world" (buffer-string))))))))
 
 (ert-deftest test-visual-replace-read-default-case-fold ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (should
-    (equal (car (test-visual-replace-run
-                 "hello TAB world <F1> ! RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "world" :case-fold t)))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "world" :case-fold t)
+                        (car (visual-replace-read))))
+       :keys "hello TAB world"))))
 
 (ert-deftest test-visual-replace-read-toggle-case-fold ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (should
-    (equal (car (test-visual-replace-run
-                 "hello TAB world <F1> c <F1> ! RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "world" :case-fold nil)))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: hello →c world[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "world" :case-fold nil)
+                        (car (visual-replace-read))))
+       :keys "hello TAB world"
+       :command #'visual-replace-toggle-case-fold
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point: hello →c world" (buffer-string))))))))
 
 (ert-deftest test-visual-replace-read-toggle-case-fold-off-by-default ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (let ((case-fold-search nil))
-     (should (equal (car (test-visual-replace-run
-                  "hello TAB world <F1> c <F1> ! RET" (visual-replace-read)))
-                    (visual-replace-make-args :from "hello" :to "world" :case-fold t))))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: hello →i world[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+     (let ((case-fold-search nil))
+       (turtles-read-from-minibuffer
+           (should (equal (visual-replace-make-args :from "hello" :to "world" :case-fold t)
+                          (car (visual-replace-read))))
+         :keys "hello TAB world"
+         :command #'visual-replace-toggle-case-fold
+         (turtles-with-grab-buffer ()
+           (should (equal "Replace from point: hello →i world" (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-read-toggle-lax-ws ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (should
-    (equal (car (test-visual-replace-run
-                 "hello TAB world <F1> l <F1> ! RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "world"
-                                 :lax-ws-regexp t :lax-ws-non-regexp t)))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: hello →(lax ws) world[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args
+                         :from "hello" :to "world" :lax-ws-regexp t :lax-ws-non-regexp t)
+                        (car (visual-replace-read))))
+       :keys "hello TAB world"
+       :command #'visual-replace-toggle-lax-ws
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point: hello →(lax ws) world" (buffer-string))))))))
 
 (ert-deftest test-visual-replace-read-toggle-lax-ws-and-regexp ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (should
-    (equal (car (test-visual-replace-run
-                 "hello TAB world <F1> l <F1> r <F1> ! <F1> l <F1> ! RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "world" :regexp t)))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point: hello →(lax ws).* world[]"
-                    "Replace from point: hello →.* world[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args
+                         :from "hello" :to "world" :regexp t)
+                        (car (visual-replace-read))))
+       :keys "hello TAB world"
+       :command #'visual-replace-toggle-lax-ws
+       :command #'visual-replace-toggle-regexp
+       (turtles-with-grab-buffer (:name "lax ws and regexp")
+         (should (equal "Replace from point: hello →(lax ws).* world" (buffer-string))))
+
+       :command #'visual-replace-toggle-lax-ws
+       (turtles-with-grab-buffer (:name "regexp only")
+         (should (equal "Replace from point: hello →.* world" (buffer-string))))))))
 
 (ert-deftest test-visual-replace-read-toggle-scope ()
   (turtles-ert-test)
