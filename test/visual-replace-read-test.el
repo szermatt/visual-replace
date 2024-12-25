@@ -461,118 +461,257 @@
                   '("Replace from point: hello → prev2[]")))))
 
 (ert-deftest test-visual-replace-history-by-default ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run "hello TAB world RET" (visual-replace-read))
-   (should
-    (equal (car (test-visual-replace-run "RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "world")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     ;; Added to history
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "hello TAB world RET")
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "world")
+                        (car (visual-replace-read))))
+       :keys "RET"))))
 
 (ert-deftest test-visual-replace-default-but-no-history ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (should-error (test-visual-replace-run "TAB RET" (visual-replace-read)))))
+   (with-selected-window (display-buffer (current-buffer))
+     (turtles-read-from-minibuffer
+         (should-error (visual-replace-read))
+       :keys "RET"))))
 
 (ert-deftest test-visual-replace-history-by-default-despite-separator ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run "hello TAB world RET" (visual-replace-read))
-   (should
-    (equal (car (test-visual-replace-run "TAB RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "world")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     ;; Added to history
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "hello TAB world RET")
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "world")
+                        (car (visual-replace-read))))
+       :keys "TAB RET"))))
 
 (ert-deftest test-visual-replace-history-by-default-despite-toggle ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run "hello TAB world RET" (visual-replace-read))
-   (should
-    (equal (car (test-visual-replace-run "<F1> r RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "world")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     ;; Added to history
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "hello TAB world RET")
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "world")
+                        (car (visual-replace-read))))
+       :command #'visual-replace-toggle-regexp
+       :keys "RET"))))
 
 (ert-deftest test-visual-replace-history ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run "hello TAB world RET"
-                        (visual-replace-read))
-   (should
-    (equal (car (test-visual-replace-run
-                 "<F1> h <F1> ! RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "world")))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point [hello → world]: []hello → world")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     ;; Added to history
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "hello TAB world RET")
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "world")
+                        (car (visual-replace-read))))
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point [hello → world]:" (buffer-string))))
+       :command #'previous-history-element
+       (turtles-with-grab-buffer (:point "<>")
+         (should (equal "Replace from point [hello → world]: <>hello → world" (buffer-string))))))))
+
+(ert-deftest test-visual-replace-complete-from-history ()
+  (turtles-ert-test)
+
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+
+     ;; Added to history
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "hello TAB world RET")
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "foo TAB bar RET")
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "world")
+                        (car (visual-replace-read))))
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point [foo → bar]:" (buffer-string))))
+       :keys "h"
+       (turtles-with-grab-buffer (:point "<>")
+         (should (equal "Replace from point [foo → bar]: h<>" (buffer-string))))
+       :command #'previous-complete-history-element
+       (turtles-with-grab-buffer (:point "<>")
+         (should (equal "Replace from point [foo → bar]: h<>ello → world" (buffer-string))))))))
 
 (ert-deftest test-visual-replace-history-regex ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run "hello TAB world <F1> r RET"
-                        (visual-replace-read))
-   (should
-    (equal (car (test-visual-replace-run
-                 "<F1> h <F1> ! RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "world" :regexp t)))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point [hello →.* world]: []hello →.* world")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     ;; Added to history
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       (visual-replace-toggle-regexp)
+       :keys "hello TAB world RET")
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "world" :regexp t)
+                        (car (visual-replace-read))))
+       :command #'previous-complete-history-element
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point [hello →.* world]: hello →.* world"
+                        (buffer-string))))))))
 
 (ert-deftest test-visual-replace-history-regex-edit ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run "hello TAB world <F1> r RET"
-                        (visual-replace-read))
-   (should
-    (equal (car (test-visual-replace-run
-                 "<F1> h TAB x <F1> ! RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "worldx" :regexp t)))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point [hello →.* world]: hello →.* worldx[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     ;; Added to history
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       (visual-replace-toggle-regexp)
+       :keys "hello TAB world RET")
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "worldx" :regexp t)
+                        (car (visual-replace-read))))
+       :command #'previous-complete-history-element
+       :keys "TAB x"
+       (turtles-with-grab-buffer (:point "<>")
+         (should (equal "Replace from point [hello →.* world]: hello →.* worldx<>"
+                        (buffer-string))))))))
 
 (ert-deftest test-visual-replace-history-regex-toggle ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run "hello TAB world <F1> r RET"
-                        (visual-replace-read))
-   (should
-    (equal (car (test-visual-replace-run
-                 "<F1> h <F1> r RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "world")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     ;; Added to history
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       (visual-replace-toggle-regexp)
+       :keys "hello TAB world RET")
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "world")
+                        (car (visual-replace-read))))
+       :command #'previous-complete-history-element
+       :command #'visual-replace-toggle-regexp
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point [hello →.* world]: hello → world"
+                        (buffer-string))))))))
 
 (ert-deftest test-visual-replace-history-regex-query ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run "hello TAB world <F1> r <F1> q RET"
-                        (visual-replace-read))
-   (should
-    (equal (car (test-visual-replace-run
-                 "<F1> h <F1> ! RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "world" :regexp t :query t)))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point [hello →?.* world]: []hello →?.* world")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     ;; Added to history
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       (visual-replace-toggle-regexp)
+       (visual-replace-toggle-query)
+       :keys "hello TAB world RET")
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args
+                         :from "hello" :to "world" :regexp t :query t)
+                        (car (visual-replace-read))))
+       :command #'previous-complete-history-element
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point [hello →?.* world]: hello →?.* world"
+                        (buffer-string))))))))
 
 (ert-deftest test-visual-replace-history-regex-toggle-2 ()
-  (test-visual-replace-env
-   (test-visual-replace-run "hello TAB world <F1> r <F1> q RET" (visual-replace-read))
-   (should
-    (equal (car (test-visual-replace-run
-                 "<F1> h <F1> q <F1> ! RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "world" :regexp t)))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point [hello →?.* world]: []hello →.* world")))))
+  (turtles-ert-test)
 
-(ert-deftest test-visual-replace-history-multiple-1 ()
   (test-visual-replace-env
-   (test-visual-replace-run "hello TAB query <F1> q RET"
-                        (visual-replace-read))
-   (test-visual-replace-run "<F1> h <F1> ! RET"
-                        (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point [hello →? query]: []hello →? query")))))
+   (with-selected-window (display-buffer (current-buffer))
 
-(ert-deftest test-visual-replace-history-multiple-2 ()
-  (test-visual-replace-env
-   (test-visual-replace-run "hello TAB bar RET" (visual-replace-read))
-   (test-visual-replace-run "hello TAB query <F1> q RET" (visual-replace-read))
-   (test-visual-replace-run "<F1> h <F1> h <F1> ! RET" (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point [hello →? query]: []hello → bar")))))
+     ;; Added to history
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       (visual-replace-toggle-regexp)
+       (visual-replace-toggle-query)
+       :keys "hello TAB world RET")
 
-(ert-deftest test-visual-replace-history-multiple-3 ()
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args
+                         :from "hello" :to "world" :regexp t)
+                        (car (visual-replace-read))))
+       :command #'previous-complete-history-element
+       :command #'visual-replace-toggle-query
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point [hello →?.* world]: hello →.* world"
+                        (buffer-string))))))))
+
+(ert-deftest test-visual-replace-history-multiple ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run "hello TAB foo <F1> r RET" (visual-replace-read))
-   (test-visual-replace-run "hello TAB bar RET" (visual-replace-read))
-   (test-visual-replace-run "hello TAB query <F1> q RET" (visual-replace-read))
-   (test-visual-replace-run "<F1> h <F1> h <F1> h <F1> ! RET" (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace from point [hello →? query]: []hello →.* foo")))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     ;; Added to history
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       (visual-replace-toggle-regexp)
+       :keys "hello TAB foo RET")
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "hello TAB bar RET")
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       (visual-replace-toggle-query)
+       :keys "hello TAB query RET")
+
+     (turtles-read-from-minibuffer
+         (should (equal (visual-replace-make-args
+                         :from "hello" :to "foo" :regexp t)
+                        (car (visual-replace-read))))
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point [hello →? query]:"
+                        (buffer-string))))
+
+       :command #'previous-complete-history-element
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point [hello →? query]: hello →? query"
+                        (buffer-string))))
+
+       :command #'previous-complete-history-element
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point [hello →? query]: hello → bar"
+                        (buffer-string))))
+
+       :command #'previous-complete-history-element
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point [hello →? query]: hello →.* foo"
+                        (buffer-string))))))))
 
 (ert-deftest test-visual-replace-keep-incomplete-in-history ()
   (turtles-ert-test)
