@@ -2131,33 +2131,48 @@
          (should (get-buffer-window testbuf)))))))
 
 (ert-deftest test-visual-replace-read-toggle-query-from-hook ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (add-hook 'visual-replace-minibuffer-mode-hook #'visual-replace-toggle-query)
-   (should
-    (equal (car (test-visual-replace-run
-                 "hello TAB world RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "world" :query t)))))
+   (add-hook 'visual-replace-defaults-hook #'visual-replace-toggle-query)
+
+   (turtles-read-from-minibuffer
+       (should (equal
+                (visual-replace-make-args :from "hello" :to "world" :query t)
+                (car (visual-replace-read))))
+
+     :keys "hello TAB world")))
 
 (ert-deftest test-visual-replace-read-toggle-word-from-hook ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
    (add-hook 'visual-replace-defaults-hook #'visual-replace-toggle-word)
-   (should
-    (equal (car (test-visual-replace-run
-                 "hello TAB world RET" (visual-replace-read)))
-           (visual-replace-make-args :from "hello" :to "world" :word t)))))
+
+   (turtles-read-from-minibuffer
+       (should (equal
+                (visual-replace-make-args :from "hello" :to "world" :word t)
+                (car (visual-replace-read))))
+
+     :keys "hello TAB world")))
 
 (ert-deftest test-visual-replace-read-toggle-word-from-hook-not-default ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
    ;; The hook below doesn't apply if a visual-replace-args struct is
    ;; passed to visual-replace-read.
    (add-hook 'visual-replace-defaults-hook #'visual-replace-toggle-word)
-   (should
-    (equal (car (test-visual-replace-run
-                 "hello TAB world RET" (visual-replace-read
-                                        (let ((args (visual-replace-make-args)))
-                                          (setf (visual-replace-args-regexp args) t)
-                                          args))))
-           (visual-replace-make-args :from "hello" :to "world" :regexp t)))))
+
+   (turtles-read-from-minibuffer
+       (should (equal
+                (visual-replace-make-args :from "hello" :to "world" :regexp t)
+                (car (visual-replace-read
+                      (let ((args (visual-replace-make-args)))
+                        (setf (visual-replace-args-regexp args) t)
+                        args)))))
+
+     :keys "hello TAB world")))
 
 (ert-deftest test-visual-replace-goto-closest-match ()
   (turtles-ert-test)
