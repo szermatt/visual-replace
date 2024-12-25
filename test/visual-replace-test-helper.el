@@ -56,36 +56,6 @@
          (ert-with-test-buffer nil
            ,@body)))))
 
-(defun test-visual-replace-split-by-properties (start end)
-  "Split the text between START and END.
-
-The split is done by the properties \\='invisible and
-\\='display."
-  (save-excursion
-    (goto-char start)
-    (let ((parts) (next-point))
-      (while (progn
-               (setq next-point (test-visual-replace-next-properties-change (point) end))
-               (push (buffer-substring (point) next-point) parts)
-               (goto-char next-point)
-               (< (point) end)))
-      (nreverse parts))))
-
-(defun test-visual-replace-next-properties-change (start end)
-  "Find next position with a change in property.
-
-This applies to the text between START and END, looking for a
-change in the properties \\='invisible and \\='display."
-  (let ((last-invisible (get-text-property start 'invisible))
-        (last-display (get-text-property start 'display))
-        (pos start))
-    (while (progn
-             (setq pos (next-property-change pos nil end))
-             (and (< pos end)
-                  (and (eq last-invisible (get-text-property pos 'invisible))
-                       (eq last-display (get-text-property pos 'display))))))
-    (or pos end)))
-
 (defun test-visual-run-idle-search-timers ()
   "Run idle search timers, as long as there is one."
   (while visual-replace--idle-search-timer
