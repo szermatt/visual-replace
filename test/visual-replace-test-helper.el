@@ -85,9 +85,6 @@ The matching regions of text are surrounded with []."
       (when active (insert "]")))
     (buffer-substring (point-min) (point-max))))
 
-(defun test-visual-replace-content ()
-  (buffer-substring-no-properties (point-min) (point-max)))
-
 (defun visual-replace-ert-explain-string-match (a b)
   `(string-match ,a ,b))
 (put 'equal 'ert-explainer 'visual-replace-ert-explain-string-match)

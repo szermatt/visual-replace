@@ -46,7 +46,7 @@
      (insert "hello 2\n"))
    (visual-replace (visual-replace-make-args :from "hello" :to "hullo")
                      `((,(point) . ,(point-max))))
-   (should (equal (test-visual-replace-content)
+   (should (equal (buffer-string)
                    "hello 1\nhullo 2\n"))))
 
 (ert-deftest visual-replace-whole-buffer ()
@@ -56,7 +56,7 @@
      (insert "hello 2\n"))
    (visual-replace (visual-replace-make-args :from "hello" :to "hullo")
                      `((,(point-min) . ,(point-max))))
-   (should (equal (test-visual-replace-content)
+   (should (equal (buffer-string)
                    "hullo 1\nhullo 2\n"))))
 
 (ert-deftest visual-replace-in-region ()
@@ -70,7 +70,7 @@
 
      (visual-replace (visual-replace-make-args :from "hello" :to "hullo")
                      `((,mark-1 . ,mark-2)))
-   (should (equal (test-visual-replace-content)
+   (should (equal (buffer-string)
                    "hello 1\nhullo 2\nhello 3\n")))))
 
 (ert-deftest visual-replace-in-region-keep-initial-position ()
@@ -100,7 +100,7 @@
                     :to "H\\1O"
                     :regexp t)
                    `((,(point-min) . ,(point-max))))
-   (should (equal (test-visual-replace-content)
+   (should (equal (buffer-string)
                    "HellO, world"))))
 
 (ert-deftest visual-replace-regexp-eval ()
@@ -110,7 +110,7 @@
    (visual-replace (visual-replace-make-args
                     :from "h\\(.*?\\)o" :to "\\#\\,(upcase \\1)e" :regexp t)
                    `((,(point-min) . ,(point-max))))
-   (should (equal (test-visual-replace-content)
+   (should (equal (buffer-string)
                    "0ELLe, 1ELLe"))))
 
 (ert-deftest visual-replace-query ()
@@ -134,7 +134,7 @@
    (visual-replace (visual-replace-make-args
                     :from "hello world" :to "foobar" :lax-ws-non-regexp t)
                    `((,(point-min) . ,(point-max))))
-   (should (equal (test-visual-replace-content) "foobar."))))
+   (should (equal (buffer-string) "foobar."))))
 
 (ert-deftest visual-replace-lax-ws-regexp ()
   (test-visual-replace-env
@@ -143,7 +143,7 @@
    (visual-replace (visual-replace-make-args
                     :from "hello w.*d" :to "foobar" :lax-ws-regexp t :regexp t)
                    `((,(point-min) . ,(point-max))))
-   (should (equal (test-visual-replace-content) "foobar."))))
+   (should (equal (buffer-string) "foobar."))))
 
 (ert-deftest visual-replace-preprocess ()
   (test-visual-replace-env
@@ -158,7 +158,7 @@
                       :from "hello" :to "hullo" :regexp t)
                      `((,(point-min) . ,(point-max))))
 
-     (should (equal (test-visual-replace-content)
+     (should (equal (buffer-string)
                     "hullo, hello")))))
 
 (ert-deftest visual-replace-read-only-buffer ()
