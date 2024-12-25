@@ -275,47 +275,45 @@
      (should (equal ranges (list (cons (point-min) (point-max))))))))
 
 (ert-deftest test-visual-replace-fields ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run
-    "hello TAB world <F1> ! RET"
-    (define-key visual-replace-mode-map (kbd "<F1> !")
-                (lambda ()
-                  (interactive)
-                  (push (minibuffer-contents)
-                        test-visual-replace-snapshot)))
-    (visual-replace-read))
-   (should (equal (test-visual-replace-highlight-property
-                   (car test-visual-replace-snapshot)
-                   'field 'search)
-                  "[hello] world"))
-   (should (equal (test-visual-replace-highlight-property
-                   (car test-visual-replace-snapshot)
-                   'field 'replace)
-                  "hello [world]"))))
+   (with-selected-window (display-buffer (current-buffer))
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "hello TAB world"
+
+       (should (equal (test-visual-replace-highlight-property
+                       (minibuffer-contents) 'field 'search)
+                      "[hello] world"))
+
+       (should (equal (test-visual-replace-highlight-property
+                       (minibuffer-contents) 'field 'replace)
+                      "hello [world]"))))))
 
 (ert-deftest test-visual-replace-fields-in-history-entry ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   ;; fill history
-   (test-visual-replace-run
-    "hello TAB world RET"
-    (visual-replace-read))
-   ;; recall history entry.
-   (test-visual-replace-run
-    "<F1> h <F1> ! RET"
-    (define-key visual-replace-mode-map (kbd "<F1> !")
-                (lambda ()
-                  (interactive)
-                  (push (minibuffer-contents)
-                        test-visual-replace-snapshot)))
-    (visual-replace-read))
-   (should (equal (test-visual-replace-highlight-property
-                   (car test-visual-replace-snapshot)
-                   'field 'search)
-                  "[hello] world"))
-   (should (equal (test-visual-replace-highlight-property
-                   (car test-visual-replace-snapshot)
-                   'field 'replace)
-                  "hello [world]"))))
+   (with-selected-window (display-buffer (current-buffer))
+
+     ;; Fill in history
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "hello TAB world RET")
+
+     ;; Recall history entry.
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :command #'previous-history-element
+
+       (should (equal (test-visual-replace-highlight-property
+                       (minibuffer-contents) 'field 'search)
+                      "[hello] world"))
+
+       (should (equal (test-visual-replace-highlight-property
+                       (minibuffer-contents) 'field 'replace)
+                      "hello [world]"))))))
 
 (ert-deftest test-visual-replace-kill ()
   (turtles-ert-test)

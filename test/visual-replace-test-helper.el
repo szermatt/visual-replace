@@ -39,7 +39,7 @@ are triggered by the key F1 ! when running test-visual-replace-run.")
   `(save-window-excursion
      (let ((transient-mark-mode t)
            (kill-ring nil)
-           (inhibit-message t)
+           (inhibit-message nil)
            (case-fold-search t)
            (replace-lax-whitespace nil)
            (replace-regexp-lax-whitespace nil)
