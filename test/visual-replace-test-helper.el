@@ -21,10 +21,6 @@
 (require 'ert-x)
 (require 'seq)
 
-(defvar test-visual-replace-snapshot nil
-  "Variable filled with snapshots of the minibuffer. Snapshots
-are triggered by the key F1 ! when running test-visual-replace-run.")
-
 (defconst test-visual-replace-faces
   '((visual-replace-match "[]")
     (visual-replace-match-highlight "[]*")
@@ -39,7 +35,7 @@ are triggered by the key F1 ! when running test-visual-replace-run.")
   `(save-window-excursion
      (let ((transient-mark-mode t)
            (kill-ring nil)
-           (inhibit-message nil)
+           (inhibit-message t)
            (case-fold-search t)
            (replace-lax-whitespace nil)
            (replace-regexp-lax-whitespace nil)
@@ -55,104 +51,10 @@ are triggered by the key F1 ! when running test-visual-replace-run.")
            (visual-replace-highlight-match-at-point t)
            (visual-replace-minibuffer-mode-hook nil)
            (visual-replace-defaults-hook nil)
-           (visual-replace-keep-initial-position nil)
-           (test-visual-replace-snapshot nil))
+           (visual-replace-keep-initial-position nil))
        (cl-letf (((symbol-function 'sit-for) (lambda (_))))
          (ert-with-test-buffer nil
            ,@body)))))
-
-(defmacro test-visual-replace-run (macro &rest body)
-  "Run BODY and execute MACRO.
-
-MACRO should limit itself to keybindings starting with F1, TAB
-and RET. To have access to additional key bindings than those
-setup by this function in MACRO, bind them to a shortcut starting
-with F1 in visual-replace-mode-map.
-
-This is meant to be called within `test-visual-replace-env`."
-  `(test-visual-replace-run-1 ,macro (lambda () ,@body)))
-
-(defun test-visual-replace-run-1 (macro func)
-  (save-window-excursion
-    (let ((start-buffer (current-buffer))
-          (result nil)
-          (test-map (make-sparse-keymap))
-          (launch-map (make-sparse-keymap))
-          (f1-binding (lookup-key visual-replace-mode-map (kbd "<F1>")))
-          (tab-binding (lookup-key visual-replace-mode-map (kbd "TAB")))
-          (ret-binding (lookup-key visual-replace-mode-map (kbd "RET"))))
-      (define-key launch-map (kbd "<F1>")
-        (lambda ()
-          (interactive)
-          (setq result
-                (with-current-buffer start-buffer
-                  (let ((inhibit-quit t))
-                    (prog1
-                        (funcall func)
-                      (setq quit-flag nil)))))))
-      (set-transient-map launch-map)
-      ;; Temporarily bind some keys in visual-replace-mode-map to have access
-      ;; to the different commands no matter what visual-replace-mode-map
-      ;; contains.
-      (define-key visual-replace-mode-map (kbd "TAB") 'visual-replace-tab)
-      (define-key visual-replace-mode-map (kbd "RET") 'visual-replace-enter)
-      (define-key visual-replace-mode-map (kbd "<F1>") test-map)
-      (unwind-protect
-          (progn
-            ;; Snapshot minibuffer.
-            (define-key visual-replace-mode-map (kbd "<F1> !")
-                        'test-visual-replace-snapshot)
-            ;; Snapshot buffer.
-            (define-key visual-replace-mode-map (kbd "<F1> _")
-              (lambda ()
-                (interactive)
-                (test-visual-replace-preview start-buffer)))
-            (define-key visual-replace-mode-map (kbd "<F1> r") 'visual-replace-toggle-regexp)
-            (define-key visual-replace-mode-map (kbd "<F1> q") 'visual-replace-toggle-query)
-            (define-key visual-replace-mode-map (kbd "<F1> w") 'visual-replace-toggle-word)
-            (define-key visual-replace-mode-map (kbd "<F1> s") 'visual-replace-toggle-scope)
-            (define-key visual-replace-mode-map (kbd "<F1> c") 'visual-replace-toggle-case-fold)
-            (define-key visual-replace-mode-map (kbd "<F1> l") 'visual-replace-toggle-lax-ws)
-            (define-key visual-replace-mode-map (kbd "<F1> y") 'visual-replace-yank)
-            (define-key visual-replace-mode-map (kbd "<F1> Y") 'visual-replace-yank-pop)
-            (define-key visual-replace-mode-map (kbd "<F1> u") 'visual-replace-undo)
-            (define-key visual-replace-mode-map (kbd "<F1> h") 'previous-history-element)
-            (define-key visual-replace-mode-map (kbd "<F1> a") 'visual-replace-apply-one)
-            (define-key visual-replace-mode-map (kbd "<F1> x") 'exit-minibuffer)
-            (define-key visual-replace-mode-map (kbd "<F1> g") ;; simulates a quit
-              (lambda ()
-                (interactive)
-                (setq quit-flag t)
-                (exit-minibuffer)))
-            (define-key visual-replace-mode-map (kbd "<down>") 'visual-replace-next-match)
-            (define-key visual-replace-mode-map (kbd "<up>") 'visual-replace-prev-match)
-
-
-            ;; The binding for the first <F1> is taken from launch-map and
-            ;; starts visual-replace-read, after, when running visual-replace-read,
-            ;; visual-replace-mode-map becomes active.
-            (execute-kbd-macro (vconcat (kbd "<F1>") (kbd macro))))
-        (define-key visual-replace-mode-map (kbd "<F1>") f1-binding)
-        (define-key visual-replace-mode-map (kbd "TAB") tab-binding)
-        (define-key visual-replace-mode-map (kbd "RET") ret-binding))
-      result)))
-
-(defun test-visual-replace-snapshot ()
-  "Make a snapshot of the minibuffer.
-
-The snapshot is appended to `test-visual-replace-snapshot`."
-  (interactive)
-  (visual-replace--update-preview)
-  (test-visual-run-idle-search-timers)
-  (with-current-buffer (window-buffer (minibuffer-window))
-    (unwind-protect
-        (save-excursion
-          (insert "[]")
-          (goto-char (point-min))
-          (setq test-visual-replace-snapshot
-                (append test-visual-replace-snapshot
-                        (list (visual-replace-test-content)))))
-      (delete-region (point) (+ 2 (point))))))
 
 (defun test-visual-replace-split-by-properties (start end)
   "Split the text between START and END.
@@ -183,19 +85,6 @@ change in the properties \\='invisible and \\='display."
                   (and (eq last-invisible (get-text-property pos 'invisible))
                        (eq last-display (get-text-property pos 'display))))))
     (or pos end)))
-
-(defun test-visual-replace-preview (buf)
-  "Compute a preview for the current state.
-
-The preview is put into test-visual-replace-snapshot, after
-interpreting \\='display and \\='invisible. The face properties
-of the overlays are kept as text properties."
-  (with-current-buffer buf
-    (visual-replace--update-preview)
-    (test-visual-run-idle-search-timers)
-    (setq test-visual-replace-snapshot
-          (append test-visual-replace-snapshot
-                  (list (visual-replace-test-content))))))
 
 (defun test-visual-run-idle-search-timers ()
   "Run idle search timers, as long as there is one."
