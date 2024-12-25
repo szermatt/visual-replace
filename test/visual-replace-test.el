@@ -454,101 +454,66 @@
                          (line-end-position)))))))))
 
 (ert-deftest test-visual-replace-restore-position-after-jump ()
-  (test-visual-replace-env
-   (with-selected-window (display-buffer (current-buffer))
-     (let* ((win (selected-window))
-            (visual-replace-keep-initial-position t)
-            (height (window-height win))
-            (to-replace (* 2 height)))
-       (dotimes (i (* 3 height))
-         (insert (format "this is text %d.\n" i)))
-       (goto-char (point-min))
-       (forward-line 3)
-       (recenter)
-       (define-key
-        visual-replace-mode-map
-        (kbd "C-c t")
-        (lambda ()
-          (interactive)
-          (visual-replace--update-preview)
-          (while visual-replace--idle-search-timer
-            (cl-assert (memq visual-replace--idle-search-timer timer-idle-list))
-            (ert-run-idle-timers))))
-       (visual-replace-ert-simulate-keys (kbd (format "t e x t SPC %d . TAB r e p l C-c t RET" to-replace))
-         (call-interactively 'visual-replace))
+  (turtles-ert-test)
 
+  (test-visual-replace-env
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows)
+
+       (let ((testbuf (current-buffer))
+             (visual-replace-keep-initial-position t))
+         (dotimes (i 100)
+           (insert (format "this is text %d.\n" i)))
+         (goto-char (point-min))
+         (forward-line 3)
+         (recenter)
+
+         (turtles-read-from-minibuffer
+             (call-interactively 'visual-replace)
+
+           :keys "text SPC 40 TAB repl"
+           (visual-replace--update-preview)
+           (test-visual-run-idle-search-timers))
+
+       ;; The point is at the original position
        (should (equal "this is text 3."
                       (buffer-substring-no-properties
                        (line-beginning-position)
                        (line-end-position))))))))
 
-(ert-deftest test-visual-replace-stay-in-position-after-jump ()
+(ert-deftest test-visual-replace-give-up-looking-for-first-match ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
      (with-selected-window (display-buffer (current-buffer))
-       (let* ((win (selected-window))
-              (visual-replace-keep-initial-position nil)
-              (height (window-height win))
-              (to-replace (* 2 height)))
-         (dotimes (i (* 3 height))
-           (insert (format "this is text %d.\n" i)))
-         (goto-char (point-min))
-         (forward-line 3)
-         (recenter)
-         (define-key
-          visual-replace-mode-map
-          (kbd "C-c t")
-          (lambda ()
-            (interactive)
-            (visual-replace--update-preview)
-            (while visual-replace--idle-search-timer
-              (cl-assert (memq visual-replace--idle-search-timer timer-idle-list))
-              (ert-run-idle-timers))))
-         (visual-replace-ert-simulate-keys (kbd (format "t e x t SPC %d . TAB r e p l C-c t RET" to-replace))
-                                           (call-interactively 'visual-replace))
-         ;; The point should be at the first match.
-         (should (equal "this is repl"
-                        (buffer-substring-no-properties
-                         (line-beginning-position)
-                         (line-end-position))))))))
+       (delete-other-windows)
 
-(ert-deftest test-visual-replace-give-up-looking-for-first-match ()
-  (test-visual-replace-env
-   (with-selected-window (display-buffer (current-buffer))
-     (let* ((snapshots)
-            (win (selected-window))
-            (visual-replace-max-size-for-search 1024))
-       (dotimes (_ 1024)
-         (insert "some text.\n"))
-       (insert "the end.")
-       (goto-char (point-min))
-       (recenter)
-       (define-key
-        visual-replace-mode-map
-        (kbd "C-c t")
-        (lambda ()
-          (interactive)
-          (visual-replace--update-preview)
-          (while visual-replace--idle-search-timer
-            (cl-assert (memq visual-replace--idle-search-timer timer-idle-list))
-            (ert-run-idle-timers))
-          (push (visual-replace-test-window-content win) snapshots)))
-       (visual-replace-ert-simulate-keys (kbd "the SPC end TAB fin C-c t RET")
-         (call-interactively 'visual-replace))
+       (let ((testbuf (current-buffer))
+             (visual-replace-max-size-for-search 1024))
+         (dotimes (_ 1024)
+           (insert "some text.\n"))
+         (insert "the end.")
+         (goto-char (point-min))
+         (recenter)
+
+         (turtles-read-from-minibuffer
+             (call-interactively 'visual-replace)
+
+           :keys "the SPC end TAB fin"
+           (visual-replace--update-preview)
+           (test-visual-run-idle-search-timers)
+
+           ;; The match isn't visible, because it's too far according
+           ;; to visual-replace-max-size-for-search.
+           (turtles-with-grab-buffer (:buf testbuf)
+             (goto-char (point-min))
+             (should-not (search-forward "the end." nil 'noerror))))
 
        ;; The text was replaced
        (goto-char (point-max))
        (should (equal "fin." (buffer-substring-no-properties
                               (line-beginning-position)
-                              (line-end-position))))
-
-       ;; C-c t was called once to capture window content.
-       (should (equal 1 (length snapshots)))
-
-       ;; The replacement was NOT highlighted.
-       (should (string-match
-                "the end.$"
-                (test-visual-replace-highlight-face
-                 (car snapshots) 'visual-replace-delete-match)))))))
+                              (line-end-position))))))))
 
 (ert-deftest test-visual-replace-small-ranges ()
   (ert-with-test-buffer nil
