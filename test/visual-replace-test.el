@@ -937,10 +937,7 @@
 
        :keys "world TAB"
        (turtles-with-grab-buffer (:name "2nd TAB" :point "<>")
-         ;; This should be:
-         ;;   (should (equal "Replace from point: hello<> → world" (buffer-string)))
-         ;; but something goes wrong when recovering cursor position next to a display.
-         (should (equal "Replace from point: hello → <>world" (buffer-string))))
+         (should (equal "Replace from point: hello<> → world" (buffer-string))))
 
        :keys "TAB"
        (turtles-with-grab-buffer (:name "3rd TAB" :point "<>")
