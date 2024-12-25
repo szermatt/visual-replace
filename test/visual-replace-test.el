@@ -18,6 +18,7 @@
 
 (require 'ert)
 (require 'ert-x)
+(require 'turtles)
 
 (require 'visual-replace)
 (require 'visual-replace-test-helper)
@@ -584,119 +585,100 @@
                    (visual-replace--small-ranges `((1 . ,(line-beginning-position 200))))))))
 
 (ert-deftest test-visual-replace-highlight-scope-from-point ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (with-selected-window (display-buffer (current-buffer))
-     (delete-other-windows)
-     (should (>= (window-height) 6))
-     (let* ((snapshots)
-            (win (selected-window)))
+   (let ((testbuf (current-buffer)))
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows)
+
        (dotimes (i 6)
          (insert (format "line %d.\n" i)))
        (goto-char (point-min))
        (forward-line 3)
-       (define-key
-        visual-replace-mode-map
-        (kbd "C-c t")
-        (lambda ()
-          (interactive)
-          (push
-           (cons (visual-replace-test-window-content) ;; minibuffer
-                 (test-visual-replace-highlight-face
-                  (visual-replace-test-window-content win)
-                  'visual-replace-region))
-           snapshots)))
-       (define-key
-        visual-replace-mode-map
-        (kbd "C-c s")
-        #'visual-replace-toggle-scope)
-       (should-not visual-replace-default-to-full-scope)
-       (visual-replace-ert-simulate-keys (kbd "foo C-c t C-c s C-c t TAB bar RET")
-         (call-interactively 'visual-replace))
 
-       (should (equal
-                (list
-                 ;; 'from-point is highlighted
-                 (cons
-                  "Replace from point: foo"
-                  (concat "line 0.\n"
-                          "line 1.\n"
-                          "line 2.\n"
-                          "[line 3.\n"
-                          "line 4.\n"
-                          "line 5.\n"
-                          "]"))
-                 ;; 'full is not highlighted
-                 (cons
-                  "Replace in buffer: foo"
-                  (concat "line 0.\n"
-                          "line 1.\n"
-                          "line 2.\n"
-                          "line 3.\n"
-                          "line 4.\n"
-                          "line 5.\n")))
-                (nreverse snapshots)))))))
+       (should-not visual-replace-default-to-full-scope)
+       (turtles-read-from-minibuffer
+           (call-interactively 'visual-replace)
+
+         :keys "foo TAB bar"
+         (turtles-with-grab-buffer (:name "from-point")
+           (should (equal "Replace from point: foo → bar" (buffer-string))))
+         (turtles-with-grab-buffer
+             (:name "from-point is highlighted" :buf testbuf :faces '((visual-replace-region . "[]")))
+           (should (equal (concat "line 0.\n"
+                                  "line 1.\n"
+                                  "line 2.\n"
+                                  "[line 3. ]\n"
+                                  "[line 4. ]\n"
+                                  "[line 5. ]")
+                          (buffer-string))))
+
+         :command #'visual-replace-toggle-scope
+         (turtles-with-grab-buffer (:name "full")
+           (should (equal "Replace in buffer: foo → bar" (buffer-string))))
+         (turtles-with-grab-buffer
+             (:name "full is not highlighted" :buf testbuf :faces '((visual-replace-region . "[]")))
+           (should (equal (concat "line 0.\n"
+                                  "line 1.\n"
+                                  "line 2.\n"
+                                  "line 3.\n"
+                                  "line 4.\n"
+                                  "line 5.")
+                          (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-highlight-scope-region ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (with-selected-window (display-buffer (current-buffer))
-     (delete-other-windows)
-     (should (>= (window-height) 6))
-     (let* ((snapshots)
-            (win (selected-window)))
+   (let ((testbuf (current-buffer)))
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows)
+
        (dotimes (i 6)
          (insert (format "line %d.\n" i)))
        (goto-char (point-min))
        (forward-line 2)
        (set-mark (line-end-position 2))
-       (define-key
-        visual-replace-mode-map
-        (kbd "C-c t")
-        (lambda ()
-          (interactive)
-          (push
-           (cons (visual-replace-test-window-content) ;; minibuffer
-                 (test-visual-replace-highlight-face
-                  (visual-replace-test-window-content win)
-                  'visual-replace-region))
-           snapshots)))
-       (define-key
-        visual-replace-mode-map
-        (kbd "C-c s")
-        #'visual-replace-toggle-scope)
-       (should-not visual-replace-default-to-full-scope)
        (should (region-active-p))
-       (visual-replace-ert-simulate-keys (kbd "foo C-c t C-c s C-c t TAB bar RET")
-         (call-interactively 'visual-replace))
+       (should-not visual-replace-default-to-full-scope)
+       (turtles-read-from-minibuffer
+           (call-interactively 'visual-replace)
 
-       (should (equal
-                (list
-                 ;; 'region is highlighted
-                 (cons
-                  "Replace in region (2L): foo"
-                  (concat "line 0.\n"
-                          "line 1.\n"
-                          "[line 2.\n"
-                          "line 3.]\n"
-                          "line 4.\n"
-                          "line 5.\n"))
-                 ;; 'full is not highlighted
-                 (cons
-                  "Replace in buffer: foo"
-                  (concat "line 0.\n"
-                          "line 1.\n"
-                          "line 2.\n"
-                          "line 3.\n"
-                          "line 4.\n"
-                          "line 5.\n")))
-                (nreverse snapshots)))))))
+         :keys "foo TAB bar"
+         (turtles-with-grab-buffer (:name "in-region")
+           (should (equal "Replace in region (2L): foo → bar" (buffer-string))))
+         (turtles-with-grab-buffer
+             (:name "in-region is highlighted" :buf testbuf :faces '((visual-replace-region . "[]")))
+           (should (equal (concat "line 0.\n"
+                                  "line 1.\n"
+                                  "[line 2. ]\n"
+                                  "[line 3.]\n"
+                                  "line 4.\n"
+                                  "line 5.")
+                          (buffer-string))))
+
+         :command #'visual-replace-toggle-scope
+         (turtles-with-grab-buffer (:name "full")
+           (should (equal "Replace in buffer: foo → bar" (buffer-string))))
+         (turtles-with-grab-buffer
+             (:name "full is not highlighted" :buf testbuf :faces '((visual-replace-region . "[]")))
+           (should (equal (concat "line 0.\n"
+                                  "line 1.\n"
+                                  "line 2.\n"
+                                  "line 3.\n"
+                                  "line 4.\n"
+                                  "line 5.")
+                          (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-highlight-scope-rect-region ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (with-selected-window (display-buffer (current-buffer))
-     (delete-other-windows)
-     (should (>= (window-height) 6))
-     (let* ((snapshots)
-            (win (selected-window)))
+   (let ((testbuf (current-buffer)))
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows)
+
        (dotimes (i 6)
          (insert (format "line %d.\n" i)))
        (goto-char (point-min))
@@ -704,55 +686,46 @@
        (rectangle-mark-mode)
        (forward-line 2)
        (goto-char (1- (line-end-position)))
-       (define-key
-        visual-replace-mode-map
-        (kbd "C-c t")
-        (lambda ()
-          (interactive)
-          (push
-           (cons (visual-replace-test-window-content) ;; minibuffer
-                 (test-visual-replace-highlight-face
-                  (visual-replace-test-window-content win)
-                  'visual-replace-region))
-           snapshots)))
-       (define-key
-        visual-replace-mode-map
-        (kbd "C-c s")
-        #'visual-replace-toggle-scope)
-       (should-not visual-replace-default-to-full-scope)
-       (should (region-active-p))
-       (visual-replace-ert-simulate-keys (kbd "foo C-c t C-c s C-c t TAB bar RET")
-         (call-interactively 'visual-replace))
 
-       (should (equal
-                (list
-                 ;; 'region is highlighted
-                 (cons
-                  "Replace in region (3L): foo"
-                  (concat "line 0.\n"
-                          "line 1.\n"
-                          "[line 2].\n"
-                          "[line 3].\n"
-                          "[line 4].\n"
-                          "line 5.\n"))
-                 ;; 'full is not highlighted
-                 (cons
-                  "Replace in buffer: foo"
-                  (concat "line 0.\n"
-                          "line 1.\n"
-                          "line 2.\n"
-                          "line 3.\n"
-                          "line 4.\n"
-                          "line 5.\n")))
-                (nreverse snapshots)))))))
+       (should (region-active-p))
+       (should-not visual-replace-default-to-full-scope)
+       (turtles-read-from-minibuffer
+           (call-interactively 'visual-replace)
+
+         :keys "foo TAB bar"
+         (turtles-with-grab-buffer (:name "in-region")
+           (should (equal "Replace in region (3L): foo → bar" (buffer-string))))
+         (turtles-with-grab-buffer
+             (:name "in-region is highlighted" :buf testbuf :faces '((visual-replace-region . "[]")))
+           (should (equal (concat "line 0.\n"
+                                  "line 1.\n"
+                                  "[line 2].\n"
+                                  "[line 3].\n"
+                                  "[line 4].\n"
+                                  "line 5.")
+                          (buffer-string))))
+
+         :command #'visual-replace-toggle-scope
+         (turtles-with-grab-buffer (:name "full")
+           (should (equal "Replace in buffer: foo → bar" (buffer-string))))
+         (turtles-with-grab-buffer
+             (:name "full is not highlighted" :buf testbuf :faces '((visual-replace-region . "[]")))
+           (should (equal (concat "line 0.\n"
+                                  "line 1.\n"
+                                  "line 2.\n"
+                                  "line 3.\n"
+                                  "line 4.\n"
+                                  "line 5.")
+                          (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-highlight-scope-rect-region-with-gaps ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (with-selected-window (display-buffer (current-buffer))
-     (delete-other-windows)
-     (should (>= (window-height) 6))
-     (let* ((snapshots)
-            (win (selected-window)))
+   (let ((testbuf (current-buffer)))
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows)
+
        (insert "line 1.\n")
        (insert "     line 2.\n")
        (insert "3.\n")
@@ -767,30 +740,24 @@
          (forward-line 3)
          (goto-char (+ (point) col)))
        (rectangle-right-char 4)
-       (define-key
-        visual-replace-mode-map
-        (kbd "C-c t")
-        (lambda ()
-          (interactive)
-          (push
-           (test-visual-replace-highlight-face
-            (visual-replace-test-window-content win)
-            'visual-replace-region)
-           snapshots)))
-       (should-not visual-replace-default-to-full-scope)
-       (should (region-active-p))
-       (visual-replace-ert-simulate-keys (kbd "foo C-c t TAB bar RET")
-         (call-interactively 'visual-replace))
 
-       (should (equal
-                (list
-                 (concat "line 1.\n"
+       (should (region-active-p))
+       (should-not visual-replace-default-to-full-scope)
+       (turtles-read-from-minibuffer
+           (call-interactively 'visual-replace)
+
+         :keys "foo TAB bar"
+         (turtles-with-grab-buffer (:name "in-region")
+           (should (equal "Replace in region (4L): foo → bar" (buffer-string))))
+         (turtles-with-grab-buffer
+             (:name "in-region is highlighted" :buf testbuf :faces '((visual-replace-region . "[]")))
+           (should (equal (concat "line 1.\n"
                          "     [line] 2.\n"
                          "3.   [    ]\n"
                          "     [line] 4.\n"
                          "line [5.  ]\n"
-                         "line 6.\n"))
-                snapshots))))))
+                         "line 6.")
+                          (buffer-string)))))))))
 
 (ert-deftest test-visual-replace-prev-next-match ()
   (test-visual-replace-env
