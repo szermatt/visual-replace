@@ -117,7 +117,7 @@
    (insert "hello 3\n")
    (goto-char (point-min))
 
-   (ert-simulate-keys (kbd "n y n")
+   (visual-replace-ert-simulate-keys (kbd "n y n")
     (visual-replace (visual-replace-make-args :from "hello" :to "hullo" :query t)
                     `((,(point-min) . ,(point-max)))))
 
