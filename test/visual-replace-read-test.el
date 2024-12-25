@@ -238,41 +238,76 @@
   (should (region-active-p)))
 
 (ert-deftest test-visual-replace-read-toggle-scope-with-region-display ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (test-visual-replace-run "hello TAB world <F1> ! <F1> s <F1> ! <F1> s <F1> ! RET"
-                        (test-visual-replace-setup-region)
-                        (visual-replace-read))
-   (should (equal test-visual-replace-snapshot
-                  '("Replace in region (1L): hello → world[]"
-                    "Replace in buffer: hello → world[]"
-                    "Replace in region (1L): hello → world[]")))))
+   (with-selected-window (display-buffer (current-buffer))
+     (test-visual-replace-setup-region)
+     (turtles-read-from-minibuffer
+         (visual-replace-read)
+       :keys "hello TAB world"
+       (turtles-with-grab-buffer (:name "region")
+         (should (equal "Replace in region (1L): hello → world"
+                        (buffer-string))))
+
+       :command #'visual-replace-toggle-scope
+       (turtles-with-grab-buffer (:name "buffer")
+         (should (equal "Replace in buffer: hello → world"
+                        (buffer-string))))
+
+       :command #'visual-replace-toggle-scope
+       (turtles-with-grab-buffer (:name "region again")
+         (should (equal "Replace in region (1L): hello → world"
+                        (buffer-string))))))))
 
 (ert-deftest test-visual-replace-read-toggle-scope-with-region ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (let ((ranges (nth 1 (test-visual-replace-run "hello TAB world RET"
-                                             (test-visual-replace-setup-region)
-                                             (visual-replace-read)))))
-     (should (equal ranges (list (cons 1 7)))))))
+   (with-selected-window (display-buffer (current-buffer))
+     (test-visual-replace-setup-region)
+     (let (ranges)
+       (turtles-read-from-minibuffer
+           (setq ranges (nth 1 (visual-replace-read)))
+         :keys "hello TAB world")
+       (should (equal ranges (list (cons 1 7))))))))
 
 (ert-deftest test-visual-replace-read-noncontiguous-region ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (insert "hello\nworld\nhello\nworld\n")
-   (goto-char (point-min))
-   (move-to-column 2)
-   (rectangle-mark-mode 1)
-   (goto-char (line-beginning-position 2))
-   (move-to-column 4)
-   (let ((ranges (nth 1 (test-visual-replace-run "<F1> ! he TAB ho RET"
-                                             (visual-replace-read)))))
-     (should (equal test-visual-replace-snapshot '("Replace in region (2L): []")))
-     (should (equal ranges '((3 . 5) (9 . 11)))))))
+   (with-selected-window (display-buffer (current-buffer))
+     (insert "hello\nworld\nhello\nworld\n")
+     (goto-char (point-min))
+     (move-to-column 2)
+     (rectangle-mark-mode 1)
+     (goto-char (line-beginning-position 2))
+     (move-to-column 4)
+
+     (let (ranges)
+       (turtles-read-from-minibuffer
+           (setq ranges (nth 1 (visual-replace-read)))
+
+         (turtles-with-grab-buffer ()
+           (should (equal "Replace in region (2L):" (buffer-string))))
+         :keys "he TAB ho")
+
+     (should (equal ranges '((3 . 5) (9 . 11))))))))
 
 (ert-deftest test-visual-replace-read-toggle-scope-with-region-then-buffer ()
+  (turtles-ert-test)
+
   (test-visual-replace-env
-   (let ((ranges (nth 1 (test-visual-replace-run "hello TAB world <F1> s RET"
-                                             (test-visual-replace-setup-region)
-                                             (visual-replace-read)))))
-     (should (equal ranges (list (cons (point-min) (point-max))))))))
+   (with-selected-window (display-buffer (current-buffer))
+     (test-visual-replace-setup-region)
+
+     (let (ranges)
+       (turtles-read-from-minibuffer
+           (setq ranges (nth 1 (visual-replace-read)))
+         :keys "hello TAB world"
+         :command #'visual-replace-toggle-scope)
+
+       (should (equal ranges (list (cons (point-min) (point-max)))))))))
 
 (ert-deftest test-visual-replace-fields ()
   (turtles-ert-test)
