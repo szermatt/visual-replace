@@ -3330,10 +3330,10 @@
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "(defun test-1 ()\n")
-     (dotimes (i 20)
+     (dotimes (i (frame-height))
        (insert (format " (message \"line %d\"))\n" i)))
      (insert "\n")
-     ;; This is out of the default turtles screen (80x20) if test-1
+     ;; This is out of the default turtles screen (80x24) if test-1
      ;; is unfolded.
      (insert "(defun test-2 ()\n")
      (insert " \"This is another test function.\"\n")
