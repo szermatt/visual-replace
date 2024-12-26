@@ -563,9 +563,9 @@
            (should (equal (concat "line 0.\n"
                                   "line 1.\n"
                                   "line 2.\n"
-                                  "[line 3. ]\n"
-                                  "[line 4. ]\n"
-                                  "[line 5. ]")
+                                  "[line 3.\n"
+                                  "line 4.\n"
+                                  "line 5.]")
                           (buffer-string))))
 
          :command #'visual-replace-toggle-scope
@@ -606,8 +606,8 @@
              (:name "in-region is highlighted" :buf testbuf :faces '((visual-replace-region . "[]")))
            (should (equal (concat "line 0.\n"
                                   "line 1.\n"
-                                  "[line 2. ]\n"
-                                  "[line 3.]\n"
+                                  "[line 2.\n"
+                                  "line 3.]\n"
                                   "line 4.\n"
                                   "line 5.")
                           (buffer-string))))
