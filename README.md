@@ -130,7 +130,6 @@ active region.
 ## TESTING
 
 Install [eldev](https://github.com/emacs-eldev/eldev#installation),
-checkout git submodules with `git submodule update --init --recursive`
 and run tests with:
 
 ```sh
