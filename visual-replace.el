@@ -4,7 +4,7 @@
 
 ;; Author: Stephane Zermatten <szermatt@gmail.com>
 ;; Maintainer: Stephane Zermatten <szermatt@gmail.com>
-;; Version: 1.1.1snapshot
+;; Version: 1.2
 ;; Keywords: convenience, matching, replace
 ;; URL: http://github.com/szermatt/visual-replace
 ;; Package-Requires: ((emacs "26.1"))
