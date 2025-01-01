@@ -383,7 +383,7 @@
          (forward-line 3)
          (recenter)
 
-         (turtles-read-from-minibuffer
+         (turtles-with-minibuffer
              (call-interactively 'visual-replace)
 
            :keys "text SPC 40 TAB repl"
@@ -427,7 +427,7 @@
                            (line-end-position)))
          (recenter)
 
-         (turtles-read-from-minibuffer
+         (turtles-with-minibuffer
              (call-interactively 'visual-replace)
 
            :command #'visual-replace-toggle-scope
@@ -470,7 +470,7 @@
          (forward-line 3)
          (recenter)
 
-         (turtles-read-from-minibuffer
+         (turtles-with-minibuffer
              (call-interactively 'visual-replace)
 
            :keys "text SPC 40 TAB repl"
@@ -498,7 +498,7 @@
          (goto-char (point-min))
          (recenter)
 
-         (turtles-read-from-minibuffer
+         (turtles-with-minibuffer
              (call-interactively 'visual-replace)
 
            :keys "the SPC end TAB fin"
@@ -552,7 +552,7 @@
        (forward-line 3)
 
        (should-not visual-replace-default-to-full-scope)
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (call-interactively 'visual-replace)
 
          :keys "foo TAB bar"
@@ -596,7 +596,7 @@
        (set-mark (line-end-position 2))
        (should (region-active-p))
        (should-not visual-replace-default-to-full-scope)
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (call-interactively 'visual-replace)
 
          :keys "foo TAB bar"
@@ -643,7 +643,7 @@
 
        (should (region-active-p))
        (should-not visual-replace-default-to-full-scope)
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (call-interactively 'visual-replace)
 
          :keys "foo TAB bar"
@@ -697,7 +697,7 @@
 
        (should (region-active-p))
        (should-not visual-replace-default-to-full-scope)
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (call-interactively 'visual-replace)
 
          :keys "foo TAB bar"
@@ -882,7 +882,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args :from "hello" :to "world")
                         (car (visual-replace-read))))
        :keys "hello RET world RET"))))
@@ -893,7 +893,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args)
                         (car (visual-replace-read))))))))
 
@@ -903,7 +903,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args)
                         (car (visual-replace-read))))
        :keys "hello"))))
@@ -914,7 +914,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args :from "hello" :to "world")
                         (car (visual-replace-read))))
        :keys "hello TAB world RET"))))
@@ -925,7 +925,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello"
        (turtles-with-grab-buffer (:name "before TAB" :point "<>")
@@ -949,7 +949,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello <left> TAB world <left>"
        (turtles-with-grab-buffer (:name "before TAB" :point "<>")
@@ -969,7 +969,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB world C-u 8 <left> TAB"
        (turtles-with-grab-buffer (:point "<>")
@@ -981,7 +981,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args :from "hello" :to "world" :regexp t)
                         (car (visual-replace-read))))
        :keys "hello TAB world"
@@ -998,7 +998,7 @@
      ;; If the default value is not handled properly, case-fold could
      ;; end up being nil when toggling another flag.
      (let ((case-fold-search t))
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (should (equal (visual-replace-make-args :from "hello" :to "world" :regexp t :case-fold t)
                           (car (visual-replace-read))))
          :keys "hello TAB world"
@@ -1012,7 +1012,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args :from "hello" :to "world" :query t)
                         (car (visual-replace-read))))
        :keys "hello TAB world"
@@ -1026,7 +1026,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args :from "hello" :to "world" :query t :regexp t)
                         (car (visual-replace-read))))
        :keys "hello TAB world"
@@ -1041,7 +1041,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args :from "hello" :to "world" :word t)
                         (car (visual-replace-read))))
        :keys "hello TAB world"
@@ -1055,7 +1055,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args :from "hello" :to "world" :word t)
                         (car (visual-replace-read))))
        :keys "hello TAB world"
@@ -1083,7 +1083,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args :from "hello" :to "world" :case-fold t)
                         (car (visual-replace-read))))
        :keys "hello TAB world"))))
@@ -1094,7 +1094,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args :from "hello" :to "world" :case-fold nil)
                         (car (visual-replace-read))))
        :keys "hello TAB world"
@@ -1108,7 +1108,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (let ((case-fold-search nil))
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (should (equal (visual-replace-make-args :from "hello" :to "world" :case-fold t)
                           (car (visual-replace-read))))
          :keys "hello TAB world"
@@ -1122,7 +1122,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args
                          :from "hello" :to "world" :lax-ws-regexp t :lax-ws-non-regexp t)
                         (car (visual-replace-read))))
@@ -1137,7 +1137,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args
                          :from "hello" :to "world" :regexp t)
                         (car (visual-replace-read))))
@@ -1160,7 +1160,7 @@
      (goto-char (point-min))
 
      (let (ranges)
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (setq ranges (nth 1 (visual-replace-read)))
          :keys "hello TAB world"
          :command #'visual-replace-toggle-scope)
@@ -1172,7 +1172,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB world"
        :command #'visual-replace-toggle-regexp
@@ -1188,7 +1188,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB world"
        :command #'visual-replace-toggle-regexp
@@ -1210,7 +1210,7 @@
        (goto-char (point-min))
        (search-forward "world")
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
          :keys "hello"
          (visual-replace--update-preview)
@@ -1243,7 +1243,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB world"
        :command #'visual-replace-toggle-regexp
@@ -1252,7 +1252,7 @@
 
      ;; settings from the first call should not reappear as default in
      ;; the second call
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args :from "foo" :to "bar")
                         (car (visual-replace-read))))
        :keys "foo TAB bar"))))
@@ -1271,7 +1271,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (test-visual-replace-setup-region)
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB world"
        (turtles-with-grab-buffer (:name "region")
@@ -1295,7 +1295,7 @@
    (with-selected-window (display-buffer (current-buffer))
      (test-visual-replace-setup-region)
      (let (ranges)
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (setq ranges (nth 1 (visual-replace-read)))
          :keys "hello TAB world")
        (should (equal ranges (list (cons 1 7))))))))
@@ -1313,7 +1313,7 @@
      (move-to-column 4)
 
      (let (ranges)
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (setq ranges (nth 1 (visual-replace-read)))
 
          (turtles-with-grab-buffer ()
@@ -1330,7 +1330,7 @@
      (test-visual-replace-setup-region)
 
      (let (ranges)
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (setq ranges (nth 1 (visual-replace-read)))
          :keys "hello TAB world"
          :command #'visual-replace-toggle-scope)
@@ -1342,7 +1342,7 @@
 
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB world"
 
@@ -1361,12 +1361,12 @@
    (with-selected-window (display-buffer (current-buffer))
 
      ;; Fill in history
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB world RET")
 
      ;; Recall history entry.
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :command #'previous-history-element
 
@@ -1384,7 +1384,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB world TAB C-a <right>"
        :command #'kill-line
@@ -1404,7 +1404,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello <left>"
        :command #'kill-line
@@ -1420,7 +1420,7 @@
 
      (save-excursion (insert "from buffer"))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
 
        :keys "hello TAB world"
@@ -1447,7 +1447,7 @@
 
      (save-excursion (insert "from buffer"))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :command #'visual-replace-yank
        :keys "TAB"
@@ -1463,7 +1463,7 @@
 
      (save-excursion (insert "from-a buffer"))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :command #'visual-replace-yank
        :keys "TAB"
@@ -1479,7 +1479,7 @@
 
      (save-excursion (insert "from current buffer"))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :command #'visual-replace-yank
        (turtles-with-grab-buffer (:name "1st yank" :point "<>")
@@ -1500,7 +1500,7 @@
      (insert "(progn (when some-test some-value))")
      (goto-char (point-min))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "TAB world TAB"
 
@@ -1542,7 +1542,7 @@
 
      (save-excursion (insert "from buffer"))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "TAB world TAB"
        :command #'visual-replace-yank
@@ -1558,7 +1558,7 @@
 
      (save-excursion (insert "from-buffer\nfrom-region\nfrom-point\n"))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "from"
        :command #'visual-replace-next-match
@@ -1575,7 +1575,7 @@
 
      (kill-new "from kill-ring")
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB"
        :command #'visual-replace-yank
@@ -1592,7 +1592,7 @@
 
      (kill-new "from kill-ring")
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB"
        :command #'visual-replace-yank
@@ -1612,7 +1612,7 @@
      (kill-new "prev2")
      (kill-new "prev1")
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :command #'visual-replace-yank-pop
        (turtles-with-grab-buffer (:point "<>")
@@ -1629,7 +1629,7 @@
      (kill-new "prev2")
      (kill-new "prev1")
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :command #'visual-replace-yank-pop
        :command #'visual-replace-yank-pop
@@ -1647,7 +1647,7 @@
      (kill-new "prev2")
      (kill-new "prev1")
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB"
        :command #'visual-replace-yank
@@ -1667,7 +1667,7 @@
      (kill-new "prev2")
      (kill-new "prev1")
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB"
        :command #'visual-replace-yank-pop
@@ -1683,11 +1683,11 @@
    (with-selected-window (display-buffer (current-buffer))
 
      ;; Added to history
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB world RET")
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args :from "hello" :to "world")
                         (car (visual-replace-read))))
        :keys "RET"))))
@@ -1697,7 +1697,7 @@
 
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should-error (visual-replace-read))
        :keys "RET"))))
 
@@ -1708,11 +1708,11 @@
    (with-selected-window (display-buffer (current-buffer))
 
      ;; Added to history
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB world RET")
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args :from "hello" :to "world")
                         (car (visual-replace-read))))
        :keys "TAB RET"))))
@@ -1724,11 +1724,11 @@
    (with-selected-window (display-buffer (current-buffer))
 
      ;; Added to history
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB world RET")
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args :from "hello" :to "world")
                         (car (visual-replace-read))))
        :command #'visual-replace-toggle-regexp
@@ -1741,11 +1741,11 @@
    (with-selected-window (display-buffer (current-buffer))
 
      ;; Added to history
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB world RET")
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args :from "hello" :to "world")
                         (car (visual-replace-read))))
        (turtles-with-grab-buffer ()
@@ -1761,14 +1761,14 @@
    (with-selected-window (display-buffer (current-buffer))
 
      ;; Added to history
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB world RET")
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "foo TAB bar RET")
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args :from "hello" :to "world")
                         (car (visual-replace-read))))
        (turtles-with-grab-buffer ()
@@ -1787,12 +1787,12 @@
    (with-selected-window (display-buffer (current-buffer))
 
      ;; Added to history
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        (visual-replace-toggle-regexp)
        :keys "hello TAB world RET")
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args :from "hello" :to "world" :regexp t)
                         (car (visual-replace-read))))
        :command #'previous-complete-history-element
@@ -1807,12 +1807,12 @@
    (with-selected-window (display-buffer (current-buffer))
 
      ;; Added to history
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        (visual-replace-toggle-regexp)
        :keys "hello TAB world RET")
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args :from "hello" :to "worldx" :regexp t)
                         (car (visual-replace-read))))
        :command #'previous-complete-history-element
@@ -1828,12 +1828,12 @@
    (with-selected-window (display-buffer (current-buffer))
 
      ;; Added to history
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        (visual-replace-toggle-regexp)
        :keys "hello TAB world RET")
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args :from "hello" :to "world")
                         (car (visual-replace-read))))
        :command #'previous-complete-history-element
@@ -1849,13 +1849,13 @@
    (with-selected-window (display-buffer (current-buffer))
 
      ;; Added to history
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        (visual-replace-toggle-regexp)
        (visual-replace-toggle-query)
        :keys "hello TAB world RET")
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args
                          :from "hello" :to "world" :regexp t :query t)
                         (car (visual-replace-read))))
@@ -1871,13 +1871,13 @@
    (with-selected-window (display-buffer (current-buffer))
 
      ;; Added to history
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        (visual-replace-toggle-regexp)
        (visual-replace-toggle-query)
        :keys "hello TAB world RET")
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args
                          :from "hello" :to "world" :regexp t)
                         (car (visual-replace-read))))
@@ -1894,19 +1894,19 @@
    (with-selected-window (display-buffer (current-buffer))
 
      ;; Added to history
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        (visual-replace-toggle-regexp)
        :keys "hello TAB foo RET")
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB bar RET")
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        (visual-replace-toggle-query)
        :keys "hello TAB query RET")
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (should (equal (visual-replace-make-args
                          :from "hello" :to "foo" :regexp t)
                         (car (visual-replace-read))))
@@ -1935,7 +1935,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      ;; Incomplete
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "foo TAB bar"
        (setq quit-flag t))
@@ -1945,7 +1945,7 @@
      (should
       (equal
        (visual-replace-make-args :from "faafoo" :to "bar")
-       (car (turtles-read-from-minibuffer
+       (car (turtles-with-minibuffer
                 (visual-replace-read)
               (turtles-with-grab-buffer ()
                 (should (equal "Replace from point:" (buffer-string))))
@@ -1962,7 +1962,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      ;; Incomplete
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "foo"
        (setq quit-flag t))
@@ -1972,7 +1972,7 @@
      (should
       (equal
        (visual-replace-make-args :from "foo" :to "bar")
-       (car (turtles-read-from-minibuffer
+       (car (turtles-with-minibuffer
                 (visual-replace-read)
               (turtles-with-grab-buffer ()
                 (should (equal "Replace from point:" (buffer-string))))
@@ -1990,12 +1990,12 @@
    (with-selected-window (display-buffer (current-buffer))
 
      ;; Added to history
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB world RET")
 
      ;; Incomplete
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "foo TAB bar"
        (setq quit-flag t))
@@ -2005,7 +2005,7 @@
      (should
       (equal
        (visual-replace-make-args :from "hello" :to "world")
-       (car (turtles-read-from-minibuffer
+       (car (turtles-with-minibuffer
                 (visual-replace-read)
               (turtles-with-grab-buffer ()
                 (should (equal "Replace from point [hello → world]:" (buffer-string))))
@@ -2023,12 +2023,12 @@
    (with-selected-window (display-buffer (current-buffer))
 
      ;; Added to history
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "hello TAB world RET")
 
      ;; Incomplete
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
        :keys "foo TAB bar"
        (setq quit-flag t))
@@ -2038,7 +2038,7 @@
      (should
       (equal
        (visual-replace-make-args :from "hello" :to "world")
-       (car (turtles-read-from-minibuffer
+       (car (turtles-with-minibuffer
                 (visual-replace-read)
               (turtles-with-grab-buffer ()
                 (should (equal "Replace from point [hello → world]:" (buffer-string))))
@@ -2049,7 +2049,7 @@
 
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (ert-with-message-capture captured-message
            (visual-replace-read)
            (should (equal "Note: ‘\\n’ here doesn’t match a newline; to do that, type C-q C-j instead\n"
@@ -2063,7 +2063,7 @@
 
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (ert-with-message-capture captured-message
            (visual-replace-read)
            (should (equal "Note: ‘\\t’ here doesn’t match a tab; to do that, just type TAB\n"
@@ -2077,7 +2077,7 @@
 
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (ert-with-message-capture captured-message
            (visual-replace-read)
            (should (equal "" captured-message)))
@@ -2089,7 +2089,7 @@
 
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (ert-with-message-capture captured-message
            (visual-replace-read)
            (should (equal "Note: ‘\\n’ here doesn’t match a newline; to do that, type C-q C-j instead\n"
@@ -2098,7 +2098,7 @@
        :keys "a\\n RET b"
        (visual-replace-toggle-regexp))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (ert-with-message-capture captured-message
            (visual-replace-read)
            (should (equal "" captured-message)))
@@ -2111,7 +2111,7 @@
 
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
 
        :keys "hello TAB"
@@ -2135,7 +2135,7 @@
 
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read (visual-replace-make-args :from "initial"))
 
        (turtles-with-grab-buffer ()
@@ -2149,7 +2149,7 @@
 
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read (visual-replace-make-args :from "foo" :to "bar"))
 
        (turtles-with-grab-buffer ()
@@ -2163,7 +2163,7 @@
 
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read (visual-replace-make-args :word t))
 
        (turtles-with-grab-buffer ()
@@ -2177,7 +2177,7 @@
 
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read (visual-replace-make-args :regexp t))
 
        (turtles-with-grab-buffer ()
@@ -2191,7 +2191,7 @@
 
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read (visual-replace-make-args :query t))
 
        (turtles-with-grab-buffer ()
@@ -2207,7 +2207,7 @@
    (with-selected-window (display-buffer (current-buffer))
 
      (let ((case-fold-search nil))
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read (visual-replace-make-args :case-fold t))
 
          (turtles-with-grab-buffer ()
@@ -2223,7 +2223,7 @@
    (with-selected-window (display-buffer (current-buffer))
 
      (let ((case-fold-search t))
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read (visual-replace-make-args :case-fold nil))
 
          (turtles-with-grab-buffer ()
@@ -2238,7 +2238,7 @@
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
-     (turtles-read-from-minibuffer
+     (turtles-with-minibuffer
          (visual-replace-read)
 
        (turtles-with-grab-buffer ()
@@ -2258,7 +2258,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "hel"
@@ -2284,7 +2284,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "hello"
@@ -2310,7 +2310,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "HELLO"
@@ -2336,7 +2336,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "hell TAB hul"
@@ -2357,7 +2357,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "hel+"
@@ -2379,7 +2379,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "hello SPC world"
@@ -2401,7 +2401,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (call-interactively 'visual-replace)
 
          ;; This is just a smoke test. \b\b\b matches empty strings, which
@@ -2428,7 +2428,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "h\\(el+\\) TAB \\#\\,(upcase SPC \\1)"
@@ -2458,7 +2458,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (call-interactively #'visual-replace)
 
          :keys "hel TAB hol"
@@ -2484,7 +2484,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "hel"
@@ -2511,7 +2511,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "h"
@@ -2544,7 +2544,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "hel TAB hu"
@@ -2582,7 +2582,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
            :keys "f TAB l"
@@ -2607,7 +2607,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
            :keys "f TAB l ESC 3"
@@ -2626,7 +2626,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "f TAB l"
@@ -2650,7 +2650,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "f TAB l"
@@ -2675,7 +2675,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "f TAB l"
@@ -2701,7 +2701,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "f TAB l"
@@ -2730,7 +2730,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "f TAB l"
@@ -2757,7 +2757,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "f TAB l"
@@ -2789,7 +2789,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "he"
@@ -2821,7 +2821,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "hello"
@@ -2856,7 +2856,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "hello"
@@ -2896,7 +2896,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "hell"
@@ -2936,7 +2936,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "text"
@@ -2974,7 +2974,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "text"
@@ -3034,7 +3034,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "text"
@@ -3097,7 +3097,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "text"
@@ -3144,7 +3144,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "hello"
@@ -3164,7 +3164,7 @@
   (test-visual-replace-env
    (add-hook 'visual-replace-defaults-hook #'visual-replace-toggle-query)
 
-   (turtles-read-from-minibuffer
+   (turtles-with-minibuffer
        (should (equal
                 (visual-replace-make-args :from "hello" :to "world" :query t)
                 (car (visual-replace-read))))
@@ -3177,7 +3177,7 @@
   (test-visual-replace-env
    (add-hook 'visual-replace-defaults-hook #'visual-replace-toggle-word)
 
-   (turtles-read-from-minibuffer
+   (turtles-with-minibuffer
        (should (equal
                 (visual-replace-make-args :from "hello" :to "world" :word t)
                 (car (visual-replace-read))))
@@ -3192,7 +3192,7 @@
    ;; passed to visual-replace-read.
    (add-hook 'visual-replace-defaults-hook #'visual-replace-toggle-word)
 
-   (turtles-read-from-minibuffer
+   (turtles-with-minibuffer
        (should (equal
                 (visual-replace-make-args :from "hello" :to "world" :regexp t)
                 (car (visual-replace-read
@@ -3214,7 +3214,7 @@
      (with-selected-window (display-buffer testbuf)
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "hello"
@@ -3262,7 +3262,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          (visual-replace--update-preview t)
@@ -3356,7 +3356,7 @@
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows (selected-window))
 
-       (turtles-read-from-minibuffer
+       (turtles-with-minibuffer
            (visual-replace-read)
 
          :keys "function"
