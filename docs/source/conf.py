@@ -6,8 +6,8 @@ project = 'visual-replace'
 copyright = '2020-2024, Stephane Zermatten'
 author = 'Stephane Zermatten'
 
-release = '1.2'
-version = '1.2'
+release = '1.2.1snapshot'
+version = '1.2.1snapshot'
 
 # -- General configuration
 
