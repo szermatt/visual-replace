@@ -6,8 +6,8 @@ Contributing
 Reporting issues
 ----------------
 
-At this time, the most useful thing you can do to help is and useful
-bug reports to the `Issue Tracker`_
+The most useful thing you can do to help is and useful bug reports to
+the `Issue Tracker`_
 
 In your report, please discuss what you wanted to happen as well as
 what happened. Also, please include enough information to reproduce
@@ -35,15 +35,19 @@ Please include:
 
 .. _Issue tracker: https://github.com/szermatt/visual-replace/issues
 
+.. _discussion: https://github.com/szermatt/visual-replace/discussions
+
 Suggesting features
 -------------------
 
-Please add feature suggestions to the `Issue Tracker`_.
+Please create a new `discussion`_ or in the Ideas category or add a
+feature suggestions to the `Issue Tracker`_.
 
 Asking questions
 ----------------
 
-Open an issue on the `Issue Tracker`_ with your question.
+Please create a new `discussion`_ in the General category with your
+question.
 
 Code contributions
 ------------------
@@ -63,7 +67,10 @@ tests passing reliably when run using :command:`eldev test` is what
 matters.
 
 Please also make sure your commit message follows `Conventional
-Commits 1.0.0 <https://www.conventionalcommits.org/en/v1.0.0/>`_.
+Commits 1.0.0 <https://www.conventionalcommits.org/en/v1.0.0/>`_, in
+short, the commit message of new features should start with "feat: ",
+fixes with "fix: ", refactorings with "refactor: " and tests with
+"test: ".
 
 .. _eldev: https://github.com/emacs-eldev/eldev
 
@@ -72,7 +79,9 @@ Documentation contributions
 
 You don't need to be a developer to contribute! Contribution to the
 documentation or code comments are very welcome. Please open a `Pull
-Request`_ with your proposed modifications.
+Request`_ with your proposed modifications. To follow `Conventional
+Commits 1.0.0 <https://www.conventionalcommits.org/en/v1.0.0/>`_, the
+commit message should start with "docs: "
 
 The documentation is written in reStructuredText. You'll need to
 install `Sphinx <https://www.sphinx-doc.org>`_ to build it:

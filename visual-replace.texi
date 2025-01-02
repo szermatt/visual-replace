@@ -287,9 +287,8 @@ on when a @code{.*} follows the arrow.
 @item 
 @code{M-% q} toggles query mode one and off, that is, it toggles
 between calling @code{replace-string} and @code{query-replace}.
-You know this mode is on when a @code{?} follows the arrow. See
-also @ref{a,,Single replacements} for an alternative way of replacing only some
-matches.
+You know this mode is on when a @code{?} follows the arrow. For an
+alternative way of replacing only some matches, see @ref{a,,Single replacements}.
 
 @item 
 @code{M-% SPC} switches between different scopes: full buffer, from
@@ -424,35 +423,36 @@ visual-replace} to see all options. For face customization, see the
 :ref`next section<faces>`.
 
 
-@itemize *
+@table @asis
 
-@item 
-@code{M-x customize-option visual-replace-preview} With this option
-enabled, Visual Replace highlights matches and offer a preview of
-their replacements. This is enabled by default.
+@item visual-replace-preview : customization option
 
-@item 
-@code{M-x customize-option visual-replace-first-match} With this
-option enabled, Visual Replace always tries to have at least one
-match visible in the preview, even if it means jumping to another
-section of the buffer. This is enabled by default.
+With this option enabled, Visual Replace highlights matches and
+offer a preview of their replacements. This is enabled by default.
 
-@item 
-@code{M-x customize-option keep-initial-position} With this option
-enabled, Visual Replace goes back to the point it was called from,
-even if the point was moved during preview, to display the first
-match, or manually with @code{<down>} or @code{<up>}.
+@item visual-replace-first-match : customization option
+
+With this option enabled, Visual Replace always tries to have at
+least one match visible in the preview, even if it means jumping to
+another section of the buffer. This is enabled by default.
+
+@item keep-initial-position : customization option
+
+With this option enabled, Visual Replace goes back to the point it
+was called from, even if the point was moved during preview, to
+display the first match, or manually with @code{<down>} or
+@code{<up>}.
 
 Note that in the case where the point is moved during preview,
 Visual Replace sets a mark at the original location, to go back too
 if necessary.
 
-@item 
-@code{M-x customize-option visual-replace-display-total} By default,
-in preview mode, visual Replace only searches for and display
-matches in the visible portions of the buffer. With this option
-enabled, Visual Replace searches the whole buffer, in an idle timer,
-and displays the total number of matches in the prompt.
+@item visual-replace-display-total : customization option
+
+By default, in preview mode, visual Replace only searches for and
+display matches in the visible portions of the buffer. With this
+option enabled, Visual Replace searches the whole buffer, in an idle
+timer, and displays the total number of matches in the prompt.
 
 When the point is on a match, the index of the match is also
 displayed, in front of the total.
@@ -462,9 +462,9 @@ complicated regexps.
 
 This is not enabled by default.
 
-@item 
-@code{M-x customize-option visual-replace-initial-scope} With this
-option set, the initial scope ignores the active region
+@item visual-replace-initial-scope : customization option
+
+With this option set, the initial scope ignores the active region
 entirely and is always set to either “From Point” or “Full Buffer”.
 
 By default, the initial scope is:
@@ -485,26 +485,27 @@ the full buffer otherwise
 @end itemize
 @end quotation
 
-@item 
-@code{M-x customize-option visual-replace-default-full-scope} With
-this option set, when no region is active, replacement applies by
-default to the full buffer, instead of to the region following the
-point.
+@item visual-replace-default-full-scope : customization option
 
-@item 
-@code{M-x customize-option visual-replace-defaults-hook} To modify
-search and replace defaults, such as, for example, having searches
-default to regular expressions or search default to word mode, call
-the command that turns it on from this hook. This is called when
-Visual Replace is started with no initial text, so these
+With this option set, when no region is active, replacement applies
+by default to the full buffer, instead of to the region following
+the point.
+
+@item visual-replace-defaults-hook : customization option
+
+To modify search and replace defaults, such as, for example, having
+searches default to regular expressions or search default to word
+mode, call the command that turns it on from this hook. This is
+called when Visual Replace is started with no initial text, so these
 customizations won’t apply to @code{visual-replace-from-isearch},
 for example.
 
-@item 
-@code{M-x customize-option visual-replace-minibuffer-mode-hook} This
-hook is called when Visual Replace is started in the minibuffer. It
-can be used to turn on query mode in all cases by registering the
-command @code{visual-replace-toggle-query} in this hook.
+@item visual-replace-minibuffer-mode-hook : customization option
+
+This hook is called when Visual Replace is started in the
+minibuffer. It can be used to turn on query mode in all cases by
+registering the command @code{visual-replace-toggle-query} in this
+hook.
 
 Rather than setting the as a customization, with
 @code{use-package}, you can force Visual Replace to call
@@ -516,14 +517,14 @@ Rather than setting the as a customization, with
   :hook ((visual-replace-minibuffer-mode . visual-replace-toggle-query))
 @end example
 
-@item 
-@code{M-x customize-option visual-replace-min-length} This specifies
-the minimum number of characters that need to be typed before Visual
-Replace enters preview mode.
+@item visual-replace-min-length : customization option
+
+This specifies the minimum number of characters that need to be
+typed before Visual Replace enters preview mode.
 
 Setting this too low might result in strange highlights happening
 when starting to type in the match string.
-@end itemize
+@end table
 
 @node Face Customization,Commands,Customization,Usage
 @anchor{usage face-customization}@anchor{10}@anchor{usage id1}@anchor{11}
@@ -682,27 +683,32 @@ theme changes, from the Section 5.23 of the Emacs 29 Manual@footnote{https://www
 @geindex command; visual-replace-from-isearch
 
 
-@itemize *
+@table @asis
 
-@item 
-@code{visual-replace} is the main command that starts Visual Replace and
-then executes the search-and-replace. It can replace @code{replace-string},
-@code{query-replace}, @code{replace-regexp} and @code{query-replace-regexp}.
+@item visual-replace : command
 
-@item 
-@code{visual-replace-thing-at-point} starts a visual replace session with
-the symbol at point as text to replace.
+This is the main command that starts Visual Replace and then
+executes the search-and-replace. It can replace
+@code{replace-string}, @code{query-replace},
+@code{replace-regexp} and @code{query-replace-regexp}.
 
-@item 
-@code{visual-replace-selected} starts with the text within the current
-active region as text to replace.
+@item visual-replace-thing-at-point : command
 
-@item 
-@code{visual-replace-from-isearch} switches from an active isearch
-session to @code{visual-replace}, keeping the current search text and
+This command starts a visual replace session with the symbol at
+point as text to replace.
+
+@item visual-replace-selected : command
+
+This command starts with the text within the current active region
+as text to replace.
+
+@item visual-replace-from-isearch : command
+
+This command switches from an active isearch session to
+@code{visual-replace}, keeping the current search text and
 settings, such as regexp mode. This is meant to be called while
 isearch is in progress, and bound to @code{isearch-mode-map}.
-@end itemize
+@end table
 
 @geindex command; visual-replace-toggle-regexp
 @geindex command; visual-replace-toggle-scope
@@ -722,48 +728,55 @@ mode, from @code{visual-mode-map}. By default, they’re bound in
 @code{visual-replace-secondary-mode-map}:
 
 
-@itemize *
+@table @asis
 
-@item 
-@code{visual-replace-toggle-regexp} toggles regexp mode on and off.
+@item visual-replace-toggle-regexp : <prefix> r , command
 
-@item 
-@code{visual-replace-toggle-scope} changes the scope of the search.
+toggles regexp mode on and off.
 
-@item 
-@code{visual-replace-toggle-query} toggles the query mode on and off.
+@item visual-replace-toggle-scope : <prefix> SPC, command
 
-@item 
-@code{visual-replace-toggle-word} toggles the word mode on and off.
+changes the scope of the search.
 
-@item 
-@code{visual-replace-toggle-case-fold} toggles the case fold mode on and off.
+@item visual-replace-toggle-query : <prefix> q, command
 
-@item 
-@code{visual-replace-toggle-lax-ws} toggles the lax whitespace mode on and off.
+toggles the query mode on and off.
 
-@item 
-@code{visual-replace-next-match} moves cursor to the next match
+@item visual-replace-toggle-word : <prefix> w, command
 
-@item 
-@code{visual-replace-prev-match} moves cursor to the previous match
+toggles the word mode on and off.
 
-@item 
-@code{visual-replace-apply-one} applies a single replacement, to the
-match at or after the cursor, then moves on to the next match. With a
-prefix argument N, apply N replacements instead of just one.
+@item visual-replace-toggle-case-fold : <prefix> c, command
+
+toggles the case fold mode on and off.
+
+@item visual-replace-toggle-lax-ws : <prefix> s, command
+
+toggles the lax whitespace mode on and off.
+
+@item visual-replace-next-match : <down>, command
+
+moves cursor to the next match
+
+@item visual-replace-prev-match : <up>, command
+
+moves cursor to the previous match
+
+@item visual-replace-apply-one : <prefix> a, command
+
+applies a single replacement, to the match at or after the
+cursor, then moves on to the next match. With a prefix argument
+N, apply N replacements instead of just one.
 
 This command, used together with @code{visual-replace-next-match}
 and @code{visual-replace-prev-match} is in many cases functionally
 equivalent to using the query mode, but with a different interface
 that the possibility of changing the query as you go.
 
-@item 
-@code{visual-replace-apply-one-repeat} executes
-@code{visual-replace-apply-one}, then install a transient map that
-allows:
+@item visual-replace-apply-one-repeat : <prefix> a, command
 
-@quotation
+on Emacs 29.1 and later, executes @code{visual-replace-apply-one},
+then installs a transient map that allows:
 
 
 @itemize *
@@ -780,21 +793,19 @@ going up the match previews with @code{<up>}, which calls @code{visual-replace-p
 
 @item 
 undoing the last replacement with @code{u}
-@end itemize
-@end quotation
-
-Typing anything else deactivates the transient map.
-
-This can be configured by modifying the map @code{visual-replace-transient-map}.
-
-This command is available on Emacs 29.1 or later.
 
 @item 
-@code{visual-replace-undo} reverts the last call to
-@code{visual-replace-apply-one}. This just executes @code{undo} in
-the original buffer. With a prefix argument N, call undo N times
-instead of just one.
+Typing anything else deactivates the transient map.
 @end itemize
+
+The keybindings can be configured by modifying the map @code{visual-replace-transient-map}.
+
+@item visual-replace-undo : <prefix> u, command
+
+reverts the last call to @code{visual-replace-apply-one}. This just
+executes @code{undo} in the original buffer. With a prefix argument N,
+call undo N times instead of just one.
+@end table
 
 @node Keymaps,Hooks,Commands,Usage
 @anchor{usage keymaps}@anchor{16}
@@ -804,16 +815,23 @@ instead of just one.
 @geindex variable; visual-replace-mode-map
 @geindex variable; visual-replace-secondary-mode-map
 
-@code{visual-replace-mode-map} is the map that is active in the
-minibuffer in Visual Replace mode. You can add your own keybindings to
-it.
 
-@code{visual-replace-secondary-mode-map} is the map that defines
-keyboard shortcuts for modifying the search mode, such as @code{r} to
-toggle regexp mode on or off. It is bound by default in
-@code{visual-replace-mode-map} to the shortcut that was used to
-launch Visual Replace, but you can bind it to whatever you want, or
-define custom shortcuts directly in @code{visual-replace-mode-map}.
+@table @asis
+
+@item visual-replace-mode-map : keymap
+
+This is the map that is active in the minibuffer in Visual Replace
+mode. You can add your own keybindings to it.
+
+@item visual-replace-secondary-mode-map : keymap
+
+This is the map that defines keyboard shortcuts for modifying the
+search mode, such as @code{r} to toggle regexp mode on or off. It is
+bound by default in @code{visual-replace-mode-map} to the shortcut that
+was used to launch Visual Replace, but you can bind it to whatever
+you want, or define custom shortcuts directly in
+@code{visual-replace-mode-map}.
+@end table
 
 In the example below, @code{C-l} is bound to secondary mode map and
 @code{C-r} toggles the regexp mode, so it is possible to toggle the
@@ -839,21 +857,37 @@ regexp mode using either @code{C-l r} or @code{C-r}.
 @geindex hook; visual-replace-functions
 @geindex variable; visual-replace-defaults-hook
 
-@code{visual-replace-minibuffer-mode-hook} is a normal hook that is
-run when entering the visual replace mode, so you can set things up
-just before Visual Replace starts.
 
-@code{visual-replace-defaults-hook} is a normal hook that is run when
-entering the visual replace mode with no initial match or replacement,
-so you can provide some default mode without interfering with
+@table @asis
+
+@item visual-replace-minibuffer-mode-hook : hook
+
+This is a normal hook that is run when entering the visual replace
+mode, so you can set things up just before Visual Replace starts.
+@end table
+
+visual-replace-defaults-hook : hook
+
+@quotation
+
+This is a normal hook that is run when entering the visual replace
+mode with no initial match or replacement, so you can provide some
+default mode without interfering with
 @code{visual-replace-from-isearch} or
 @code{visual-replace-thing-at-point}.
+@end quotation
 
-Functions in @code{visual-replace-functions} are called just before
-executing the replacement or just before building the previews. They
-are passed a struct of type @code{visual-replace-args}, which they
-can modify. You can use it to customize the behavior of the search or
-modify the regexp language.
+
+@table @asis
+
+@item visual-replace-functions : hook
+
+Functions in this abnormal hook are called just before executing the
+replacement or just before building the previews. They are passed a
+struct of type @code{visual-replace-args}, which they can modify. You
+can use it to customize the behavior of the search or modify the
+regexp language.
+@end table
 
 @node Limitations,,Hooks,Usage
 @anchor{usage limitations}@anchor{18}
@@ -876,11 +910,12 @@ function that increment an internal counter, will be executed too
 many times during preview, with unpredictable results.
 
 In all other cases, the preview should match what is eventually
-executed. If that’s not the case, please @ref{19,,report an issue}.
+executed. If that’s not the case, please report an issue.
+(@ref{19,,Reporting issues})
 
 @item 
 If you use @code{visual-replace-apply-one} to replace single
-matches, @code{\#} in the replacement is always 1, because single
+matches, @code{\\#} in the replacement is always 1, because single
 matches are applied separately.
 @end itemize
 
@@ -903,8 +938,8 @@ matches are applied separately.
 @subsection Reporting issues
 
 
-At this time, the most useful thing you can do to help is and useful
-bug reports to the Issue Tracker@footnote{https://github.com/szermatt/visual-replace/issues}
+The most useful thing you can do to help is and useful bug reports to
+the Issue Tracker@footnote{https://github.com/szermatt/visual-replace/issues}
 
 In your report, please discuss what you wanted to happen as well as
 what happened. Also, please include enough information to reproduce
@@ -942,18 +977,20 @@ executing it and attach that to the issue.
 @end cartouche
 
 @node Suggesting features,Asking questions,Reporting issues,Contributing
-@anchor{contrib issue-tracker}@anchor{1d}@anchor{contrib suggesting-features}@anchor{1e}
+@anchor{contrib discussion}@anchor{1d}@anchor{contrib suggesting-features}@anchor{1e}
 @subsection Suggesting features
 
 
-Please add feature suggestions to the Issue Tracker@footnote{https://github.com/szermatt/visual-replace/issues}.
+Please create a new discussion@footnote{https://github.com/szermatt/visual-replace/discussions} or in the Ideas category or add a
+feature suggestions to the Issue Tracker@footnote{https://github.com/szermatt/visual-replace/issues}.
 
 @node Asking questions,Code contributions,Suggesting features,Contributing
 @anchor{contrib asking-questions}@anchor{1f}
 @subsection Asking questions
 
 
-Open an issue on the Issue Tracker@footnote{https://github.com/szermatt/visual-replace/issues} with your question.
+Please create a new discussion@footnote{https://github.com/szermatt/visual-replace/discussions} in the General category with your
+question.
 
 @node Code contributions,Documentation contributions,Asking questions,Contributing
 @anchor{contrib code-contributions}@anchor{20}
@@ -973,7 +1010,10 @@ might be unexpected interaction with your Emacs configurations. The
 tests passing reliably when run using @code{eldev test} is what
 matters.
 
-Please also make sure your commit message follows Conventional Commits 1.0.0@footnote{https://www.conventionalcommits.org/en/v1.0.0/}.
+Please also make sure your commit message follows Conventional Commits 1.0.0@footnote{https://www.conventionalcommits.org/en/v1.0.0/}, in
+short, the commit message of new features should start with “feat: “,
+fixes with “fix: “, refactorings with “refactor: ” and tests with
+“test: “.
 
 @node Documentation contributions,,Code contributions,Contributing
 @anchor{contrib documentation-contributions}@anchor{21}@anchor{contrib eldev}@anchor{22}
@@ -981,7 +1021,8 @@ Please also make sure your commit message follows Conventional Commits 1.0.0@foo
 
 
 You don’t need to be a developer to contribute! Contribution to the
-documentation or code comments are very welcome. Please open a Pull Request@footnote{https://github.com/szermatt/visual-replace/pulls} with your proposed modifications.
+documentation or code comments are very welcome. Please open a Pull Request@footnote{https://github.com/szermatt/visual-replace/pulls} with your proposed modifications. To follow Conventional Commits 1.0.0@footnote{https://www.conventionalcommits.org/en/v1.0.0/}, the
+commit message should start with “docs: “
 
 The documentation is written in reStructuredText. You’ll need to
 install Sphinx@footnote{https://www.sphinx-doc.org} to build it:

@@ -7,12 +7,12 @@ Calling Visual Replace
 Visual Replace needs to be bound to a key to be of any use.
 
 Choose a reasonably short key combination and bind
-:code:`visual-replace` to it. It should be reasonably short, because
-:code:`visual-replace`, by default, uses the key combination it's
+``visual-replace`` to it. It should be reasonably short, because
+``visual-replace``, by default, uses the key combination it's
 called with as prefix for the commands available in the minibuffer.
 
 Here's an example that uses :kbd:`M-%` as key combination, since this
-is bound by default to :code:`query-replace`, which Visual Replace
+is bound by default to ``query-replace``, which Visual Replace
 then, well, replaces:
 
 .. code-block:: elisp
@@ -33,7 +33,7 @@ commands, so, for example, toggling regexp mode on and off is
 :kbd:`M-% r`.
 
 An alternative, which you might prefer to try things out, is to
-replace :code:`query-replace` and others with Visual Replace. This
+replace ``query-replace`` and others with Visual Replace. This
 then uses whatever shortcut you've already installed.
 
 .. code-block:: elisp
@@ -43,7 +43,7 @@ then uses whatever shortcut you've already installed.
     :config
     (visual-replace-global-mode 1))
 
-Once this is done, launch :code:`visual-replace` with the keybinding you chose.
+Once this is done, launch ``visual-replace`` with the keybinding you chose.
 
 Visual Replace Mode
 -------------------
@@ -88,13 +88,12 @@ In Visual Replace mode:
   executes the replacement
 
 * :kbd:`M-% r` toggles regexp mode on and off. You know this mode is
-  on when a :code:`.*` follows the arrow.
+  on when a ``.*`` follows the arrow.
 
 * :kbd:`M-% q` toggles query mode one and off, that is, it toggles
-  between calling :code:`replace-string` and :code:`query-replace`.
-  You know this mode is on when a :code:`?` follows the arrow. See
-  also :ref:`single` for an alternative way of replacing only some
-  matches.
+  between calling ``replace-string`` and ``query-replace``.
+  You know this mode is on when a ``?`` follows the arrow. For an
+  alternative way of replacing only some matches, see :ref:`single`.
 
 * :kbd:`M-% SPC` switches between different scopes: full buffer, from
   point, in region. The scope is indicated in the prompt.
@@ -102,13 +101,13 @@ In Visual Replace mode:
   highlighted.
 
 * :kbd:`M-% w` toggle limiting search to whole words. You know this
-  mode is on when a :code:`w` follows the arrow.
+  mode is on when a ``w`` follows the arrow.
 
 * :kbd:`M-% c` toggle case-fold. You know this mode is on when a
-  :code:`c` follows the arrow.
+  ``c`` follows the arrow.
 
 * :kbd:`M-% s` toggle lax whitespace. You know this mode is on when
-  :code:`(lax ws)` follows the arrow.
+  ``(lax ws)`` follows the arrow.
 
 * :kbd:`<up>` and :kbd:`<down>` move the cursor to the next or
   previous match, scrolling if necessary.
@@ -117,14 +116,14 @@ In Visual Replace mode:
   the cursor or following the cursor, then move on to the next match.
   With a prefix argument N, apply N replacements. See also :ref:`single`.
 
-* :kbd:`M-% u` calls :code:`undo` on the original buffer, to revert a
+* :kbd:`M-% u` calls ``undo`` on the original buffer, to revert a
   previous replacement. With a prefix argument N, repeat undo N times.
 
 * As usual, :kbd:`C-p` and `C-n` go up and down the history, like on any prompt.
 
 (Reminder: replace *M-%* with the keyboard shortcut you chose.)
 
-If you leave :code:`visual-replace` without confirming, with :kbd:`C-g`, you can
+If you leave ``visual-replace`` without confirming, with :kbd:`C-g`, you can
 continue where you left off next time by going up in the history.
 
 See `Search
@@ -142,7 +141,7 @@ Yank and Pop
 
 Yank, usually bound to :kbd:`C-y`, works differently in Visual Replace
 than it does normally. In Visual Replace mode, it calls
-:code:`visual-replace-yank`.
+``visual-replace-yank``.
 
 * In the search section, yanking copies text from the current buffer
   into the search section. This avoids typing text when it's right
@@ -155,7 +154,7 @@ than it does normally. In Visual Replace mode, it calls
   section. This avoids typing the search string again when you just
   want to make some small changes to it.
 
-The normal yank can be executed by calling :code:`yank-pop`, usually
+The normal yank can be executed by calling ``yank-pop``, usually
 bound to :kbd:`M-y`.
 
 This can be configured by editing `visual-mode-map`. For example, to
@@ -174,7 +173,7 @@ Single replacements
 
 If you want to replace only *some* matches within the scope, you can:
 
-* use the :code:`query-replace` UI to go through all matches using
+* use the ``query-replace`` UI to go through all matches using
   :kbd:`M-% q`, then typing :kbd:`RET` to enter Query Replace mode. `
 
 * in preview mode, click on the replacements you want to apply. You
@@ -210,29 +209,30 @@ available in visual replace. Call :kbd:`M-x customize-group
 visual-replace` to see all options. For face customization, see the
 :ref`next section<faces>`.
 
-* :kbd:`M-x customize-option visual-replace-preview` With this option
-  enabled, Visual Replace highlights matches and offer a preview of
-  their replacements. This is enabled by default.
+visual-replace-preview : customization option
+  With this option enabled, Visual Replace highlights matches and
+  offer a preview of their replacements. This is enabled by default.
 
-* :kbd:`M-x customize-option visual-replace-first-match` With this
-  option enabled, Visual Replace always tries to have at least one
-  match visible in the preview, even if it means jumping to another
-  section of the buffer. This is enabled by default.
+visual-replace-first-match : customization option
+  With this option enabled, Visual Replace always tries to have at
+  least one match visible in the preview, even if it means jumping to
+  another section of the buffer. This is enabled by default.
 
-* :kbd:`M-x customize-option keep-initial-position` With this option
-  enabled, Visual Replace goes back to the point it was called from,
-  even if the point was moved during preview, to display the first
-  match, or manually with :kbd:`<down>` or :kbd:`<up>`.
+keep-initial-position : customization option
+  With this option enabled, Visual Replace goes back to the point it
+  was called from, even if the point was moved during preview, to
+  display the first match, or manually with :kbd:`<down>` or
+  :kbd:`<up>`.
 
   Note that in the case where the point is moved during preview,
   Visual Replace sets a mark at the original location, to go back too
   if necessary.
 
-* :kbd:`M-x customize-option visual-replace-display-total` By default,
-  in preview mode, visual Replace only searches for and display
-  matches in the visible portions of the buffer. With this option
-  enabled, Visual Replace searches the whole buffer, in an idle timer,
-  and displays the total number of matches in the prompt.
+visual-replace-display-total : customization option
+  By default, in preview mode, visual Replace only searches for and
+  display matches in the visible portions of the buffer. With this
+  option enabled, Visual Replace searches the whole buffer, in an idle
+  timer, and displays the total number of matches in the prompt.
 
   When the point is on a match, the index of the match is also
   displayed, in front of the total.
@@ -242,39 +242,40 @@ visual-replace` to see all options. For face customization, see the
 
   This is not enabled by default.
 
-* :kbd:`M-x customize-option visual-replace-initial-scope` With this
-  option set, the initial scope ignores the active region
+visual-replace-initial-scope : customization option
+  With this option set, the initial scope ignores the active region
   entirely and is always set to either "From Point" or "Full Buffer".
 
   By default, the initial scope is:
 
     * the active region, if there is one
 
-    * from point if :code:`visual-replace-default-to-full-scope` is nil, see below
+    * from point if ``visual-replace-default-to-full-scope`` is nil, see below
 
     * the full buffer otherwise
 
-* :kbd:`M-x customize-option visual-replace-default-full-scope` With
-  this option set, when no region is active, replacement applies by
-  default to the full buffer, instead of to the region following the
-  point.
+visual-replace-default-full-scope : customization option
+  With this option set, when no region is active, replacement applies
+  by default to the full buffer, instead of to the region following
+  the point.
 
-* :kbd:`M-x customize-option visual-replace-defaults-hook` To modify
-  search and replace defaults, such as, for example, having searches
-  default to regular expressions or search default to word mode, call
-  the command that turns it on from this hook. This is called when
-  Visual Replace is started with no initial text, so these
-  customizations won't apply to :code:`visual-replace-from-isearch`,
+visual-replace-defaults-hook : customization option
+  To modify search and replace defaults, such as, for example, having
+  searches default to regular expressions or search default to word
+  mode, call the command that turns it on from this hook. This is
+  called when Visual Replace is started with no initial text, so these
+  customizations won't apply to ``visual-replace-from-isearch``,
   for example.
 
-* :kbd:`M-x customize-option visual-replace-minibuffer-mode-hook` This
-  hook is called when Visual Replace is started in the minibuffer. It
-  can be used to turn on query mode in all cases by registering the
-  command :code:`visual-replace-toggle-query` in this hook.
+visual-replace-minibuffer-mode-hook : customization option
+  This hook is called when Visual Replace is started in the
+  minibuffer. It can be used to turn on query mode in all cases by
+  registering the command ``visual-replace-toggle-query`` in this
+  hook.
 
   Rather than setting the as a customization, with
-  :code:`use-package`, you can force Visual Replace to call
-  :code:`query-replace` by default with:
+  ``use-package``, you can force Visual Replace to call
+  ``query-replace`` by default with:
 
   .. code-block:: elisp
 
@@ -282,9 +283,9 @@ visual-replace` to see all options. For face customization, see the
       [...]
       :hook ((visual-replace-minibuffer-mode . visual-replace-toggle-query))
 
-* :kbd:`M-x customize-option visual-replace-min-length` This specifies
-  the minimum number of characters that need to be typed before Visual
-  Replace enters preview mode.
+visual-replace-min-length : customization option
+  This specifies the minimum number of characters that need to be
+  typed before Visual Replace enters preview mode.
 
   Setting this too low might result in strange highlights happening
   when starting to type in the match string.
@@ -308,32 +309,32 @@ Face Customization
 
 Visual Replace relies an a large number of faces to display things the way they should be:
 
-  * :code:`visual-replace-match`, for matches with no replacement
+  * ``visual-replace-match``, for matches with no replacement
 
-  * :code:`visual-replace-match-highlight`, for matches at point with no replacement
+  * ``visual-replace-match-highlight``, for matches at point with no replacement
 
-  * :code:`visual-replace-replacement`, for match replacement
+  * ``visual-replace-replacement``, for match replacement
 
-  * :code:`visual-replace-replacement-highlight`, for match replacement, at point
+  * ``visual-replace-replacement-highlight``, for match replacement, at point
 
-  * :code:`visual-replace-delete-match`, for text to be deleted
+  * ``visual-replace-delete-match``, for text to be deleted
 
-  * :code:`visual-replace-delete-match-highlight`, for text to be
+  * ``visual-replace-delete-match-highlight``, for text to be
     deleted at point
 
-  * :code:`visual-replace-match-count`, for displaying the number of
+  * ``visual-replace-match-count``, for displaying the number of
     matches before the prompt
 
-  * :code:`visual-replace-separator`, for displaying the separator
+  * ``visual-replace-separator``, for displaying the separator
     between the search and replacement strings in the prompt
 
-  * :code:`visual-replace-region`, for highlighting the area of the
+  * ``visual-replace-region``, for highlighting the area of the
     buffer to which search and replace apply
 
 The defaults values for this faces attempt to reuse existing faces as
 much as possible to try and look reasonable whatever the current Emacs
 theme, but the result isn't always too great. In particular,
-:code:`visual-replace-region`, which uses the same face as the region,
+``visual-replace-region``, which uses the same face as the region,
 is typically too bright and in-your-face. It should ideally use a
 fainter color than the region, still visible, but not too different
 from the normal background as to cause readability issues.
@@ -347,7 +348,7 @@ installed in Emacs by default, and the `Ef themes
 <https://protesilaos.com/emacs/ef-themes>`_, by the same author. This
 should hopefully help you get started.
 
-The code snippets rely on :code:`after-enable-theme-hook` to detect
+The code snippets rely on ``after-enable-theme-hook`` to detect
 theme changes, from the `Section 5.23 of the Emacs 29 Manual
 <https://www.gnu.org/software/emacs/manual/html_node/modus-themes/A-theme_002dagnostic-hook-for-theme-loading.html>`_:
 
@@ -426,20 +427,25 @@ Commands
    pair: command; visual-replace-selected
    pair: command; visual-replace-from-isearch
 
-* :code:`visual-replace` is the main command that starts Visual Replace and
-  then executes the search-and-replace. It can replace :code:`replace-string`,
-  :code:`query-replace`, :code:`replace-regexp` and :code:`query-replace-regexp`.
+visual-replace : command
+  This is the main command that starts Visual Replace and then
+  executes the search-and-replace. It can replace
+  ``replace-string``, ``query-replace``,
+  ``replace-regexp`` and ``query-replace-regexp``.
 
-* :code:`visual-replace-thing-at-point` starts a visual replace session with
-  the symbol at point as text to replace.
+visual-replace-thing-at-point : command
+  This command starts a visual replace session with the symbol at
+  point as text to replace.
 
-* :code:`visual-replace-selected` starts with the text within the current
-  active region as text to replace.
+visual-replace-selected : command
+  This command starts with the text within the current active region
+  as text to replace.
 
-* :code:`visual-replace-from-isearch` switches from an active isearch
-  session to :code:`visual-replace`, keeping the current search text and
+visual-replace-from-isearch : command
+  This command switches from an active isearch session to
+  ``visual-replace``, keeping the current search text and
   settings, such as regexp mode. This is meant to be called while
-  isearch is in progress, and bound to :code:`isearch-mode-map`.
+  isearch is in progress, and bound to ``isearch-mode-map``.
 
 .. index::
    pair: command; visual-replace-toggle-regexp
@@ -456,48 +462,64 @@ Commands
    pair: variable; visual-replace-transient-map
 
 The following commands are meant to be called while in Visual Replace
-mode, from :code:`visual-mode-map`. By default, they're bound in
-:code:`visual-replace-secondary-mode-map`:
+mode, from ``visual-mode-map``. By default, they're bound in
+``visual-replace-secondary-mode-map``:
 
-* :code:`visual-replace-toggle-regexp` toggles regexp mode on and off.
-* :code:`visual-replace-toggle-scope` changes the scope of the search.
-* :code:`visual-replace-toggle-query` toggles the query mode on and off.
-* :code:`visual-replace-toggle-word` toggles the word mode on and off.
-* :code:`visual-replace-toggle-case-fold` toggles the case fold mode on and off.
-* :code:`visual-replace-toggle-lax-ws` toggles the lax whitespace mode on and off.
-* :code:`visual-replace-next-match` moves cursor to the next match
-* :code:`visual-replace-prev-match` moves cursor to the previous match
-* :code:`visual-replace-apply-one` applies a single replacement, to the
-  match at or after the cursor, then moves on to the next match. With a
-  prefix argument N, apply N replacements instead of just one.
+visual-replace-toggle-regexp : <prefix> r , command
+    toggles regexp mode on and off.
 
-  This command, used together with :code:`visual-replace-next-match`
-  and :code:`visual-replace-prev-match` is in many cases functionally
-  equivalent to using the query mode, but with a different interface
-  that the possibility of changing the query as you go.
-* :code:`visual-replace-apply-one-repeat` executes
-  :code:`visual-replace-apply-one`, then install a transient map that
-  allows:
+visual-replace-toggle-scope : <prefix> SPC, command
+    changes the scope of the search.
 
-    * repeating :code:`visual-replace-apply-one` by typing the last part
-      of the key sequence used to call :code:`visual-replace-apply-one-repeat`
+visual-replace-toggle-query : <prefix> q, command
+    toggles the query mode on and off.
 
-    * skipping matches with :kbd:`<down>`, which calls :code:`visual-replace-next-match`
+visual-replace-toggle-word : <prefix> w, command
+    toggles the word mode on and off.
 
-    * going up the match previews with :kbd:`<up>`, which calls :code:`visual-replace-prev-match`
+visual-replace-toggle-case-fold : <prefix> c, command
+    toggles the case fold mode on and off.
+
+visual-replace-toggle-lax-ws : <prefix> s, command
+    toggles the lax whitespace mode on and off.
+
+visual-replace-next-match : <down>, command
+    moves cursor to the next match
+
+visual-replace-prev-match : <up>, command
+    moves cursor to the previous match
+
+visual-replace-apply-one : <prefix> a, command
+    applies a single replacement, to the match at or after the
+    cursor, then moves on to the next match. With a prefix argument
+    N, apply N replacements instead of just one.
+
+    This command, used together with ``visual-replace-next-match``
+    and ``visual-replace-prev-match`` is in many cases functionally
+    equivalent to using the query mode, but with a different interface
+    that the possibility of changing the query as you go.
+
+visual-replace-apply-one-repeat : <prefix> a, command
+    on Emacs 29.1 and later, executes ``visual-replace-apply-one``,
+    then installs a transient map that allows:
+
+    * repeating ``visual-replace-apply-one`` by typing the last part
+      of the key sequence used to call ``visual-replace-apply-one-repeat``
+
+    * skipping matches with :kbd:`<down>`, which calls ``visual-replace-next-match``
+
+    * going up the match previews with :kbd:`<up>`, which calls ``visual-replace-prev-match``
 
     * undoing the last replacement with :kbd:`u`
 
-  Typing anything else deactivates the transient map.
+    * Typing anything else deactivates the transient map.
 
-  This can be configured by modifying the map :code:`visual-replace-transient-map`.
+    The keybindings can be configured by modifying the map ``visual-replace-transient-map``.
 
-  This command is available on Emacs 29.1 or later.
-
-* :code:`visual-replace-undo` reverts the last call to
-  :code:`visual-replace-apply-one`. This just executes :code:`undo` in
-  the original buffer. With a prefix argument N, call undo N times
-  instead of just one.
+visual-replace-undo : <prefix> u, command
+  reverts the last call to ``visual-replace-apply-one``. This just
+  executes ``undo`` in the original buffer. With a prefix argument N,
+  call undo N times instead of just one.
 
 Keymaps
 -------
@@ -506,16 +528,17 @@ Keymaps
    pair: variable; visual-replace-mode-map
    pair: variable; visual-replace-secondary-mode-map
 
-:code:`visual-replace-mode-map` is the map that is active in the
-minibuffer in Visual Replace mode. You can add your own keybindings to
-it.
+visual-replace-mode-map : keymap
+  This is the map that is active in the minibuffer in Visual Replace
+  mode. You can add your own keybindings to it.
 
-:code:`visual-replace-secondary-mode-map` is the map that defines
-keyboard shortcuts for modifying the search mode, such as :kbd:`r` to
-toggle regexp mode on or off. It is bound by default in
-:code:`visual-replace-mode-map` to the shortcut that was used to
-launch Visual Replace, but you can bind it to whatever you want, or
-define custom shortcuts directly in :code:`visual-replace-mode-map`.
+visual-replace-secondary-mode-map : keymap
+  This is the map that defines keyboard shortcuts for modifying the
+  search mode, such as :kbd:`r` to toggle regexp mode on or off. It is
+  bound by default in ``visual-replace-mode-map`` to the shortcut that
+  was used to launch Visual Replace, but you can bind it to whatever
+  you want, or define custom shortcuts directly in
+  ``visual-replace-mode-map``.
 
 In the example below, :kbd:`C-l` is bound to secondary mode map and
 :kbd:`C-r` toggles the regexp mode, so it is possible to toggle the
@@ -540,21 +563,24 @@ Hooks
    pair: hook; visual-replace-functions
    pair: variable; visual-replace-defaults-hook
 
-:code:`visual-replace-minibuffer-mode-hook` is a normal hook that is
-run when entering the visual replace mode, so you can set things up
-just before Visual Replace starts.
+visual-replace-minibuffer-mode-hook : hook
+  This is a normal hook that is run when entering the visual replace
+  mode, so you can set things up just before Visual Replace starts.
 
-:code:`visual-replace-defaults-hook` is a normal hook that is run when
-entering the visual replace mode with no initial match or replacement,
-so you can provide some default mode without interfering with
-:code:`visual-replace-from-isearch` or
-:code:`visual-replace-thing-at-point`.
+visual-replace-defaults-hook : hook
 
-Functions in :code:`visual-replace-functions` are called just before
-executing the replacement or just before building the previews. They
-are passed a struct of type :code:`visual-replace-args`, which they
-can modify. You can use it to customize the behavior of the search or
-modify the regexp language.
+  This is a normal hook that is run when entering the visual replace
+  mode with no initial match or replacement, so you can provide some
+  default mode without interfering with
+  ``visual-replace-from-isearch`` or
+  ``visual-replace-thing-at-point``.
+
+visual-replace-functions : hook
+  Functions in this abnormal hook are called just before executing the
+  replacement or just before building the previews. They are passed a
+  struct of type ``visual-replace-args``, which they can modify. You
+  can use it to customize the behavior of the search or modify the
+  regexp language.
 
 Limitations
 -----------
@@ -571,9 +597,9 @@ Limitations
   many times during preview, with unpredictable results.
 
   In all other cases, the preview should match what is eventually
-  executed. If that's not the case, please :ref:`report an issue
-  <reporting>`.
+  executed. If that's not the case, please report an issue.
+  (:ref:`reporting`)
 
-* If you use :code:`visual-replace-apply-one` to replace single
-  matches, :code:`\\#` in the replacement is always 1, because single
+* If you use ``visual-replace-apply-one`` to replace single
+  matches, ``\\#`` in the replacement is always 1, because single
   matches are applied separately.
