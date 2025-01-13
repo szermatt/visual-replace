@@ -369,9 +369,7 @@
                     (buffer-substring-no-properties
                      (point-min) (point-max)))))))
 
-(ert-deftest visual-replace-jump-forward-to-first-match ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-jump-forward-to-first-match ()
   (test-visual-replace-env
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows)
@@ -410,9 +408,7 @@
                          (line-beginning-position)
                          (line-end-position)))))))))
 
-(ert-deftest visual-replace-jump-backward-to-first-match ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-jump-backward-to-first-match ()
   (test-visual-replace-env
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows)
@@ -455,9 +451,7 @@
                          (line-beginning-position)
                          (line-end-position)))))))))
 
-(ert-deftest visual-replace-restore-position-after-jump ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-restore-position-after-jump ()
   (test-visual-replace-env
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows)
@@ -483,9 +477,7 @@
                        (line-beginning-position)
                        (line-end-position))))))))
 
-(ert-deftest visual-replace-give-up-looking-for-first-match ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-give-up-looking-for-first-match ()
   (test-visual-replace-env
      (with-selected-window (display-buffer (current-buffer))
        (delete-other-windows)
@@ -538,9 +530,7 @@
                      (,(line-beginning-position 161) . ,(line-beginning-position 200)))
                    (visual-replace--small-ranges `((1 . ,(line-beginning-position 200))))))))
 
-(ert-deftest visual-replace-highlight-scope-from-point ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-highlight-scope-from-point ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (with-selected-window (display-buffer (current-buffer))
@@ -581,9 +571,7 @@
                                   "line 5.")
                           (buffer-string)))))))))
 
-(ert-deftest visual-replace-highlight-scope-region ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-highlight-scope-region ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (with-selected-window (display-buffer (current-buffer))
@@ -625,9 +613,7 @@
                                   "line 5.")
                           (buffer-string)))))))))
 
-(ert-deftest visual-replace-highlight-scope-rect-region ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-highlight-scope-rect-region ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (with-selected-window (display-buffer (current-buffer))
@@ -672,9 +658,7 @@
                                   "line 5.")
                           (buffer-string)))))))))
 
-(ert-deftest visual-replace-highlight-scope-rect-region-with-gaps ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-highlight-scope-rect-region-with-gaps ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (with-selected-window (display-buffer (current-buffer))
@@ -876,9 +860,7 @@
                     (buffer-substring-no-properties
                      (point-min) (point-max)))))))
 
-(ert-deftest visual-replace-read-RET-twice ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-RET-twice ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -887,9 +869,7 @@
                         (car (visual-replace-read))))
        :keys "hello RET world RET"))))
 
-(ert-deftest visual-replace-exit-immediately ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-exit-immediately ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -897,9 +877,7 @@
          (should (equal (visual-replace-make-args)
                         (car (visual-replace-read))))))))
 
-(ert-deftest visual-replace-exit-before-tab ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-exit-before-tab ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -908,9 +886,7 @@
                         (car (visual-replace-read))))
        :keys "hello"))))
 
-(ert-deftest visual-replace-read-TAB-then-RET ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-TAB-then-RET ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -919,9 +895,7 @@
                         (car (visual-replace-read))))
        :keys "hello TAB world RET"))))
 
-(ert-deftest visual-replace-read-TAB-navigation ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-TAB-navigation ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -943,9 +917,7 @@
        (turtles-with-grab-buffer (:name "3rd TAB" :point "<>")
          (should (equal "Replace from point: hello → world<>" (buffer-string))))))))
 
-(ert-deftest visual-replace-read-TAB-remember-pos ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-TAB-remember-pos ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -963,9 +935,7 @@
        (turtles-with-grab-buffer (:name "2nd TAB" :point "<>")
          (should (equal "Replace from point: hello → worl<>d" (buffer-string))))))))
 
-(ert-deftest visual-replace-read-TAB-default-to-end ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-TAB-default-to-end ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -975,9 +945,7 @@
        (turtles-with-grab-buffer (:point "<>")
          (should (equal "Replace from point: hello → world<>" (buffer-string))))))))
 
-(ert-deftest visual-replace-read-toggle-regexp ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-toggle-regexp ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -989,9 +957,7 @@
        (turtles-with-grab-buffer ()
          (should (equal "Replace from point: hello →.* world" (buffer-string))))))))
 
-(ert-deftest visual-replace-read-toggle-regexp-with-case-default ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-toggle-regexp-with-case-default ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1006,9 +972,7 @@
          (turtles-with-grab-buffer ()
            (should (equal "Replace from point: hello →.* world" (buffer-string)))))))))
 
-(ert-deftest visual-replace-read-toggle-query ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-toggle-query ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1020,9 +984,7 @@
        (turtles-with-grab-buffer ()
          (should (equal "Replace from point: hello →? world" (buffer-string))))))))
 
-(ert-deftest visual-replace-read-toggle-regexp-query ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-toggle-regexp-query ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1035,9 +997,7 @@
        (turtles-with-grab-buffer ()
          (should (equal "Replace from point: hello →?.* world" (buffer-string))))))))
 
-(ert-deftest visual-replace-read-toggle-word ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-toggle-word ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1049,9 +1009,7 @@
        (turtles-with-grab-buffer ()
          (should (equal "Replace from point: hello →w world" (buffer-string))))))))
 
-(ert-deftest visual-replace-read-toggle-word-and-regexp ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-toggle-word-and-regexp ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1077,9 +1035,7 @@
        (turtles-with-grab-buffer (:name "word again")
          (should (equal "Replace from point: hello →w world" (buffer-string))))))))
 
-(ert-deftest visual-replace-read-default-case-fold ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-default-case-fold ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1088,9 +1044,7 @@
                         (car (visual-replace-read))))
        :keys "hello TAB world"))))
 
-(ert-deftest visual-replace-read-toggle-case-fold ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-toggle-case-fold ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1102,9 +1056,7 @@
        (turtles-with-grab-buffer ()
          (should (equal "Replace from point: hello →c world" (buffer-string))))))))
 
-(ert-deftest visual-replace-read-toggle-case-fold-off-by-default ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-toggle-case-fold-off-by-default ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (let ((case-fold-search nil))
@@ -1116,9 +1068,7 @@
          (turtles-with-grab-buffer ()
            (should (equal "Replace from point: hello →i world" (buffer-string)))))))))
 
-(ert-deftest visual-replace-read-toggle-lax-ws ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-toggle-lax-ws ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1131,9 +1081,7 @@
        (turtles-with-grab-buffer ()
          (should (equal "Replace from point: hello →(lax ws) world" (buffer-string))))))))
 
-(ert-deftest visual-replace-read-toggle-lax-ws-and-regexp ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-toggle-lax-ws-and-regexp ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1151,9 +1099,7 @@
        (turtles-with-grab-buffer (:name "regexp only")
          (should (equal "Replace from point: hello →.* world" (buffer-string))))))))
 
-(ert-deftest visual-replace-read-toggle-scope ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-toggle-scope ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (insert "some content")
@@ -1166,9 +1112,7 @@
          :command #'visual-replace-toggle-scope)
        (should (equal ranges (list (cons (point-min) (point-max)))))))))
 
-(ert-deftest visual-replace-read-toggle-scope-keeps-flags ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-toggle-scope-keeps-flags ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1182,9 +1126,7 @@
          (should (equal "Replace in buffer: hello →?.* world"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-tab-keeps-flags ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-tab-keeps-flags ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1198,9 +1140,7 @@
          (should (equal "Replace from point: hello →?.* world"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-toggle-scope-minibuffer-and-preview ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-toggle-scope-minibuffer-and-preview ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (with-selected-window (display-buffer (current-buffer))
@@ -1237,9 +1177,7 @@
            ;; This makes sure the extra matches are deleted
            (should (equal "hello, world, [hello]*, [hello]!" (buffer-string)))))))))
 
-(ert-deftest visual-replace-forgets-setting ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-forgets-setting ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1265,9 +1203,7 @@
   (forward-line)
   (should (region-active-p)))
 
-(ert-deftest visual-replace-read-toggle-scope-with-region-display ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-toggle-scope-with-region-display ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (test-visual-replace-setup-region)
@@ -1288,9 +1224,7 @@
          (should (equal "Replace in region (1L): hello → world"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-read-toggle-scope-with-region ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-toggle-scope-with-region ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (test-visual-replace-setup-region)
@@ -1300,9 +1234,7 @@
          :keys "hello TAB world")
        (should (equal ranges (list (cons 1 7))))))))
 
-(ert-deftest visual-replace-read-noncontiguous-region ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-noncontiguous-region ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (insert "hello\nworld\nhello\nworld\n")
@@ -1322,9 +1254,7 @@
 
      (should (equal ranges '((3 . 5) (9 . 11))))))))
 
-(ert-deftest visual-replace-read-toggle-scope-with-region-then-buffer ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-toggle-scope-with-region-then-buffer ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (test-visual-replace-setup-region)
@@ -1337,9 +1267,7 @@
 
        (should (equal ranges (list (cons (point-min) (point-max)))))))))
 
-(ert-deftest visual-replace-fields ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-fields ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (turtles-with-minibuffer
@@ -1354,9 +1282,7 @@
                        (minibuffer-contents) 'field 'replace)
                       "hello [world]"))))))
 
-(ert-deftest visual-replace-fields-in-history-entry ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-fields-in-history-entry ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1378,9 +1304,7 @@
                        (minibuffer-contents) 'field 'replace)
                       "hello [world]"))))))
 
-(ert-deftest visual-replace-kill ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-kill ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1398,9 +1322,7 @@
          (should (equal "Replace from point: h → w"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-kill-no-separator ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-kill-no-separator ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1412,9 +1334,7 @@
          (should (equal "Replace from point: hell<>"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-kill-whole-line ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-kill-whole-line ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1439,9 +1359,7 @@
          (should (equal "Replace from point: <>"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-yank-in-match-field ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-yank-in-match-field ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1455,9 +1373,7 @@
          (should (equal "Replace from point: from →"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-yank-symbol-in-match-field ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-yank-symbol-in-match-field ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1471,9 +1387,7 @@
          (should (equal "Replace from point: from-a →"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-multiple-yank-in-match-field ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-multiple-yank-in-match-field ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1491,9 +1405,7 @@
          (should (equal "Replace from point: from current<>"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-yank-with-symbols ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-yank-with-symbols ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1534,9 +1446,7 @@
          (should (equal "Replace from point: (when some-test some-value)) → world"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-yank-in-match-field-with-prompt ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-yank-in-match-field-with-prompt ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1550,9 +1460,7 @@
          (should (equal "Replace from point: from → world"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-yank-in-match-field-after-next-match ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-yank-in-match-field-after-next-match ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1567,9 +1475,7 @@
          (should (equal "Replace from point: from-region<>"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-yank-in-replacement-field ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-yank-in-replacement-field ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1584,9 +1490,7 @@
                         (buffer-string))))))))
 
 
-(ert-deftest visual-replace-multiple-yank-in-replacement-field ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-multiple-yank-in-replacement-field ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1602,9 +1506,7 @@
          (should (equal "Replace from point: hello → hello hello<>"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-yank-pop-in-match-field ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-yank-pop-in-match-field ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1619,9 +1521,7 @@
          (should (equal "Replace from point: prev1<>"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-multiple-yank-pop-in-match-field ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-multiple-yank-pop-in-match-field ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1637,9 +1537,7 @@
          (should (equal "Replace from point: prev2<>"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-yank-then-yank-pop-in-replacement-field ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-yank-then-yank-pop-in-replacement-field ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1657,9 +1555,7 @@
          (should (equal "Replace from point: hello → hello prev1<>"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-multiple-yank-pop-in-replacement-field ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-multiple-yank-pop-in-replacement-field ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1676,9 +1572,7 @@
          (should (equal "Replace from point: hello → prev2"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-history-by-default ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-history-by-default ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1692,18 +1586,14 @@
                         (car (visual-replace-read))))
        :keys "RET"))))
 
-(ert-deftest visual-replace-default-but-no-history ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-default-but-no-history ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (turtles-with-minibuffer
          (should-error (visual-replace-read))
        :keys "RET"))))
 
-(ert-deftest visual-replace-history-by-default-despite-separator ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-history-by-default-despite-separator ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1717,9 +1607,7 @@
                         (car (visual-replace-read))))
        :keys "TAB RET"))))
 
-(ert-deftest visual-replace-history-by-default-despite-toggle ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-history-by-default-despite-toggle ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1734,9 +1622,7 @@
        :command #'visual-replace-toggle-regexp
        :keys "RET"))))
 
-(ert-deftest visual-replace-history ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-history ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1754,9 +1640,7 @@
        (turtles-with-grab-buffer (:point "<>")
          (should (equal "Replace from point [hello → world]: <>hello → world" (buffer-string))))))))
 
-(ert-deftest visual-replace-complete-from-history ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-complete-from-history ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1780,9 +1664,7 @@
        (turtles-with-grab-buffer (:point "<>")
          (should (equal "Replace from point [foo → bar]: h<>ello → world" (buffer-string))))))))
 
-(ert-deftest visual-replace-history-regex ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-history-regex ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1800,9 +1682,7 @@
          (should (equal "Replace from point [hello →.* world]: hello →.* world"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-history-regex-edit ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-history-regex-edit ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1821,9 +1701,7 @@
          (should (equal "Replace from point [hello →.* world]: hello →.* worldx<>"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-history-regex-toggle ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-history-regex-toggle ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1842,9 +1720,7 @@
          (should (equal "Replace from point [hello →.* world]: hello → world"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-history-regex-query ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-history-regex-query ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1864,9 +1740,7 @@
          (should (equal "Replace from point [hello →?.* world]: hello →?.* world"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-history-regex-toggle-2 ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-history-regex-toggle-2 ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1887,9 +1761,7 @@
          (should (equal "Replace from point [hello →?.* world]: hello →.* world"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-history-multiple ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-history-multiple ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -1929,9 +1801,7 @@
          (should (equal "Replace from point [hello →? query]: hello →.* foo"
                         (buffer-string))))))))
 
-(ert-deftest visual-replace-keep-incomplete-in-history ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-keep-incomplete-in-history ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      ;; Incomplete
@@ -1956,9 +1826,7 @@
               (turtles-with-grab-buffer (:point "<>")
                 (should (equal "Replace from point: faa<>foo → bar" (buffer-string)))))))))))
 
-(ert-deftest visual-replace-keep-incomplete-with-only-match-field ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-keep-incomplete-with-only-match-field ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      ;; Incomplete
@@ -1983,9 +1851,7 @@
               (turtles-with-grab-buffer ()
                 (should (equal "Replace from point: foo → bar" (buffer-string)))))))))))
 
-(ert-deftest visual-replace-incomplete-then-history ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-incomplete-then-history ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -2016,9 +1882,7 @@
               (turtles-with-grab-buffer ()
                 (should (equal "Replace from point [hello → world]: hello → world" (buffer-string)))))))))))
 
-(ert-deftest visual-replace-incomplete-but-default-from-history ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-incomplete-but-default-from-history ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -2044,9 +1908,7 @@
                 (should (equal "Replace from point [hello → world]:" (buffer-string))))
               :keys "RET")))))))
 
-(ert-deftest visual-replace-warn-newline ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-warn-newline ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (turtles-with-minibuffer
@@ -2058,9 +1920,7 @@
        :keys "a\\n RET b"
        (visual-replace-toggle-regexp)))))
 
-(ert-deftest visual-replace-warn-tab ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-warn-tab ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (turtles-with-minibuffer
@@ -2072,9 +1932,7 @@
        :keys "a\\t RET b"
        (visual-replace-toggle-regexp)))))
 
-(ert-deftest visual-replace-warn-only-for-regexp ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-warn-only-for-regexp ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (turtles-with-minibuffer
@@ -2084,9 +1942,7 @@
 
        :keys "a\\n RET b"))))
 
-(ert-deftest visual-replace-warn-the-first-time ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-warn-the-first-time ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (turtles-with-minibuffer
@@ -2106,9 +1962,7 @@
        :keys "RET"
        (visual-replace-toggle-regexp)))))
 
-(ert-deftest visual-replace-kill-and-yank-separator ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-kill-and-yank-separator ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (turtles-with-minibuffer
@@ -2130,9 +1984,7 @@
        ;; Don't complain about "nothing to replace"
        (setq quit-flag t)))))
 
-(ert-deftest visual-replace-initial-input ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-initial-input ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (turtles-with-minibuffer
@@ -2144,9 +1996,7 @@
        ;; Don't complain about "nothing to replace"
        (setq quit-flag t)))))
 
-(ert-deftest visual-replace-initial-input-complete ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-initial-input-complete ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (turtles-with-minibuffer
@@ -2158,9 +2008,7 @@
        ;; Don't complain about "nothing to replace"
        (setq quit-flag t)))))
 
-(ert-deftest visual-replace-initial-word ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-initial-word ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (turtles-with-minibuffer
@@ -2172,9 +2020,7 @@
        ;; Don't complain about "nothing to replace"
        (setq quit-flag t)))))
 
-(ert-deftest visual-replace-initial-regexp ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-initial-regexp ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (turtles-with-minibuffer
@@ -2186,9 +2032,7 @@
        ;; Don't complain about "nothing to replace"
        (setq quit-flag t)))))
 
-(ert-deftest visual-replace-initial-query ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-initial-query ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
      (turtles-with-minibuffer
@@ -2200,9 +2044,7 @@
        ;; Don't complain about "nothing to replace"
        (setq quit-flag t)))))
 
-(ert-deftest visual-replace-initial-case-fold-enable ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-initial-case-fold-enable ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -2216,9 +2058,7 @@
          ;; Don't complain about "nothing to replace"
          (setq quit-flag t))))))
 
-(ert-deftest visual-replace-initial-case-fold-disable ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-initial-case-fold-disable ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -2232,9 +2072,7 @@
          ;; Don't complain about "nothing to replace"
          (setq quit-flag t))))))
 
-(ert-deftest visual-replace-initial-case-fold-default ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-initial-case-fold-default ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
 
@@ -2247,9 +2085,7 @@
        ;; Don't complain about "nothing to replace"
        (setq quit-flag t)))))
 
-(ert-deftest visual-replace-preview ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-preview ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "hello, world, hello, hello!")
@@ -2273,9 +2109,7 @@
              (:name "hell" :buf testbuf :faces test-visual-replace-faces)
            (should (equal "[hell]*o, world, [hell]o, [hell]o!" (buffer-string)))))))))
 
-(ert-deftest visual-replace-preview-case-fold ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-preview-case-fold ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "Hello, world, hello, heLLO!")
@@ -2299,9 +2133,7 @@
              (:name "off" :buf testbuf :faces test-visual-replace-faces)
            (should (equal "Hello, world, [hello]*, heLLO!" (buffer-string)))))))))
 
-(ert-deftest visual-replace-preview-case-fold-uppercase ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-preview-case-fold-uppercase ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "Hello, world, hello, HELLO!")
@@ -2325,9 +2157,7 @@
              (:name "off" :buf testbuf :faces test-visual-replace-faces)
            (should (equal "Hello, world, hello, [HELLO]*!" (buffer-string)))))))))
 
-(ert-deftest visual-replace-preview-delete-replace ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-preview-delete-replace ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "hello, world, hello, hello!")
@@ -2346,9 +2176,7 @@
            (should (equal "[hell]*{hul}*o, world, [hell]{hul}o, [hell]{hul}o!"
                           (buffer-string)))))))))
 
-(ert-deftest visual-replace-preview-regex ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-preview-regex ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "hello, world, hello, hello!")
@@ -2368,9 +2196,7 @@
          (turtles-with-grab-buffer (:name "buffer" :buf testbuf :faces test-visual-replace-faces)
            (should (equal "[hell]*o, world, [hell]o, [hell]o!" (buffer-string)))))))))
 
-(ert-deftest visual-replace-preview-lax-ws ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-preview-lax-ws ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "hello   world!")
@@ -2390,9 +2216,7 @@
          (turtles-with-grab-buffer (:name "buffer" :buf testbuf :faces test-visual-replace-faces)
            (should (equal "[hello   world]*!" (buffer-string)))))))))
 
-(ert-deftest visual-replace-preview-bad-regex ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-preview-bad-regex ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "hello, world, hello")
@@ -2417,9 +2241,7 @@
            (should (equal "hello, world, hello" (buffer-string)))))
        (should (equal "hello, world, hello" (buffer-string)))))))
 
-(ert-deftest visual-replace-preview-regex-eval ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-preview-regex-eval ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "hello, world, hello")
@@ -2441,9 +2263,7 @@
            (should (equal "[hell]*{0ELL}*o, world, [hell]{1ELL}o"
                           (buffer-string)))))))))
 
-(ert-deftest visual-replace-preview-skip-readonly ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-preview-skip-readonly ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "hello, world, ")
@@ -2472,9 +2292,7 @@
                 "hollo, world, hello, hollo!"
                 (buffer-string)))))))
 
-(ert-deftest visual-replace-disable-preview-if-too-short ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-disable-preview-if-too-short ()
   (test-visual-replace-env
    (let ((visual-replace-min-length 3)
          (testbuf (current-buffer)))
@@ -2499,9 +2317,7 @@
            (should (equal "hello, world, hello, hello!"
                           (buffer-string)))))))))
 
-(ert-deftest visual-replace-customize-min-length ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-customize-min-length ()
   (test-visual-replace-env
    (let ((visual-replace-min-length 0)
          (testbuf (current-buffer)))
@@ -2533,9 +2349,7 @@
    (read-only-mode)
    (should-error (visual-replace-read))))
 
-(ert-deftest visual-replace-preview-highlight-match-at-point ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-preview-highlight-match-at-point ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "hello, world, hello, hello!")
@@ -2571,9 +2385,7 @@
            (should (equal "[hel]*{hu}*lo, world, [hel]{hu}lo, [hel]{hu}lo!"
                           (buffer-string)))))))))
 
-(ert-deftest visual-replace-read-apply-one ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-apply-one ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "Fee fi fo fum!")
@@ -2596,9 +2408,7 @@
            (turtles-with-grab-buffer (:name "at end" :buf testbuf)
              (should (equal "Lee fi lo lum!" (buffer-string)))))))))
 
-(ert-deftest visual-replace-read-apply-multiple ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-apply-multiple ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "Fee fi fo fum!")
@@ -2615,9 +2425,7 @@
            (turtles-with-grab-buffer (:buf testbuf)
              (should (equal "Lee li lo fum!" (buffer-string)))))))))
 
-(ert-deftest visual-replace-read-undo ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-undo ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "Fee fi fo fum!")
@@ -2639,9 +2447,7 @@
          (turtles-with-grab-buffer (:name "after undo 1" :buf testbuf)
            (should (equal "Lee fi fo fum!" (buffer-string)))))))))
 
-(ert-deftest visual-replace-read-undo-further ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-undo-further ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "Fee fi fo fum!")
@@ -2664,9 +2470,7 @@
          (turtles-with-grab-buffer (:name "after undo 2" :buf testbuf)
            (should (equal "Fee fi fo fum!" (buffer-string)))))))))
 
-(ert-deftest visual-replace-read-undo-multiple ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-undo-multiple ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "Fee fi fo fum!")
@@ -2690,9 +2494,7 @@
          (turtles-with-grab-buffer (:name "after undo" :buf testbuf)
            (should (equal "Lee fi fo fum!" (buffer-string)))))))))
 
-(ert-deftest visual-replace-read-undo-everything ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-undo-everything ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "Fee fi fo fum!")
@@ -2719,9 +2521,7 @@
          (turtles-with-grab-buffer (:name "after undo" :buf testbuf)
            (should (equal "Fee fi fo fum!" (buffer-string)))))))))
 
-(ert-deftest visual-replace-read-apply-multiple-undo-once ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-apply-multiple-undo-once ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "Fee fi fo fum!")
@@ -2746,9 +2546,7 @@
          (turtles-with-grab-buffer (:name "after undo" :buf testbuf)
            (should (equal "Lee fi fo fum!" (buffer-string)))))))))
 
-(ert-deftest visual-replace-read-apply-undo-everything-then-redo ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-apply-undo-everything-then-redo ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "Fee fi fo fum!")
@@ -2777,9 +2575,7 @@
          (turtles-with-grab-buffer (:name "after second undo" :buf testbuf)
            (should (equal "Lee fi fo fum!" (buffer-string)))))))))
 
-(ert-deftest visual-replace-read-display-total ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-display-total ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer))
          (visual-replace-display-total t))
@@ -2810,9 +2606,7 @@
 
          )))))
 
-(ert-deftest visual-replace-read-display-index ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-display-index ()
   (test-visual-replace-env
    (let ((visual-replace-display-total t))
      (insert "I say, hello, world, hello, hello!")
@@ -2845,9 +2639,7 @@
 
          (should-error (visual-replace-next-match)))))))
 
-(ert-deftest visual-replace-read-display-total-update ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-display-total-update ()
   (test-visual-replace-env
    (let ((visual-replace-display-total t))
      (insert "I say, hello, world, hellow, hellow!")
@@ -2884,9 +2676,7 @@
            (should (equal "[0] Replace from point: hello."
                           (buffer-string)))))))))
 
-(ert-deftest visual-replace-read-display-total-too-short ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-display-total-too-short ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer))
          (visual-replace-display-total t))
@@ -2922,9 +2712,7 @@
          (turtles-with-grab-buffer (:name "buffer too short" :buf testbuf :faces test-visual-replace-faces)
            (should (equal "I say, hello, world, hello, hello!" (buffer-string)))))))))
 
-(ert-deftest visual-replace-read-display-total-large-buffer ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-display-total-large-buffer ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer))
          (visual-replace-display-total t)
@@ -2960,9 +2748,7 @@
                                           (line-end-position))))))))))))
 
 
-(ert-deftest visual-replace-read-display-total-too-many-matches ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-display-total-too-many-matches ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer))
          (visual-replace-display-total t)
@@ -3019,9 +2805,7 @@
              (should-not (memq (get-char-property (match-beginning 0) 'face)
                                '(visual-replace-match visual-replace-match-highlight))))))))))
 
-(ert-deftest visual-replace-read-display-total-too-large ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-display-total-too-large ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer))
          (visual-replace-display-total t)
@@ -3079,9 +2863,7 @@
              (should-not (memq (get-char-property (match-beginning 0) 'face)
                                '(visual-replace-match visual-replace-match-highlight))))))))))
 
-(ert-deftest visual-replace-read-display-total-in-region-buffer-too-large ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-display-total-in-region-buffer-too-large ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer))
          (visual-replace-display-total t)
@@ -3133,9 +2915,7 @@
                                   "some text21")
                           (buffer-string)))))))))
 
-(ert-deftest visual-replace-preview-display-window ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-preview-display-window ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "hello, world, hello, hello!")
@@ -3158,9 +2938,7 @@
 
          (should (get-buffer-window testbuf)))))))
 
-(ert-deftest visual-replace-read-toggle-query-from-hook ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-toggle-query-from-hook ()
   (test-visual-replace-env
    (add-hook 'visual-replace-defaults-hook #'visual-replace-toggle-query)
 
@@ -3171,9 +2949,7 @@
 
      :keys "hello TAB world")))
 
-(ert-deftest visual-replace-read-toggle-word-from-hook ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-toggle-word-from-hook ()
   (test-visual-replace-env
    (add-hook 'visual-replace-defaults-hook #'visual-replace-toggle-word)
 
@@ -3184,9 +2960,7 @@
 
      :keys "hello TAB world")))
 
-(ert-deftest visual-replace-read-toggle-word-from-hook-not-default ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-read-toggle-word-from-hook-not-default ()
   (test-visual-replace-env
    ;; The hook below doesn't apply if a visual-replace-args struct is
    ;; passed to visual-replace-read.
@@ -3202,9 +2976,7 @@
 
      :keys "hello TAB world")))
 
-(ert-deftest visual-replace-goto-closest-match ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-goto-closest-match ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "hello, world, hello, hello!")
@@ -3227,9 +2999,7 @@
 
            (should (equal "hello, world, <>[hello]*, [hello]!" (buffer-string)))))))))
 
-(ert-deftest visual-replace-open-hideshow-blocks ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-open-hideshow-blocks ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "(defun test-1 ()\n")
@@ -3324,9 +3094,7 @@
                           " (message \"test, the third\"))")
                   (buffer-string))))))))
 
-(ert-deftest visual-replace-scroll-then-open-hideshow-block ()
-  (turtles-ert-test)
-
+(turtles-ert-deftest visual-replace-scroll-then-open-hideshow-block ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
      (insert "(defun test-1 ()\n")
