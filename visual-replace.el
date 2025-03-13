@@ -44,6 +44,12 @@
 (require 'thingatpt)
 (require 'cl-lib)
 (eval-when-compile (require 'subr-x)) ;; if-let
+(require 'which-key nil 'noerror) ;; optional
+
+(declare-function which-key-show-keymap "which-key")
+(defvar which-key-mode) ;; which-key
+(defvar which-key-idle-delay) ;; which-key
+(defvar which-key-popup-type) ;; which-key
 
 ;;; Code:
 
@@ -295,20 +301,32 @@ to customize `visual-replace-defaults-hook' instead."
   :group 'visual-replace
   :options '(visual-replace-toggle-query))
 
+(defcustom visual-replace-show-mode-map-help (>= emacs-major-version 29)
+  "Show `visual-mode-map' using which-key after a delay.
+
+If which-key is available, visual-replace can display a list of
+keybindings from its mode map, using `visual-replace-show-keymap'.
+
+Additionally, if this option is non-nil and `which-key-mode' is
+turned on, visual-replace will show this list automatically after
+`which-key-idle-delay'.
+
+Set this option to nil if you don't like this behavior."
+  :type 'boolean
+  :group 'visual-replace)
+
 (defvar visual-replace-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [remap isearch-toggle-regexp] #'visual-replace-toggle-regexp)
     (define-key map [remap isearch-toggle-word] #'visual-replace-toggle-word)
     (define-key map [remap isearch-toggle-case-fold] #'visual-replace-toggle-case-fold)
     (define-key map [remap isearch-toggle-lax-whitespace] #'visual-replace-toggle-lax-ws)
-    (define-key map (kbd "RET") #'visual-replace-enter)
-    (define-key map (kbd "<return>") #'visual-replace-enter)
-    (define-key map (kbd "TAB") #'visual-replace-tab)
-    (define-key map (kbd "<tab>") #'visual-replace-tab)
-    (define-key map (kbd "<up>") #'visual-replace-prev-match)
-    (define-key map (kbd "<down>") #'visual-replace-next-match)
-    (define-key map [remap yank] #'visual-replace-yank)
-    (define-key map [remap yank-pop] #'visual-replace-yank-pop)
+    (define-key map (kbd "RET") (cons "replace" #'visual-replace-enter))
+    (define-key map (kbd "TAB") (cons "switch fields" #'visual-replace-tab))
+    (define-key map (kbd "<up>") (cons "previous match" #'visual-replace-prev-match))
+    (define-key map (kbd "<down>") (cons "next match" #'visual-replace-next-match))
+    (define-key map [remap yank] (cons "collect text" #'visual-replace-yank))
+    (define-key map [remap yank-pop] (cons "yank" #'visual-replace-yank-pop))
     map)
 "Map of minibuffer keyboard shortcuts available when editing a query.
 
@@ -320,19 +338,20 @@ Inherits from `minibuffer-mode-map'.")
 
 (defvar visual-replace-secondary-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "r") #'visual-replace-toggle-regexp)
-    (define-key map (kbd "SPC") #'visual-replace-toggle-scope)
-    (define-key map (kbd "q") #'visual-replace-toggle-query)
-    (define-key map (kbd "w") #'visual-replace-toggle-word)
-    (define-key map (kbd "c") #'visual-replace-toggle-case-fold)
-    (define-key map (kbd "s") #'visual-replace-toggle-lax-ws)
+    (define-key map (kbd "r") (cons "toggle regexp" #'visual-replace-toggle-regexp))
+    (define-key map (kbd "SPC") (cons "change scope" #'visual-replace-toggle-scope))
+    (define-key map (kbd "q") (cons "toggle query" #'visual-replace-toggle-query))
+    (define-key map (kbd "w") (cons "toggle word boundary" #'visual-replace-toggle-word))
+    (define-key map (kbd "c") (cons "toggle case-fold" #'visual-replace-toggle-case-fold))
+    (define-key map (kbd "s") (cons "lax whitespaces" #'visual-replace-toggle-lax-ws))
     (define-key map (kbd "a")
-                (if (eval-when-compile (>= emacs-major-version 29))
-                    ;; not using #' to avoid by-compilation error,
-                    ;; because of the version-specific availability.
-                    'visual-replace-apply-one-repeat
-                #'visual-replace-apply-one))
-    (define-key map (kbd "u") #'visual-replace-undo)
+                (cons "apply replacement"
+                      (if (eval-when-compile (>= emacs-major-version 29))
+                          ;; not using #' to avoid by-compilation error,
+                          ;; because of the version-specific availability.
+                          'visual-replace-apply-one-repeat
+                #'visual-replace-apply-one)))
+    (define-key map (kbd "u") (cons "undo replacement" #'visual-replace-undo))
     map)
   "Keyboard shortcuts specific to `visual-replace'.
 
@@ -630,6 +649,9 @@ This marker is added to `buffer-undo-list' by the first call to
 This is a local variable in the minibuffer in visual replace
 mode.")
 
+(defvar visual-replace--transient nil
+  "Transient keymap used to deactivate `visual-replace--show-keymap'.")
+
 (defun visual-replace-enter ()
   "Confirm the current text to replace.
 
@@ -895,12 +917,14 @@ If PUSH-MARK is non-nil, push a mark to the current point."
                                  (throw 'has-binding func)))))))
                     (when (or (eq mapping #'visual-replace)
                               (eq (command-remapping mapping) #'visual-replace))
-                      (local-set-key trigger visual-replace-secondary-mode-map))))
+                      (define-key visual-replace-mode-map trigger
+                                  (cons "replace options" visual-replace-secondary-mode-map)))))
                 (visual-replace--show-scope)
                 (setq-local yank-excluded-properties (append '(separator display face) yank-excluded-properties))
                 (setq-local text-property-default-nonsticky
                             (append '((separator . t) (face . t))
-                                    text-property-default-nonsticky)))
+                                    text-property-default-nonsticky))
+                (visual-replace--show-keymap-after-delay))
             (setq text (read-from-minibuffer
                         (concat "Replace "
                                 (visual-replace--scope-text)
@@ -908,6 +932,7 @@ If PUSH-MARK is non-nil, push a mark to the current point."
                                 ": ")
                         initial-input nil nil nil (car search-ring) t))))
       ;; unwind
+      (visual-replace--cancel-transient)
       (remove-hook 'after-change-functions after-change 'local)
       (visual-replace--reset-idle-search-timer)
       (when timer
@@ -2278,6 +2303,43 @@ just return nil."
   "Raise an error unless called from a minibuffer in the right mode."
   (unless (eq (current-buffer) visual-replace--minibuffer)
     (error "Not in a Visual Replace minibuffer")))
+
+(defun visual-replace-show-keymap ()
+  "Show `visual-replace-mode-map' using which-key."
+  (interactive)
+  (unless (featurep 'which-key)
+    (error "Command requires which-key, which is not installed."))
+  (which-key-show-keymap 'visual-replace-mode-map))
+
+(defun visual-replace--show-keymap-after-delay ()
+  "Show `visual-replace-mode-map' after the usual which-key delay.
+
+This only works if `which-key-mode' is enabled, on Emacs 29.1 or later."
+  (when (and visual-replace-show-mode-map-help
+             (featurep 'which-key)
+             which-key-mode
+             (not (eq 'minibuffer which-key-popup-type)))
+    (let ((timer (run-with-timer
+                  which-key-idle-delay
+                  nil (lambda ()
+                        (visual-replace--cancel-transient)
+                        (when-let ((buffer visual-replace--minibuffer))
+                          (when (minibufferp buffer 'live)
+                            (visual-replace-show-keymap)))))))
+      ;; This empty transient is just there so it can cancel showing
+      ;; help if the user presses any keys.
+      (setq visual-replace--transient
+            (set-transient-map
+             (make-sparse-keymap)
+             nil
+             (lambda ()
+               (cancel-timer timer)))))))
+
+(defun visual-replace--cancel-transient ()
+  "Cancel the transient used by `visual-replace--show-keymap-after-delay'."
+  (when-let ((exit visual-replace--transient))
+    (setq visual-replace--transient nil)
+    (funcall exit)))
 
 ;; Older versions of Visual Replace defined their own version of kill
 ;; and kill-whole-line that avoided deleting the separator. Recent

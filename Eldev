@@ -10,6 +10,9 @@
 (eldev-add-loading-roots 'test "test")
 
 (eldev-use-package-archive 'gnu-elpa)
+(when (< emacs-major-version 30)
+  ;; Starting with 30.1, which-key is part of Emacs.
+  (eldev-add-extra-dependencies 'build 'which-key))
 (eldev-add-extra-dependencies '(test emacs) 'turtles)
 (eldev-use-vc-repository
  'turtles :github "szermatt/turtles" :commit "2.0.0")

@@ -21,6 +21,7 @@
 (require 'turtles)
 (require 'hideshow)
 (require 'elisp-mode)
+(require 'which-key nil 'noerror) ;; optional
 
 (require 'visual-replace)
 (require 'visual-replace-test-helper)
@@ -3162,5 +3163,45 @@
                     (buffer-string))))
 
          (should-error (visual-replace-next-match)))))))
+
+(turtles-ert-deftest visual-replace-show-keymap-help ()
+  (skip-unless (and (featurep 'which-key)
+                    (functionp 'set-transient-map)))
+  (let ((visual-replace-show-mode-map-help t)
+        (which-key-popup-type 'side-window))
+    (should (maybe-show-keymap))))
+
+(turtles-ert-deftest visual-replace-show-keymap-help-disabled ()
+  (skip-unless (and (featurep 'which-key)
+                    (functionp 'set-transient-map)))
+  (let ((visual-replace-show-mode-map-help nil)
+        (which-key-popup-type 'side-window))
+    (should-not (maybe-show-keymap))))
+
+(turtles-ert-deftest visual-replace-show-keymap-help-minibuffer-popup-type ()
+  (skip-unless (and (featurep 'which-key)
+                    (functionp 'set-transient-map)))
+  (let ((visual-replace-show-mode-map-help nil)
+        (which-key-popup-type 'minibuffer))
+    (should-not (maybe-show-keymap))))
+
+(defun maybe-show-keymap ()
+  (cl-letf* ((testbuf (current-buffer))
+             (which-key-idle-delay 0.01)
+             (shown-keymap nil)
+             ((symbol-function 'which-key-show-keymap)
+              (lambda (keymap)
+                (push keymap shown-keymap))))
+    (insert "test")
+    (goto-char (point-min))
+
+    (with-selected-window (display-buffer (current-buffer))
+      (delete-other-windows (selected-window))
+      (which-key-mode 1)
+      (turtles-with-minibuffer
+          (visual-replace-read)
+        (sit-for 0.02))
+
+      shown-keymap)))
 
 ;;; visual-replace-test.el ends here
