@@ -2324,7 +2324,9 @@ This only works if `which-key-mode' is enabled, on Emacs 29.1 or later."
                   nil (lambda ()
                         (visual-replace--cancel-transient)
                         (when-let ((buffer visual-replace--minibuffer))
-                          (when (minibufferp buffer 'live)
+                          (when (if (eval-when-compile (>= emacs-major-version 28))
+                                    (funcall #'minibufferp buffer 'live)
+                                  (minibufferp buffer))
                             (visual-replace-show-keymap)))))))
       ;; This empty transient is just there so it can cancel showing
       ;; help if the user presses any keys.
