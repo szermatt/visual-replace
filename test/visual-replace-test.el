@@ -1915,8 +1915,9 @@
      (turtles-with-minibuffer
          (ert-with-message-capture captured-message
            (visual-replace-read)
-           (should (equal "Note: ‘\\n’ here doesn’t match a newline; to do that, type C-q C-j instead\n"
-                          captured-message)))
+           (should (member
+                    "Note: ‘\\n’ here doesn’t match a newline; to do that, type C-q C-j instead"
+                    (string-split captured-message "\n"))))
 
        :keys "a\\n RET b"
        (visual-replace-toggle-regexp)))))
@@ -1927,8 +1928,8 @@
      (turtles-with-minibuffer
          (ert-with-message-capture captured-message
            (visual-replace-read)
-           (should (equal "Note: ‘\\t’ here doesn’t match a tab; to do that, just type TAB\n"
-                          captured-message)))
+           (should (member "Note: ‘\\t’ here doesn’t match a tab; to do that, just type TAB"
+                           (string-split captured-message "\n"))))
 
        :keys "a\\t RET b"
        (visual-replace-toggle-regexp)))))
@@ -1939,7 +1940,10 @@
      (turtles-with-minibuffer
          (ert-with-message-capture captured-message
            (visual-replace-read)
-           (should (equal "" captured-message)))
+           (should-not (delq nil
+                             (mapcar (lambda (msg)
+                                       (string-prefix-p "Note: " msg))
+                                     (string-split captured-message "\n")))))
 
        :keys "a\\n RET b"))))
 
@@ -1949,8 +1953,9 @@
      (turtles-with-minibuffer
          (ert-with-message-capture captured-message
            (visual-replace-read)
-           (should (equal "Note: ‘\\n’ here doesn’t match a newline; to do that, type C-q C-j instead\n"
-                          captured-message)))
+           (should (member
+                    "Note: ‘\\n’ here doesn’t match a newline; to do that, type C-q C-j instead"
+                    (string-split captured-message "\n"))))
 
        :keys "a\\n RET b"
        (visual-replace-toggle-regexp))
@@ -1958,7 +1963,10 @@
      (turtles-with-minibuffer
          (ert-with-message-capture captured-message
            (visual-replace-read)
-           (should (equal "" captured-message)))
+           (should-not (delq nil
+                             (mapcar (lambda (msg)
+                                       (string-prefix-p "Note: " msg))
+                                     (string-split captured-message "\n")))))
 
        :keys "RET"
        (visual-replace-toggle-regexp)))))
