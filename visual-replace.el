@@ -449,40 +449,40 @@ current value of regexp, call `visual-replace-args-lax-ws'.
 (cl-defstruct
     (visual-replace--scope
      (:copier nil)
-     (:constructor visual-replace--make-scope
-                   (initial-scope
-                    &aux
-                    (type (cond
-                           (visual-replace-initial-scope visual-replace-initial-scope)
-                           ((and (numberp initial-scope) visual-replace-default-to-full-scope) 'full)
-                           ((numberp initial-scope) 'from-point)
-                           ((eq initial-scope 'from-point) 'from-point)
-                           ((eq initial-scope 'region) 'region)
-                           ((eq initial-scope 'full) 'full)
-                           (initial-scope (error "Invalid INITIAL-SCOPE value: %s" initial-scope))
-                           ((region-active-p) 'region)
-                           (visual-replace-default-to-full-scope 'full)
-                           (t 'from-point)))
-                    (point (if (numberp initial-scope) initial-scope (point)))
-                    (bounds (when (region-active-p)
-                              (visual-replace--ranges-fix
-                               (region-bounds))))
-                    (left-col (when (and bounds rectangle-mark-mode)
-                                (apply #'min
-                                       (mapcar (lambda (range)
-                                                 (visual-replace--col (car range)))
-                                               bounds))))
-                    (right-col (when (and bounds rectangle-mark-mode)
-                                (apply #'max
-                                       (mapcar (lambda (range)
-                                                 (visual-replace--col (cdr range)))
-                                               bounds))))
-                    (topleft-edge (when bounds
-                                    (apply #'min (mapcar #'car bounds))))
+
+     (:constructor visual-replace--make-scope-without-region
+                   (&aux
+                    (type 'from-point)
+                    (point (point))
+                    (bounds nil)
+                    (left-col nil)
+                    (right-col nil)
+                    (topleft-edge nil)
+                    (line-count 0)))
+
+     (:constructor visual-replace--make-scope-from-region
+                   (&aux
+                    (type 'region)
+                    (point (point))
+                    (bounds (visual-replace--ranges-fix (region-bounds)))
+                    (left-col
+                     (when (and bounds rectangle-mark-mode)
+                       (apply #'min
+                              (mapcar (lambda (range)
+                                        (visual-replace--col (car range)))
+                                      bounds))))
+                    (right-col
+                     (when (and bounds rectangle-mark-mode)
+                       (apply #'max
+                              (mapcar (lambda (range)
+                                        (visual-replace--col (cdr range)))
+                                      bounds))))
+                    (topleft-edge
+                     (when bounds
+                       (apply #'min (mapcar #'car bounds))))
                     (line-count
-                     (if (region-active-p)
-                         (count-lines (region-beginning) (region-end))
-                       0)))))
+                     (count-lines (region-beginning) (region-end))))))
+
   "Stores the current scope and all possible scopes and their ranges.
 
 The scope is tied to the buffer that was active when
@@ -490,7 +490,7 @@ The scope is tied to the buffer that was active when
   ;; 'from-point, 'full or 'region. See also visual-replace--scope-types.
   type
   ;; value of (point) at creation time, for 'from-point
-  (point nil :read-only t)
+  (point nil)
   ;; (region-bounds) at creation time, for 'region
   (bounds nil :read-only t)
   ;; column of the left edge, if the region is a rectangle.
@@ -501,6 +501,29 @@ The scope is tied to the buffer that was active when
   (topleft-edge nil :read-only t)
   ;; number of line the region contains or 0
   (line-count 0 :read-only t))
+
+(defun visual-replace--scope-set-initial-scope (scope initial-scope)
+  "Initialize SCOPE type and optionally point from INITIAL-SCOPE.
+
+See the documentation of `visual-replace-read' for a description of
+INITIAL-SCOPE and the values it supports."
+  (let ((has-region (visual-replace--scope-bounds scope)))
+    (setf
+     (visual-replace--scope-type scope)
+     (cond
+      (visual-replace-initial-scope visual-replace-initial-scope)
+      ((and (numberp initial-scope) visual-replace-default-to-full-scope) 'full)
+      ((numberp initial-scope) 'from-point)
+      ((eq initial-scope 'from-point) 'from-point)
+      ((and has-region (eq initial-scope 'region)) 'region)
+      ((eq initial-scope 'full) 'full)
+      (initial-scope (error "Invalid INITIAL-SCOPE value: %s" initial-scope))
+      (has-region 'region)
+      (visual-replace-default-to-full-scope 'full)
+      (t 'from-point)))
+    (when (numberp initial-scope)
+      (setf (visual-replace--scope-point scope)
+            initial-scope))))
 
 (defconst visual-replace--scope-types '(region from-point full)
   "Valid values for `visual-replace--scope-type'.")
@@ -972,7 +995,13 @@ If PUSH-MARK is non-nil, push a mark to the current point."
         (visual-replace--calling-buffer (current-buffer))
         (visual-replace--calling-window (selected-window))
         (visual-replace--minibuffer nil)
-        (visual-replace--scope (visual-replace--make-scope initial-scope))
+        (visual-replace--scope
+         (let ((scope (if (region-active-p)
+                          (visual-replace--make-scope-from-region)
+                        (visual-replace--make-scope-without-region))))
+           (visual-replace--scope-set-initial-scope scope initial-scope)
+
+           scope))
         (visual-replace--undo-marker nil)
         (minibuffer-allow-text-properties t) ; separator uses text-properties
         (minibuffer-history (mapcar #'visual-replace-args--text visual-replace-read-history))
