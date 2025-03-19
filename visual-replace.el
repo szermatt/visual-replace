@@ -460,28 +460,27 @@ current value of regexp, call `visual-replace-args-lax-ws'.
                     (topleft-edge nil)
                     (line-count 0)))
 
-     (:constructor visual-replace--make-scope-from-region
-                   (&aux
+     (:constructor visual-replace--make-scope-with-bounds
+                   (region-bounds
+                    &key
+                    (rectangle nil)
+                    &aux
                     (type 'region)
                     (point (point))
-                    (bounds (visual-replace--ranges-fix (region-bounds)))
-                    (left-col
-                     (when (and bounds rectangle-mark-mode)
-                       (apply #'min
-                              (mapcar (lambda (range)
-                                        (visual-replace--col (car range)))
-                                      bounds))))
-                    (right-col
-                     (when (and bounds rectangle-mark-mode)
-                       (apply #'max
-                              (mapcar (lambda (range)
-                                        (visual-replace--col (cdr range)))
-                                      bounds))))
-                    (topleft-edge
-                     (when bounds
-                       (apply #'min (mapcar #'car bounds))))
+                    (bounds (visual-replace--ranges-fix region-bounds))
+                    (left-col (when rectangle
+                                (apply #'min
+                                       (mapcar (lambda (range)
+                                                 (visual-replace--col (car range)))
+                                               bounds))))
+                    (right-col (when rectangle
+                                 (apply #'max
+                                        (mapcar (lambda (range)
+                                                  (visual-replace--col (cdr range)))
+                                                bounds))))
+                    (topleft-edge (apply #'min (mapcar #'car bounds)))
                     (line-count
-                     (count-lines (region-beginning) (region-end))))))
+                     (count-lines (caar bounds) (cdar (last bounds)))))))
 
   "Stores the current scope and all possible scopes and their ranges.
 
@@ -997,7 +996,8 @@ If PUSH-MARK is non-nil, push a mark to the current point."
         (visual-replace--minibuffer nil)
         (visual-replace--scope
          (let ((scope (if (region-active-p)
-                          (visual-replace--make-scope-from-region)
+                          (visual-replace--make-scope-with-bounds
+                           (region-bounds) :rectangle rectangle-mark-mode)
                         (visual-replace--make-scope-without-region))))
            (visual-replace--scope-set-initial-scope scope initial-scope)
 
