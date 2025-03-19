@@ -301,12 +301,8 @@ to customize `visual-replace-defaults-hook' instead."
   :group 'visual-replace
   :options '(visual-replace-toggle-query))
 
-(defcustom visual-replace-show-mode-map-help nil
+(defcustom visual-replace-show-mode-map-help (>= emacs-major-version 29)
   "Show `visual-mode-map' using which-key after a delay.
-
-This feature has been temporarily turned off by default, as the
-transient map swallows keystrokes. It might be re-enabled later if the
-issue can be fixed, or removed otherwise.
 
 If which-key is available, visual-replace can display a list of
 keybindings from its mode map, using `visual-replace-show-keymap'.
@@ -2308,12 +2304,15 @@ just return nil."
   (unless (eq (current-buffer) visual-replace--minibuffer)
     (error "Not in a Visual Replace minibuffer")))
 
-(defun visual-replace-show-keymap ()
-  "Show `visual-replace-mode-map' using which-key."
+(defun visual-replace-show-keymap (&optional no-paging)
+  "Show `visual-replace-mode-map' using which-key.
+
+If NO-PAGING is non-nil, which-key will not intercept subsequent
+keypresses for the paging functionality."
   (interactive)
   (unless (featurep 'which-key)
     (error "Command requires which-key, which is not installed."))
-  (which-key-show-keymap 'visual-replace-mode-map))
+  (which-key-show-keymap 'visual-replace-mode-map no-paging))
 
 (defun visual-replace--show-keymap-after-delay ()
   "Show `visual-replace-mode-map' after the usual which-key delay.
@@ -2331,7 +2330,7 @@ This only works if `which-key-mode' is enabled, on Emacs 29.1 or later."
                           (when (if (eval-when-compile (>= emacs-major-version 28))
                                     (funcall #'minibufferp buffer 'live)
                                   (minibufferp buffer))
-                            (visual-replace-show-keymap)))))))
+                            (visual-replace-show-keymap 'no-paging)))))))
       ;; This empty transient is just there so it can cancel showing
       ;; help if the user presses any keys.
       (setq visual-replace--transient

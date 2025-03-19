@@ -3179,6 +3179,13 @@
         (which-key-popup-type 'side-window))
     (should (maybe-show-keymap))))
 
+(turtles-ert-deftest visual-replace-show-keymap-help-type-immediately ()
+  (skip-unless (and (featurep 'which-key)
+                    (functionp 'set-transient-map)))
+  (let ((visual-replace-show-mode-map-help t)
+        (which-key-popup-type 'side-window))
+    (should-not (maybe-show-keymap 0.0))))
+
 (turtles-ert-deftest visual-replace-show-keymap-help-disabled ()
   (skip-unless (and (featurep 'which-key)
                     (functionp 'set-transient-map)))
@@ -3193,22 +3200,25 @@
         (which-key-popup-type 'minibuffer))
     (should-not (maybe-show-keymap))))
 
-(defun maybe-show-keymap ()
+(defun maybe-show-keymap (&optional delay)
   (cl-letf* ((testbuf (current-buffer))
              (which-key-idle-delay 0.01)
              (shown-keymap nil)
              ((symbol-function 'which-key-show-keymap)
-              (lambda (keymap)
-                (push keymap shown-keymap))))
-    (insert "test")
+              (lambda (keymap no-paging)
+                (push keymap shown-keymap)
+                (should no-paging))))
+    (insert "foo, foo foo.")
     (goto-char (point-min))
 
     (with-selected-window (display-buffer (current-buffer))
       (delete-other-windows (selected-window))
       (which-key-mode 1)
       (turtles-with-minibuffer
-          (visual-replace-read)
-        (sit-for 0.02))
+          (call-interactively #'visual-replace)
+        (sleep-for (or delay 0.02))
+        :keys "foo TAB bar RET")
+      (should (equal "bar, bar bar." (buffer-string)))
 
       shown-keymap)))
 
