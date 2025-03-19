@@ -301,8 +301,12 @@ to customize `visual-replace-defaults-hook' instead."
   :group 'visual-replace
   :options '(visual-replace-toggle-query))
 
-(defcustom visual-replace-show-mode-map-help (>= emacs-major-version 29)
+(defcustom visual-replace-show-mode-map-help nil
   "Show `visual-mode-map' using which-key after a delay.
+
+This feature has been temporarily turned off by default, as the
+transient map swallows keystrokes. It might be re-enabled later if the
+issue can be fixed, or removed otherwise.
 
 If which-key is available, visual-replace can display a list of
 keybindings from its mode map, using `visual-replace-show-keymap'.
