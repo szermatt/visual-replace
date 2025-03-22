@@ -446,12 +446,26 @@ current value of regexp, call `visual-replace-args-lax-ws'.
   (lax-ws-non-regexp replace-lax-whitespace)
   (lax-ws-regexp replace-regexp-lax-whitespace))
 
+
+(cl-defstruct (visual-replace-scope
+               (:constructor visual-replace-make-scope))
+  "Configure available scopes and store the current scope"
+  (type nil
+   :documentation "Current scope. \\='from-point, \\='full or \\='region")
+  (point nil
+   :documentation "Point for \\='from-point.")
+  (bounds nil
+   :documentation "Bounds for \\='region.")
+  (rectangle nil
+   :documentation
+   "If non-nil, a non-contiguous region in bounds is a rectangle"))
+
+;; This is an extended, internal variant of visual-replace-scope.
+;; TODO: Rename it to avoid confusion.
 (cl-defstruct
     (visual-replace--scope
      (:copier nil)
-
-     ;; Internal constructors. Most code should call
-     ;; visual-replace-make-scope.
+     ;; Most code should call visual-replace--make-scope
      (:constructor visual-replace--make-scope-internal)
      (:constructor visual-replace--make-scope-with-bounds
                    (region-bounds
@@ -474,16 +488,13 @@ current value of regexp, call `visual-replace-args-lax-ws'.
                     (topleft-edge (apply #'min (mapcar #'car bounds)))
                     (line-count
                      (count-lines (caar bounds) (cdar (last bounds)))))))
+  "Internal, extended version of `visual-replace-scope'"
 
-  "Stores the current scope and all possible scopes and their ranges.
-
-The scope is tied to the buffer that was active when
-`visual-replace--make-scope' was called."
-  ;; 'from-point, 'full or 'region. See also visual-replace--scope-types.
+  ;; 'from-point, 'full or 'region.
   type
-  ;; value of (point) at creation time, for 'from-point
-  (point nil)
-  ;; (region-bounds) at creation time, for 'region
+  ;; Point for 'from-point
+  point
+  ;; Region bounds for 'region
   (bounds nil :read-only t)
   ;; column of the left edge, if the region is a rectangle.
   (left-col nil :read-only t)
@@ -494,23 +505,15 @@ The scope is tied to the buffer that was active when
   ;; number of line the region contains or 0
   (line-count 0 :read-only t))
 
-(cl-defun visual-replace-make-scope (&key (type nil) (point nil) (bounds nil) (rectangle nil))
-  "Create a scope to pass to `visual-replace-read'.
+(cl-defun visual-replace--make-scope (base)
+  "Create an internal version of BASE, a `visual-replace-scope'.
 
-When BOUNDS is non-nil, the scope type defaults to \\='region. When
-BOUNDS in set, the scope type defaults to \\=`from-point or \\='full if
-`visual-replace-defaults-hook' is non-nil.
-
-TYPE can be set to \\='full or \\='from-point to force that scope, even
-when BOUNDS is non-nil.
-
-POINT specifies the position used when the scope is \\='from-point. It
-defaults to the value returned by `point'.
-
-BOUNDS specifies the region to use when the scope is \\='region.
-RECTANGLE being non-nil specifies that any non-contiguous region is a
-rectangle (this changes the way the region is highlighted.)"
-  (let ((scope
+Return a `visual-replace--scope' instance."
+  (let* ((type (visual-replace-scope-type base))
+         (bounds (visual-replace-scope-bounds base))
+         (point (visual-replace-scope-point base))
+         (rectangle (visual-replace-scope-rectangle base))
+         (scope
          (if bounds
              (visual-replace--make-scope-with-bounds bounds :rectangle rectangle)
            (visual-replace--make-scope-internal
@@ -1013,8 +1016,8 @@ INITIAL-ARGS or INITIAL-SCOPE is non-nil."
         (visual-replace--calling-buffer (current-buffer))
         (visual-replace--calling-window (selected-window))
         (visual-replace--minibuffer nil)
-        (visual-replace--scope (if (visual-replace--scope-p initial-scope)
-                                   initial-scope
+        (visual-replace--scope (if (visual-replace-scope-p initial-scope)
+                                   (visual-replace--make-scope initial-scope)
                                  (visual-replace--default-scope initial-scope)))
         (visual-replace--undo-marker nil)
         (minibuffer-allow-text-properties t) ; separator uses text-properties
@@ -1127,23 +1130,24 @@ INITIAL-ARGS or INITIAL-SCOPE is non-nil."
       (list final-args (visual-replace--scope-ranges)))))
 
 (defun visual-replace--default-scope (initial-scope)
-  "Build a default scope for `visual-replace-read'.
+  "Build a default `visual-replace-scope' for `visual-replace-read'.
 
 This implementation takes into account the backward-compatible meaning
 of INITIAL-SCOPE, described on `visual-replace-read'."
-  (visual-replace-make-scope
-   :type (or visual-replace-initial-scope
-             (if (numberp initial-scope)
-                 (if visual-replace-default-to-full-scope
-                     'full
-                   'from-point)
-               initial-scope))
-   :point (if (numberp initial-scope)
-              initial-scope
-            (point))
-   :bounds (when (region-active-p)
-             (region-bounds))
-   :rectangle rectangle-mark-mode))
+  (visual-replace--make-scope
+   (visual-replace-make-scope
+    :type (or visual-replace-initial-scope
+              (if (numberp initial-scope)
+                  (if visual-replace-default-to-full-scope
+                      'full
+                    'from-point)
+                initial-scope))
+    :point (if (numberp initial-scope)
+               initial-scope
+             (point))
+    :bounds (when (region-active-p)
+              (region-bounds))
+    :rectangle rectangle-mark-mode)))
 
 (defun visual-replace (args ranges)
   "Replace text.
