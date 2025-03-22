@@ -50,6 +50,7 @@
 (defvar which-key-mode) ;; which-key
 (defvar which-key-idle-delay) ;; which-key
 (defvar which-key-popup-type) ;; which-key
+(defvar which-key-replacement-alist) ;; which-key
 
 ;;; Code:
 
@@ -1012,6 +1013,12 @@ If PUSH-MARK is non-nil, push a mark to the current point."
                   (add-hook 'after-change-functions #'visual-replace--after-change 0 'local))
                 (setq visual-replace--minibuffer (current-buffer))
                 (visual-replace-minibuffer-mode t)
+                (when (featurep 'which-key)
+                  (setq-local which-key-replacement-alist
+                              (append
+                               `(((nil . "^visual-replace-yank$") . (nil . "collect text"))
+                                 ((nil . "^visual-replace-yank-pop$") . (nil . "yank")))
+                               which-key-replacement-alist)))
                 (unless initial-args
                   (run-hooks 'visual-replace-defaults-hook))
                 (when trigger
