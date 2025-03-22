@@ -1010,6 +1010,30 @@
        (turtles-with-grab-buffer ()
          (should (equal "Replace from point: hello →w world" (buffer-string))))))))
 
+(turtles-ert-deftest visual-replace-read-substring-match-from-word ()
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-with-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "world")
+                        (car (visual-replace-read (visual-replace-make-args :word t)))))
+       :keys "hello TAB world"
+       :command #'visual-replace-substring-match
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point: hello → world" (buffer-string))))))))
+
+(turtles-ert-deftest visual-replace-read-substring-match-from-regexp ()
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-with-minibuffer
+         (should (equal (visual-replace-make-args :from "hello" :to "world")
+                        (car (visual-replace-read (visual-replace-make-args :regexp t)))))
+       :keys "hello TAB world"
+       :command #'visual-replace-substring-match
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point: hello → world" (buffer-string))))))))
+
 (turtles-ert-deftest visual-replace-read-toggle-word-and-regexp ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
@@ -1093,7 +1117,7 @@
 
      (turtles-with-minibuffer
          (should (equal (visual-replace-make-args
-                         :from "hello" :to "world" :lax-ws-regexp t :lax-ws-non-regexp t)
+                         :from "hello" :to "world" :lax-ws-non-regexp t)
                         (car (visual-replace-read))))
        :keys "hello TAB world"
        :command #'visual-replace-toggle-lax-ws
@@ -1109,8 +1133,8 @@
                          :from "hello" :to "world" :regexp t)
                         (car (visual-replace-read))))
        :keys "hello TAB world"
-       :command #'visual-replace-toggle-lax-ws
        :command #'visual-replace-toggle-regexp
+       :command #'visual-replace-toggle-lax-ws
        (turtles-with-grab-buffer (:name "lax ws and regexp")
          (should (equal "Replace from point: hello →(lax ws).* world" (buffer-string))))
 
@@ -1195,6 +1219,39 @@
              (:name "from point again" :buf testbuf :faces test-visual-replace-faces)
            ;; This makes sure the extra matches are deleted
            (should (equal "hello, world, [hello]*, [hello]!" (buffer-string)))))))))
+
+(turtles-ert-deftest visual-replace-read-switch-to-scope ()
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+     (dotimes (i 6)
+       (insert (format "line %d\n" i)))
+     (goto-char (point-min))
+     (search-forward "line 2")
+     (set-mark (match-beginning 0))
+     (search-forward "line 5")
+     (goto-char (point-min))
+
+     (turtles-with-minibuffer
+         (visual-replace-read)
+       (turtles-with-grab-buffer ()
+           (should (equal "Replace in region (2L):"
+                          (buffer-string))))
+       :command #'visual-replace-switch-to-full-scope
+       (turtles-with-grab-buffer ()
+           (should (equal "Replace in buffer:"
+                          (buffer-string))))
+       :command #'visual-replace-switch-to-from-point-scope
+       (turtles-with-grab-buffer ()
+           (should (equal "Replace from point:"
+                          (buffer-string))))
+       :command #'visual-replace-switch-to-full-scope
+       (turtles-with-grab-buffer ()
+           (should (equal "Replace in buffer:"
+                          (buffer-string))))
+       :command #'visual-replace-switch-to-region-scope
+       (turtles-with-grab-buffer ()
+           (should (equal "Replace in region (2L):"
+                          (buffer-string))))))))
 
 (turtles-ert-deftest visual-replace-forgets-setting ()
   (test-visual-replace-env

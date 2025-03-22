@@ -339,11 +339,15 @@ Inherits from `minibuffer-mode-map'.")
 (defvar visual-replace-secondary-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "r") (cons "toggle regexp" #'visual-replace-toggle-regexp))
-    (define-key map (kbd "SPC") (cons "change scope" #'visual-replace-toggle-scope))
     (define-key map (kbd "q") (cons "toggle query" #'visual-replace-toggle-query))
     (define-key map (kbd "w") (cons "toggle word boundary" #'visual-replace-toggle-word))
+    (define-key map (kbd "t") (cons "match substring" #'visual-replace-substring-match))
     (define-key map (kbd "c") (cons "toggle case-fold" #'visual-replace-toggle-case-fold))
-    (define-key map (kbd "s") (cons "lax whitespaces" #'visual-replace-toggle-lax-ws))
+    (define-key map (kbd "s") (cons "toggle lax whitespaces" #'visual-replace-toggle-lax-ws))
+    (define-key map (kbd "SPC") (cons "toggle scope" #'visual-replace-toggle-scope))
+    (define-key map (kbd "b") (cons "scope: buffer" #'visual-replace-switch-to-full-scope))
+    (define-key map (kbd "p") (cons "scope: from-point" #'visual-replace-switch-to-from-point-scope))
+    (define-key map (kbd "g") (cons "scope: region" #'visual-replace-switch-to-region-scope))
     (define-key map (kbd "a")
                 (cons "apply replacement"
                       (if (eval-when-compile (>= emacs-major-version 29))
@@ -652,6 +656,55 @@ mode.")
 (defvar visual-replace--transient nil
   "Transient keymap used to deactivate `visual-replace--show-keymap'.")
 
+(easy-menu-define visual-replace-args-menu nil
+  "A menu for toggling search and replace arguments."
+  '("Visual Replace"
+    ["Match Substrings" visual-replace-substring-match
+     :style radio
+     :active (when-let ((args (visual-replace-args--from-minibuffer)))
+                (or (visual-replace-args-regexp args)
+                    (visual-replace-args-word args)))
+     :selected (when-let ((args (visual-replace-args--from-minibuffer)))
+                (and (not (visual-replace-args-regexp args))
+                     (not (visual-replace-args-word args))))]
+    ["Match Regexps" visual-replace-toggle-regexp
+     :style radio
+     :active (when-let ((args (visual-replace-args--from-minibuffer)))
+                (not (visual-replace-args-regexp args)))
+     :selected (when-let ((args (visual-replace-args--from-minibuffer)))
+                 (visual-replace-args-regexp args))]
+    ["Match Words" visual-replace-toggle-word
+     :style radio
+     :active (when-let ((args (visual-replace-args--from-minibuffer)))
+                (not (visual-replace-args-word args)))
+     :selected (when-let ((args (visual-replace-args--from-minibuffer)))
+                 (visual-replace-args-word args))]
+    "--"
+    ["Case Fold" visual-replace-toggle-case-fold
+     :label (when-let ((args (visual-replace-args--from-minibuffer)))
+              (if (visual-replace-args-case-fold args)
+                  "Disable Case Fold"
+                "Enable Case Fold"))]
+    ["Lax Whitespaces" visual-replace-toggle-lax-ws
+     :label (when-let ((args (visual-replace-args--from-minibuffer)))
+              (if (visual-replace-args-lax-ws args)
+                  "Disable Lax Whitespaces"
+                "Enable Lax Whitespaces"))]
+    "--"
+    ["Search Whole Buffer" visual-replace-switch-to-full-scope
+     :style radio
+     :active (not (eq 'full (visual-replace--scope-type visual-replace--scope)))
+     :selected (eq 'full (visual-replace--scope-type visual-replace--scope))]
+    ["Search From Point" visual-replace-switch-to-from-point-scope
+     :style radio
+     :active (not (eq 'from-point (visual-replace--scope-type visual-replace--scope)))
+     :selected (eq 'from-point (visual-replace--scope-type visual-replace--scope))]
+    ["Search Region" visual-replace-switch-to-region-scope
+     :style radio
+     :visible (visual-replace--scope-bounds visual-replace--scope)
+     :active (not (eq 'region (visual-replace--scope-type visual-replace--scope)))
+     :selected (eq 'region (visual-replace--scope-type visual-replace--scope))]))
+
 (defun visual-replace-enter ()
   "Confirm the current text to replace.
 
@@ -775,6 +828,16 @@ The first time it's called, executes a `yank', then a `yank-pop'."
       (setf (visual-replace-args-word args) nil))
     (visual-replace--update-separator args)))
 
+(defun visual-replace-substring-match ()
+  "Switch to substring matching, turning off regexp or word flags when
+necessary."
+  (interactive)
+  (visual-replace--assert-in-minibuffer)
+  (let ((args (visual-replace-args--from-minibuffer)))
+    (setf (visual-replace-args-regexp args) nil)
+    (setf (visual-replace-args-word args) nil)
+    (visual-replace--update-separator args)))
+
 (defun visual-replace-toggle-query ()
   "Toggle the query flag while building arguments for `visual-replace'."
   (interactive)
@@ -808,10 +871,12 @@ The first time it's called, executes a `yank', then a `yank-pop'."
   "Toggle the lax-ws flag while building arguments for `visual-replace'."
   (interactive)
   (visual-replace--assert-in-minibuffer)
-  (let* ((args (visual-replace-args--from-minibuffer))
-         (newval (not (visual-replace-args-lax-ws args))))
-    (setf (visual-replace-args-lax-ws-regexp args) newval)
-    (setf (visual-replace-args-lax-ws-non-regexp args) newval)
+  (let ((args (visual-replace-args--from-minibuffer)))
+    (if (visual-replace-args-regexp args)
+        (setf (visual-replace-args-lax-ws-regexp args)
+              (not (visual-replace-args-lax-ws-regexp args)))
+      (setf (visual-replace-args-lax-ws-non-regexp args)
+            (not (visual-replace-args-lax-ws-non-regexp args))))
     (visual-replace--update-separator args)))
 
 (defun visual-replace-toggle-scope (&optional scope)
@@ -834,6 +899,50 @@ If unspecified, SCOPE defaults to the variable
   (visual-replace--show-scope)
   (visual-replace--reset-preview)
   (visual-replace--update-preview))
+
+(defun visual-replace-switch-to-full-scope (&optional scope)
+  "Set SCOPE to \\='full.
+
+If unspecified, SCOPE defaults to the variable
+`visual-replace--scope'."
+  (interactive)
+  (visual-replace--assert-in-minibuffer)
+  (let ((scope (or scope visual-replace--scope)))
+    (unless (eq 'full (visual-replace--scope-type scope))
+      (setf (visual-replace--scope-type scope) 'full)
+      (visual-replace--show-scope)
+      (visual-replace--reset-preview)
+      (visual-replace--update-preview))))
+
+(defun visual-replace-switch-to-from-point-scope (&optional scope)
+  "Set SCOPE to \\='after-point.
+
+If unspecified, SCOPE defaults to the variable
+`visual-replace--scope'."
+  (interactive)
+  (visual-replace--assert-in-minibuffer)
+  (let ((scope (or scope visual-replace--scope)))
+    (unless (eq 'from-point (visual-replace--scope-type scope))
+      (setf (visual-replace--scope-type scope) 'from-point)
+      (visual-replace--show-scope)
+      (visual-replace--reset-preview)
+      (visual-replace--update-preview))))
+
+(defun visual-replace-switch-to-region-scope (&optional scope)
+  "Set SCOPE to \\='region.
+
+If unspecified, SCOPE defaults to the variable
+`visual-replace--scope'."
+  (interactive)
+  (visual-replace--assert-in-minibuffer)
+  (let ((scope (or scope visual-replace--scope)))
+    (unless (eq 'region (visual-replace--scope-type scope))
+      (unless (visual-replace--scope-bounds scope)
+        (error "No region set"))
+      (setf (visual-replace--scope-type scope) 'region)
+      (visual-replace--show-scope)
+      (visual-replace--reset-preview)
+      (visual-replace--update-preview))))
 
 (defun visual-replace-read (&optional initial-args initial-scope)
   "Read arguments for `query-replace'.
@@ -926,10 +1035,16 @@ If PUSH-MARK is non-nil, push a mark to the current point."
                                     text-property-default-nonsticky))
                 (visual-replace--show-keymap-after-delay))
             (setq text (read-from-minibuffer
-                        (concat "Replace "
-                                (visual-replace--scope-text)
-                                (if default-value (format " [%s]" default-value) "")
-                                ": ")
+                        (propertize
+                         (concat "Replace "
+                                 (visual-replace--scope-text)
+                                 (if default-value (format " [%s]" default-value) "")
+                                 ": ")
+                         'help-echo "mouse-1: Options menu"
+                         'mouse-face 'highlight
+                         'keymap (let ((map (make-sparse-keymap)))
+                                   (define-key map [down-mouse-1] visual-replace-args-menu)
+                                   map))
                         initial-input nil nil nil (car search-ring) t))))
       ;; unwind
       (visual-replace--cancel-transient)
