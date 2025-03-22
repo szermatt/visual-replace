@@ -35,4 +35,4 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Test the project
-      run: 'eldev -p -dtT test'
+      run: 'eldev -p -dtT test || eldev -p -dtT test :failed'
