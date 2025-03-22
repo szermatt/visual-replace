@@ -568,7 +568,6 @@ visual-replace-minibuffer-mode-hook : hook
   mode, so you can set things up just before Visual Replace starts.
 
 visual-replace-defaults-hook : hook
-
   This is a normal hook that is run when entering the visual replace
   mode with no initial match or replacement, so you can provide some
   default mode without interfering with
