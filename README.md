@@ -65,9 +65,10 @@ available to navigate through history.)
 
 ## COMPARISON
 
-What seems to be unique about `visual-replace` is the ability to edit
-both the thing to be replaced and the replacement at the same time.
-The other packages I've found make it a 2-step process.
+What seems to be unique about Visual Replace is that the thing to be
+replaced and the replacement at the same time are modified at the same
+time. The other packages I've found make it a 2-step process in the
+normal case.
 
 [visual-regexp](https://github.com/benma/visual-regexp.el) also
 supports a preview, but uses its own search-and-replace mechanism and

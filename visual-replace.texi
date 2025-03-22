@@ -97,9 +97,10 @@ always done by the standard Emacs commands.
 @chapter Comparison with other packages
 
 
-What seems to be unique about Visual Replace is the ability to edit
-both the thing to be replaced and the replacement at the same time.
-The other packages I’ve found make it a 2-step process.
+What seems to be unique about Visual Replace is that the thing to be
+replaced and the replacement at the same time are modified at the same
+time. The other packages I’ve found make it a 2-step process in most
+cases.
 
 visual-regexp@footnote{https://github.com/benma/visual-regexp.el} also
 supports a preview, but uses its own search-and-replace mechanism and
@@ -527,7 +528,7 @@ when starting to type in the match string.
 @end table
 
 @node Face Customization,Commands,Customization,Usage
-@anchor{usage face-customization}@anchor{10}@anchor{usage id1}@anchor{11}
+@anchor{usage face-customization}@anchor{10}@anchor{usage faces}@anchor{11}
 @subsection Face Customization
 
 
@@ -615,7 +616,7 @@ theme changes, from the Section 5.23 of the Emacs 29 Manual@footnote{https://www
 @end menu
 
 @node Modus Themes,Ef Themes,,Face Customization
-@anchor{usage id2}@anchor{12}
+@anchor{usage id1}@anchor{12}
 @subsubsection Modus Themes
 
 
@@ -638,7 +639,7 @@ theme changes, from the Section 5.23 of the Emacs 29 Manual@footnote{https://www
 @end example
 
 @node Ef Themes,,Modus Themes,Face Customization
-@anchor{usage id3}@anchor{13}
+@anchor{usage id2}@anchor{13}
 @subsubsection Ef Themes
 
 
@@ -673,7 +674,7 @@ theme changes, from the Section 5.23 of the Emacs 29 Manual@footnote{https://www
 @end example
 
 @node Commands,Keymaps,Face Customization,Usage
-@anchor{usage commands}@anchor{14}@anchor{usage id4}@anchor{15}
+@anchor{usage commands}@anchor{14}@anchor{usage id3}@anchor{15}
 @subsection Commands
 
 
