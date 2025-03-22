@@ -50,4 +50,5 @@ Contents
 
    install
    usage
+   api
    contrib

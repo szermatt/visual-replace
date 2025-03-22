@@ -118,6 +118,7 @@ been recently taken up by a new maintainer.
 @menu
 * Installation:: 
 * Usage:: 
+* API:: 
 * Contributing:: 
 
 @end menu
@@ -155,7 +156,7 @@ into your @code{.emacs.d} directory.
 
 Visual Replace requires Emacs 26.1 or later.
 
-@node Usage,Contributing,Installation,Contents
+@node Usage,API,Installation,Contents
 @anchor{usage doc}@anchor{6}@anchor{usage usage}@anchor{7}
 @section Usage
 
@@ -920,8 +921,167 @@ matches, @code{\\#} in the replacement is always 1, because single
 matches are applied separately.
 @end itemize
 
-@node Contributing,,Usage,Contents
-@anchor{contrib doc}@anchor{1a}@anchor{contrib contributing}@anchor{1b}
+@node API,Contributing,Usage,Contents
+@anchor{api doc}@anchor{1a}@anchor{api api}@anchor{1b}
+@section API
+
+
+@geindex function; visual-replace-read
+@geindex function; visual-replace-make-args
+@geindex function; visual-replace-make-scope
+
+This package provides several different ways of triggering Visual
+Replace, from different initial states. For example,
+@code{visual-replace} uses the region to restrict the search, while
+@code{visual-replace-selection} uses the region text as match string.
+Another example is @code{visual-replace-from-isearch}, which copies the
+state of a running search.
+
+@subsubheading Public Functions
+
+
+
+Public functions are functions without any double dash in their
+name. New version of Visual Replace attempt to keep any code calling
+public functions backward-compatible, while private function can
+change, be renamed, behave differently or disappear from version to
+version.
+
+Many more variations are possible. You could imagine a variant of
+Visual Replace that uses the current region as match string unless it
+contains more tan one line, in which case it’d use it to restrict
+search.
+
+In an attempt to support such variations, Visual Replace includes some
+public functions you’re encouraged to use to build your own variation.
+
+To add a variation as the one described above, you could write the
+following, which modifies the default behavior in one specific case by
+overriding the search arguments and scope :
+
+@example
+(defun my-visual-replace ()
+  (interactive)
+  (let (args scope)
+    (when (and (region-active-p)
+               (let ((beg (region-beginning))
+                     (end (region-end)))
+                 (save-excursion
+                   (goto-char beg)
+                   (not (search-forward "\n" end 'noerror)))))
+      (setq args (visual-replace-make-args
+                  :from (buffer-substring-no-properties
+                         (region-beginning) (region-end))
+                  :to ""))
+      (setq scope (visual-replace-make-scope
+                  ;; Don't use bounds from the region
+                  :bounds nil)))
+    (apply #'visual-replace
+           (visual-replace-read args scope))))
+@end example
+
+
+@table @asis
+
+@item (visual-replace-read ARGS SCOPE RUN-HOOK) : function
+
+Build arguments for running @cite{visual-replace} and return
+them as a list, containing search range and modified @code{visual-replace-args}.
+
+To call @code{visual-replace} directly after @code{visual-replace-read}, use @code{apply}:
+@code{(apply #'visual-replace (visual-replace-args args scope))}
+
+This function takes two optional arguments, ARGS, created with
+@code{visual-replace-make-args}, and SCOPE, created with
+@code{visual-replace-make-scope}. If an argument is unspecified or
+nil, the default behavior applies.
+
+If both ARGS and SCOPE are nil, @code{visual-replace-read} calls
+@code{visual-replace-defaults-hook} allow configuring the search
+using hooks unless RUN-HOOK is non-nil.
+
+@item (visual-replace-make-args KEY-ARGS) : function
+
+This function builds a struct of type @cite{visual-replace-args}. It can take
+the following key arguments:
+
+
+@itemize -
+
+@item 
+@code{:from} to specify the search text. It must be a regular
+expression in regexp mode.
+
+@item 
+@code{:to} to specify the replacement text.
+
+This is often set to the empty string when @code{:from} is specified.
+
+When @code{:to} is nil, which is the default, only the search text
+appears in the minibuffer and it it selected. When this is
+non-nil, even if it is an empty string, the search text is
+followed by a separator arrow, and the replacement text is
+selected.
+
+@item 
+@code{:regexp} if non-nil, run a regexp search. @code{:from} is a
+regular expression and @code{:to} a replacement string, which might
+include back-references surch as @cite{\&}, @cite{\N} or @cite{\@comma{}}.
+
+@item 
+@code{:query} if non-nil, query replacements like
+@code{query-replace} does.
+
+@item 
+@code{:word} if non-nil and @code{:regexp} is nil, @code{:from} is
+searched as a word.
+
+@item 
+@code{:case-fold} if non-nil, search is non case-sensitive and
+replacement are case-aware. Defaults to @code{case-fold-search}.
+
+@item 
+@code{:lax-ws-non-regexp} if non-nil, whitespaces in regexp
+searches skip text. Ignored in non-regexp searches.
+Defaults to @code{replace-lax-whitespace}.
+
+@item 
+@code{:lax-ws-regexp} if non-nil, whitespaces in non-regexp
+searches skip text. Ignored in regexp searches.
+@end itemize
+
+@item (visual-replace-make-scope KEY-ARGS) : function
+
+This function configures the available scopes and sets the current
+search and replace scope. It can take the following key arguments:
+
+
+@itemize -
+
+@item 
+@code{:type} defines the scope @code{visual-replace-read} starts in.
+Setting this overrides the default, customizable by
+@cite{visual-replace-default-to-full-scope}. Leave it to nil to keep
+the default behavior.
+
+@item 
+@code{:point} define the starting point for the search and replace
+in “from point” mode. Defaults to @code{(point)}.
+
+@item 
+@code{:bounds} defines the search ranges. This is in the same
+format as the one returned by @code{region-bounds}: a list of cons
+cells of the form (START . END). Empty by default.
+
+@item 
+@code{:rectangle} set it to non-nil if @code{:bounds} contain multiple
+cons cells that draw a rectangle. This controls how
+non-contiguous region is drawn. Nil by default.
+@end itemize
+@end table
+
+@node Contributing,,API,Contents
+@anchor{contrib doc}@anchor{1c}@anchor{contrib contributing}@anchor{1d}
 @section Contributing
 
 
@@ -935,7 +1095,7 @@ matches are applied separately.
 @end menu
 
 @node Reporting issues,Suggesting features,,Contributing
-@anchor{contrib reporting}@anchor{19}@anchor{contrib reporting-issues}@anchor{1c}
+@anchor{contrib reporting}@anchor{19}@anchor{contrib reporting-issues}@anchor{1e}
 @subsection Reporting issues
 
 
@@ -978,7 +1138,7 @@ executing it and attach that to the issue.
 @end cartouche
 
 @node Suggesting features,Asking questions,Reporting issues,Contributing
-@anchor{contrib discussion}@anchor{1d}@anchor{contrib suggesting-features}@anchor{1e}
+@anchor{contrib discussion}@anchor{1f}@anchor{contrib suggesting-features}@anchor{20}
 @subsection Suggesting features
 
 
@@ -986,7 +1146,7 @@ Please create a new discussion@footnote{https://github.com/szermatt/visual-repla
 feature suggestions to the Issue Tracker@footnote{https://github.com/szermatt/visual-replace/issues}.
 
 @node Asking questions,Code contributions,Suggesting features,Contributing
-@anchor{contrib asking-questions}@anchor{1f}
+@anchor{contrib asking-questions}@anchor{21}
 @subsection Asking questions
 
 
@@ -994,7 +1154,7 @@ Please create a new discussion@footnote{https://github.com/szermatt/visual-repla
 question.
 
 @node Code contributions,Documentation contributions,Asking questions,Contributing
-@anchor{contrib code-contributions}@anchor{20}
+@anchor{contrib code-contributions}@anchor{22}
 @subsection Code contributions
 
 
@@ -1017,7 +1177,7 @@ fixes with “fix: “, refactorings with “refactor: ” and tests with
 “test: “.
 
 @node Documentation contributions,,Code contributions,Contributing
-@anchor{contrib documentation-contributions}@anchor{21}@anchor{contrib eldev}@anchor{22}
+@anchor{contrib documentation-contributions}@anchor{23}@anchor{contrib eldev}@anchor{24}
 @subsection Documentation contributions
 
 
