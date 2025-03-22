@@ -3297,4 +3297,303 @@
 
       shown-keymap)))
 
+(ert-deftest visual-replace-default-scope-no-region ()
+  (ert-with-test-buffer ()
+    (insert "foobar")
+    (goto-char 3)
+
+    (let ((visual-replace-initial-scope nil)
+          (visual-replace-default-to-full-scope nil))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'from-point
+                      :point 3)
+                     (visual-replace--default-scope nil)))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'full
+                      :point 3)
+                     (visual-replace--default-scope 'full)))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'from-point
+                      :point 3)
+                     (visual-replace--default-scope 'from-point)))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'from-point
+                      :point 3)
+                     (visual-replace--default-scope 'region)))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'from-point
+                      :point 10)
+                     (visual-replace--default-scope 10))))))
+
+(ert-deftest visual-replace-default-scope-no-region-default-to-full-scope ()
+  (ert-with-test-buffer ()
+    (insert "foobar")
+    (goto-char 3)
+
+    (let ((visual-replace-initial-scope nil)
+          (visual-replace-default-to-full-scope t))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'full
+                      :point 3)
+                     (visual-replace--default-scope nil)))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'full
+                      :point 3)
+                     (visual-replace--default-scope 'full)))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'from-point
+                      :point 3)
+                     (visual-replace--default-scope 'from-point)))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'full
+                      :point 3)
+                     (visual-replace--default-scope 'region)))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'full
+                      :point 10)
+                     (visual-replace--default-scope 10))))))
+
+(ert-deftest visual-replace-default-scope-no-region-visual-replace-initial-scope ()
+  (ert-with-test-buffer ()
+    (insert "foobar")
+    (goto-char 3)
+
+    (let ((visual-replace-initial-scope 'full))
+      (dolist (def '(t nil))
+        (let ((visual-replace-default-to-full-scope def))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'full
+                          :point 3)
+                         (visual-replace--default-scope nil)))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'full
+                          :point 3)
+                         (visual-replace--default-scope 'full)))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'full
+                          :point 3)
+                         (visual-replace--default-scope 'from-point)))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'full
+                          :point 3)
+                         (visual-replace--default-scope 'region)))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'full
+                          :point 10)
+                         (visual-replace--default-scope 10))))))
+
+    (let ((visual-replace-initial-scope 'from-point))
+      (dolist (def '(t nil))
+        (let ((visual-replace-default-to-full-scope def))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'from-point
+                          :point 3)
+                         (visual-replace--default-scope nil)))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'from-point
+                          :point 3)
+                         (visual-replace--default-scope 'full)))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'from-point
+                          :point 3)
+                         (visual-replace--default-scope 'from-point)))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'from-point
+                          :point 3)
+                         (visual-replace--default-scope 'region)))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'from-point
+                          :point 10)
+                         (visual-replace--default-scope 10))))))))
+
+(ert-deftest visual-replace-default-scope-with-region ()
+  (ert-with-test-buffer ()
+    (dotimes (i 6)
+      (insert (format "line %d\n" i)))
+    (goto-char (point-min))
+    (search-forward "line 2")
+    (set-mark (match-beginning 0))
+    (search-forward "line 4")
+    (goto-char (match-end 0))
+    (activate-mark)
+    (should (region-active-p))
+
+    (let ((visual-replace-initial-scope nil)
+          (visual-replace-default-to-full-scope nil))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'region
+                      :point (point)
+                      :bounds `((,(mark) . ,(point)))
+                      :topleft-edge (mark)
+                      :line-count 3)
+                     (visual-replace--default-scope nil)))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'full
+                      :point (point)
+                      :bounds `((,(mark) . ,(point)))
+                      :topleft-edge (mark)
+                      :line-count 3)
+                     (visual-replace--default-scope 'full)))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'from-point
+                      :point (point)
+                      :bounds `((,(mark) . ,(point)))
+                      :topleft-edge (mark)
+                      :line-count 3)
+                     (visual-replace--default-scope 'from-point)))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'region
+                      :point (point)
+                      :bounds `((,(mark) . ,(point)))
+                      :topleft-edge (mark)
+                      :line-count 3)
+                     (visual-replace--default-scope 'region)))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'from-point
+                      :point 10
+                      :bounds `((,(mark) . ,(point)))
+                      :topleft-edge (mark)
+                      :line-count 3)
+                     (visual-replace--default-scope 10))))))
+
+(ert-deftest visual-replace-default-scope-with-region-default-to-full-scope ()
+  (ert-with-test-buffer ()
+    (dotimes (i 6)
+      (insert (format "line %d\n" i)))
+    (goto-char (point-min))
+    (search-forward "line 2")
+    (set-mark (match-beginning 0))
+    (search-forward "line 4")
+    (goto-char (match-end 0))
+    (activate-mark)
+    (should (region-active-p))
+
+    (let ((visual-replace-initial-scope nil)
+          (visual-replace-default-to-full-scope t))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'region
+                      :point (point)
+                      :bounds `((,(mark) . ,(point)))
+                      :topleft-edge (mark)
+                      :line-count 3)
+                     (visual-replace--default-scope nil)))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'full
+                      :point (point)
+                      :bounds `((,(mark) . ,(point)))
+                      :topleft-edge (mark)
+                      :line-count 3)
+                     (visual-replace--default-scope 'full)))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'from-point
+                      :point (point)
+                      :bounds `((,(mark) . ,(point)))
+                      :topleft-edge (mark)
+                      :line-count 3)
+                     (visual-replace--default-scope 'from-point)))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'region
+                      :point (point)
+                      :bounds `((,(mark) . ,(point)))
+                      :topleft-edge (mark)
+                      :line-count 3)
+                     (visual-replace--default-scope 'region)))
+      (should (equal (visual-replace--make-scope-internal
+                      :type 'full
+                      :point 10
+                      :bounds `((,(mark) . ,(point)))
+                      :topleft-edge (mark)
+                      :line-count 3)
+                     (visual-replace--default-scope 10))))))
+
+(ert-deftest visual-replace-default-scope-with-region-visual-replace-initial-scope ()
+  (ert-with-test-buffer ()
+    (dotimes (i 6)
+      (insert (format "line %d\n" i)))
+    (goto-char (point-min))
+    (search-forward "line 2")
+    (set-mark (match-beginning 0))
+    (search-forward "line 4")
+    (goto-char (match-end 0))
+    (activate-mark)
+    (should (region-active-p))
+
+    (let ((visual-replace-initial-scope 'full))
+      (dolist (def '(t nil))
+        (let ((visual-replace-default-to-full-scope def))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'full
+                          :point (point)
+                          :bounds `((,(mark) . ,(point)))
+                          :topleft-edge (mark)
+                          :line-count 3)
+                         (visual-replace--default-scope nil)))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'full
+                          :point (point)
+                          :bounds `((,(mark) . ,(point)))
+                          :topleft-edge (mark)
+                          :line-count 3)
+                         (visual-replace--default-scope 'full)))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'full
+                          :point (point)
+                          :bounds `((,(mark) . ,(point)))
+                          :topleft-edge (mark)
+                          :line-count 3)
+                         (visual-replace--default-scope 'from-point)))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'full
+                          :point (point)
+                          :bounds `((,(mark) . ,(point)))
+                          :topleft-edge (mark)
+                          :line-count 3)
+                         (visual-replace--default-scope 'region)))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'full
+                          :point 10
+                          :bounds `((,(mark) . ,(point)))
+                          :topleft-edge (mark)
+                          :line-count 3)
+                         (visual-replace--default-scope 10))))))
+
+    (let ((visual-replace-initial-scope 'from-point))
+      (dolist (def '(t nil))
+        (let ((visual-replace-default-to-full-scope def))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'from-point
+                          :point (point)
+                          :bounds `((,(mark) . ,(point)))
+                          :topleft-edge (mark)
+                          :line-count 3)
+                         (visual-replace--default-scope nil)))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'from-point
+                          :point (point)
+                          :bounds `((,(mark) . ,(point)))
+                          :topleft-edge (mark)
+                          :line-count 3)
+                         (visual-replace--default-scope 'full)))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'from-point
+                          :point (point)
+                          :bounds `((,(mark) . ,(point)))
+                          :topleft-edge (mark)
+                          :line-count 3)
+                         (visual-replace--default-scope 'from-point)))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'from-point
+                          :point (point)
+                          :bounds `((,(mark) . ,(point)))
+                          :topleft-edge (mark)
+                          :line-count 3)
+                         (visual-replace--default-scope 'region)))
+          (should (equal (visual-replace--make-scope-internal
+                          :type 'from-point
+                          :point 10
+                          :bounds `((,(mark) . ,(point)))
+                          :topleft-edge (mark)
+                          :line-count 3)
+                         (visual-replace--default-scope 10))))))))
+
 ;;; visual-replace-test.el ends here

@@ -450,16 +450,9 @@ current value of regexp, call `visual-replace-args-lax-ws'.
     (visual-replace--scope
      (:copier nil)
 
-     (:constructor visual-replace--make-scope-without-region
-                   (&aux
-                    (type 'from-point)
-                    (point (point))
-                    (bounds nil)
-                    (left-col nil)
-                    (right-col nil)
-                    (topleft-edge nil)
-                    (line-count 0)))
-
+     ;; Internal constructors. Most code should call
+     ;; visual-replace-make-scope.
+     (:constructor visual-replace--make-scope-internal)
      (:constructor visual-replace--make-scope-with-bounds
                    (region-bounds
                     &key
@@ -501,28 +494,40 @@ The scope is tied to the buffer that was active when
   ;; number of line the region contains or 0
   (line-count 0 :read-only t))
 
-(defun visual-replace--scope-set-initial-scope (scope initial-scope)
-  "Initialize SCOPE type and optionally point from INITIAL-SCOPE.
+(cl-defun visual-replace-make-scope (&key (type nil) (point nil) (bounds nil) (rectangle nil))
+  "Create a scope to pass to `visual-replace-read'.
 
-See the documentation of `visual-replace-read' for a description of
-INITIAL-SCOPE and the values it supports."
-  (let ((has-region (visual-replace--scope-bounds scope)))
-    (setf
-     (visual-replace--scope-type scope)
-     (cond
-      (visual-replace-initial-scope visual-replace-initial-scope)
-      ((and (numberp initial-scope) visual-replace-default-to-full-scope) 'full)
-      ((numberp initial-scope) 'from-point)
-      ((eq initial-scope 'from-point) 'from-point)
-      ((and has-region (eq initial-scope 'region)) 'region)
-      ((eq initial-scope 'full) 'full)
-      (initial-scope (error "Invalid INITIAL-SCOPE value: %s" initial-scope))
-      (has-region 'region)
-      (visual-replace-default-to-full-scope 'full)
-      (t 'from-point)))
-    (when (numberp initial-scope)
-      (setf (visual-replace--scope-point scope)
-            initial-scope))))
+When BOUNDS is non-nil, the scope type defaults to \\='region. When
+BOUNDS in set, the scope type defaults to \\=`from-point or \\='full if
+`visual-replace-defaults-hook' is non-nil.
+
+TYPE can be set to \\='full or \\='from-point to force that scope, even
+when BOUNDS is non-nil.
+
+POINT specifies the position used when the scope is \\='from-point. It
+defaults to the value returned by `point'.
+
+BOUNDS specifies the region to use when the scope is \\='region.
+RECTANGLE being non-nil specifies that any non-contiguous region is a
+rectangle (this changes the way the region is highlighted.)"
+  (let ((scope
+         (if bounds
+             (visual-replace--make-scope-with-bounds bounds :rectangle rectangle)
+           (visual-replace--make-scope-internal
+            :type (if visual-replace-default-to-full-scope
+                      'full
+                    'from-point)))))
+    (when point
+      (setf (visual-replace--scope-point scope) point))
+
+    (cond
+     ((memq type '(full from-point))
+      (setf (visual-replace--scope-type scope) type))
+     ((and type (not (eq type 'region)))
+      (error "Invalid scope type: %s (valid types: 'full, 'from-point, 'region)" type)))
+
+    scope))
+
 
 (defconst visual-replace--scope-types '(region from-point full)
   "Valid values for `visual-replace--scope-type'.")
@@ -973,10 +978,13 @@ If unspecified, SCOPE defaults to the variable
 INITIAL-ARGS is used to set the prompt's initial state, if
 specified. It must be a `visual-replace-args' struct.
 
-INITIAL-SCOPE is used to initialize the replacement scope,
-\\='region \\='from-point or \\='full. If it is a number, it is
-used as point for \\='from-point. By default, the scope is
-\\='region if the region is active, or \\='from-point otherwise."
+INITIAL-SCOPE is used to initialize the replacement scope. If non-nil,
+this should normally be a value created by `visual-replace-make-scope',
+which see.
+
+For backward compatibility, it can also be:
+- a symbol \\='region \\='from-point or \\='full
+- a number, to use as point for \\='from-point"
   (barf-if-buffer-read-only)
   (if visual-replace-keep-initial-position
       (save-excursion
@@ -986,22 +994,20 @@ used as point for \\='from-point. By default, the scope is
 (defun visual-replace-read--internal (&optional initial-args initial-scope push-mark)
   "Private implementation of `visual-replace-read'.
 
+INITIAL-ARGS is used to set the prompt's initial state, if specified. It
+must be a `visual-replace-args' struct.
+
 See `visual-replace-read' for a description of the behavior of
-this function and of INITIAL-ARGS and INITIAL-SCOPE.
+INITIAL-SCOPE.
 
 If PUSH-MARK is non-nil, push a mark to the current point."
   (let ((history-add-new-input nil)
         (visual-replace--calling-buffer (current-buffer))
         (visual-replace--calling-window (selected-window))
         (visual-replace--minibuffer nil)
-        (visual-replace--scope
-         (let ((scope (if (region-active-p)
-                          (visual-replace--make-scope-with-bounds
-                           (region-bounds) :rectangle rectangle-mark-mode)
-                        (visual-replace--make-scope-without-region))))
-           (visual-replace--scope-set-initial-scope scope initial-scope)
-
-           scope))
+        (visual-replace--scope (if (visual-replace--scope-p initial-scope)
+                                   initial-scope
+                                 (visual-replace--default-scope initial-scope)))
         (visual-replace--undo-marker nil)
         (minibuffer-allow-text-properties t) ; separator uses text-properties
         (minibuffer-history (mapcar #'visual-replace-args--text visual-replace-read-history))
@@ -1111,6 +1117,24 @@ If PUSH-MARK is non-nil, push a mark to the current point."
       ;; visual-replace argument list
       (list final-args (visual-replace--scope-ranges)))))
 
+(defun visual-replace--default-scope (initial-scope)
+  "Build a default scope for `visual-replace-read'.
+
+This implementation takes into account the backward-compatible meaning
+of INITIAL-SCOPE, described on `visual-replace-read'."
+  (visual-replace-make-scope
+   :type (or visual-replace-initial-scope
+             (if (numberp initial-scope)
+                 (if visual-replace-default-to-full-scope
+                     'full
+                   'from-point)
+               initial-scope))
+   :point (if (numberp initial-scope)
+              initial-scope
+            (point))
+   :bounds (when (region-active-p)
+             (region-bounds))
+   :rectangle rectangle-mark-mode))
 
 (defun visual-replace (args ranges)
   "Replace text.
@@ -1121,8 +1145,16 @@ flags. It is a `visual-replace-args' struct, usually one created by
 
 Replacement applies in the current buffer on RANGES, a list
 of (start . end) as returned by `region-bounds'."
-  (interactive (visual-replace-read (visual-replace-make-args
-                                 :word (and current-prefix-arg (not (eq current-prefix-arg '-))))))
+  (interactive
+   (let* ((args (visual-replace-make-args)))
+     (run-hooks 'visual-replace-defaults-hook)
+
+     (when (and current-prefix-arg (not (eq current-prefix-arg '-)))
+       (setf (visual-replace-args-word args)
+             (not (visual-replace-args-word args))))
+
+     (visual-replace-read args)))
+
   (barf-if-buffer-read-only)
   (let* ((origin (make-marker))
          (args (visual-replace-preprocess args))
@@ -1216,7 +1248,9 @@ THING defaults to symbol. It can be set to anything that
               (cdr bounds))
        ;; Go directly to the replacement prompt.
        :to "")
-      (car bounds)))))
+      (visual-replace-make-scope
+       :type visual-replace-initial-scope
+       :point (car bounds))))))
 
 ;;;###autoload
 (defun visual-replace-selected ()
@@ -1234,7 +1268,9 @@ not active."
                 (min (mark) (point))
                 (max (mark) (point)))
          :to "")
-        (min (mark) (point))))
+        (visual-replace-make-scope
+         :type visual-replace-initial-scope
+         :point (min (mark) (point)))))
     (visual-replace-thing-at-point)))
 
 (defun visual-replace-args--case-fold-search (args)
