@@ -1143,6 +1143,24 @@ displayed in the prompt following the arrow."
    (if (visual-replace-args-regexp args) ".*" "")
    (if (visual-replace-args-word args) "w" "")))
 
+(defun visual-replace-args--describe (args)
+  "Build a user-friendly description of ARGS.
+
+This function takes the set of options from ARGS, a
+`visual-replace-args' and returns a description to be displayed in
+tooltips."
+  (concat
+   (cond
+    ((visual-replace-args-regexp args) "Match Regexps")
+    ((visual-replace-args-word args) "Match Words")
+    (t "Match Substrings"))
+   ", Case Fold: " (if (visual-replace-args-case-fold args)
+                       "Enabled"
+                     "Disabled")
+   ", Lax Whitespaces: " (if (visual-replace-args-lax-ws args)
+                             "Enabled"
+                           "Disabled")))
+
 (defun visual-replace-args--equiv-for-match-p (a b)
   "Return non-nil if A and B are equivalent for matching.
 
@@ -1168,7 +1186,11 @@ nil, it is built based on ARGS."
   (let* ((flag-text (or flag-text (visual-replace-args--flag-text args))))
     (propertize
      " "
-     'display (concat " " (propertize (concat "→" flag-text) 'face 'visual-replace-separator) " ")
+     'display (concat " " (propertize
+                           (concat "→" flag-text)
+                           'face 'visual-replace-separator
+                           'help-echo (visual-replace-args--describe args))
+                      " ")
      'visual-replace-args (let ((args (visual-replace-copy-args args)))
                             (setf (visual-replace-args-from args) nil)
                             (setf (visual-replace-args-to args) nil)

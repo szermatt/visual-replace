@@ -1036,6 +1036,24 @@
        (turtles-with-grab-buffer (:name "word again")
          (should (equal "Replace from point: hello →w world" (buffer-string))))))))
 
+(turtles-ert-deftest visual-replace-args-describe ()
+  (should (equal "Match Substrings, Case Fold: Enabled, Lax Whitespaces: Disabled"
+                 (visual-replace-args--describe (visual-replace-make-args))))
+  (should (equal "Match Substrings, Case Fold: Disabled, Lax Whitespaces: Disabled"
+                 (visual-replace-args--describe (visual-replace-make-args :case-fold nil))))
+  (should (equal "Match Substrings, Case Fold: Enabled, Lax Whitespaces: Enabled"
+                 (visual-replace-args--describe (visual-replace-make-args :lax-ws-non-regexp t))))
+
+  (should (equal "Match Words, Case Fold: Enabled, Lax Whitespaces: Disabled"
+                 (visual-replace-args--describe (visual-replace-make-args :word t))))
+  (should (equal "Match Words, Case Fold: Enabled, Lax Whitespaces: Enabled"
+                 (visual-replace-args--describe (visual-replace-make-args :word t :lax-ws-non-regexp t))))
+
+  (should (equal "Match Regexps, Case Fold: Enabled, Lax Whitespaces: Disabled"
+                 (visual-replace-args--describe (visual-replace-make-args :regexp t))))
+  (should (equal "Match Regexps, Case Fold: Enabled, Lax Whitespaces: Enabled"
+                 (visual-replace-args--describe (visual-replace-make-args :regexp t :lax-ws-regexp t)))))
+
 (turtles-ert-deftest visual-replace-read-default-case-fold ()
   (test-visual-replace-env
    (with-selected-window (display-buffer (current-buffer))
