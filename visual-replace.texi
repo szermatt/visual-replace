@@ -1045,14 +1045,19 @@ searches skip text. Ignored in regexp searches.
 
 @item (visual-replace-make-scope KEY-ARGS) : function
 
-This function configures the available scopes and sets the current
-search and replace scope. It can take the following key arguments:
+This function builds a struct of type @code{visual-replace-scope}
+that configures the available scopes and sets the current search
+and replace scope. It can take the following key arguments:
 
 
 @itemize -
 
 @item 
 @code{:type} defines the scope @code{visual-replace-read} starts in.
+Set to @code{'full} to search the whole buffer, @code{'from-point} to
+search from given point to the end of the buffer, @code{'region} to
+search within the given bounds.
+
 Setting this overrides the default, customizable by
 @cite{visual-replace-default-to-full-scope}. Leave it to nil to keep
 the default behavior.

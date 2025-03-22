@@ -111,10 +111,15 @@ overriding the search arguments and scope :
 
 
 (visual-replace-make-scope KEY-ARGS) : function
-    This function configures the available scopes and sets the current
-    search and replace scope. It can take the following key arguments:
+    This function builds a struct of type ``visual-replace-scope``
+    that configures the available scopes and sets the current search
+    and replace scope. It can take the following key arguments:
 
     - ``:type`` defines the scope ``visual-replace-read`` starts in.
+      Set to ``'full`` to search the whole buffer, ``'from-point`` to
+      search from given point to the end of the buffer, ``'region`` to
+      search within the given bounds.
+
       Setting this overrides the default, customizable by
       `visual-replace-default-to-full-scope`. Leave it to nil to keep
       the default behavior.
