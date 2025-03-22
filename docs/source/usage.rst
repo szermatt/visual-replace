@@ -290,7 +290,7 @@ visual-replace-min-length : customization option
   Setting this too low might result in strange highlights happening
   when starting to type in the match string.
 
-.. _options:
+.. _faces:
 
 Face Customization
 ------------------
