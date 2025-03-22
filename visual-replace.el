@@ -972,7 +972,7 @@ If unspecified, SCOPE defaults to the variable
       (visual-replace--reset-preview)
       (visual-replace--update-preview))))
 
-(defun visual-replace-read (&optional initial-args initial-scope)
+(defun visual-replace-read (&optional initial-args initial-scope run-hook)
   "Read arguments for `query-replace'.
 
 INITIAL-ARGS is used to set the prompt's initial state, if
@@ -984,14 +984,19 @@ which see.
 
 For backward compatibility, it can also be:
 - a symbol \\='region \\='from-point or \\='full
-- a number, to use as point for \\='from-point"
+- a number, to use as point for \\='from-point
+
+If RUN-HOOK is non-nil, run `visual-replace-defaults-hook' even if
+INITIAL-ARGS or INITIAL-SCOPE is non-nil."
   (barf-if-buffer-read-only)
   (if visual-replace-keep-initial-position
       (save-excursion
-        (visual-replace-read--internal initial-args initial-scope nil))
-    (visual-replace-read--internal initial-args initial-scope 'push-mark)))
+        (visual-replace-read--internal
+         initial-args initial-scope nil run-hook))
+    (visual-replace-read--internal
+     initial-args initial-scope 'push-mark run-hook)))
 
-(defun visual-replace-read--internal (&optional initial-args initial-scope push-mark)
+(defun visual-replace-read--internal (initial-args initial-scope push-mark run-hook)
   "Private implementation of `visual-replace-read'.
 
 INITIAL-ARGS is used to set the prompt's initial state, if specified. It
@@ -1000,7 +1005,10 @@ must be a `visual-replace-args' struct.
 See `visual-replace-read' for a description of the behavior of
 INITIAL-SCOPE.
 
-If PUSH-MARK is non-nil, push a mark to the current point."
+If PUSH-MARK is non-nil, push a mark to the current point.
+
+If RUN-HOOK is non-nil, run `visual-replace-defaults-hook' even if
+INITIAL-ARGS or INITIAL-SCOPE is non-nil."
   (let ((history-add-new-input nil)
         (visual-replace--calling-buffer (current-buffer))
         (visual-replace--calling-window (selected-window))
@@ -1054,7 +1062,8 @@ If PUSH-MARK is non-nil, push a mark to the current point."
                                `(((nil . "^visual-replace-yank$") . (nil . "collect text"))
                                  ((nil . "^visual-replace-yank-pop$") . (nil . "yank")))
                                which-key-replacement-alist)))
-                (unless initial-args
+                (when (or run-hook (and (not initial-args)
+                                        (not initial-scope)))
                   (run-hooks 'visual-replace-defaults-hook))
                 (when trigger
                   (let ((mapping
@@ -1147,13 +1156,11 @@ Replacement applies in the current buffer on RANGES, a list
 of (start . end) as returned by `region-bounds'."
   (interactive
    (let* ((args (visual-replace-make-args)))
-     (run-hooks 'visual-replace-defaults-hook)
-
      (when (and current-prefix-arg (not (eq current-prefix-arg '-)))
        (setf (visual-replace-args-word args)
              (not (visual-replace-args-word args))))
 
-     (visual-replace-read args)))
+     (visual-replace-read args nil 'run-hook)))
 
   (barf-if-buffer-read-only)
   (let* ((origin (make-marker))
