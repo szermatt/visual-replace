@@ -519,7 +519,8 @@ Return a `visual-replace--scope' instance."
            (visual-replace--make-scope-internal
             :type (if visual-replace-default-to-full-scope
                       'full
-                    'from-point)))))
+                    'from-point)
+            :point (point)))))
     (when point
       (setf (visual-replace--scope-point scope) point))
 
