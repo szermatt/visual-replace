@@ -279,6 +279,11 @@ registering the relevant command to this hook. For example, if
 you always want to start in regexp mode, run
 `visual-replace-toggle-regexp' from this hook.
 
+If you only *sometimes* want to start in some specific mode, you can
+call `visual-replace-regexp' instead of using this hook. For the full
+details on how to configure `visual-replace' startup behavior, see
+https://visual-replace.readthedocs.io/en/latest/api.html
+
 To run code in every case, register it with
 `visual-replace-minibuffer-mode-hook' instead."
   :type 'hook
@@ -1212,6 +1217,15 @@ of (start . end) as returned by `region-bounds'."
                1 nil start end nil noncontiguous-p)))
           (goto-char origin))
       (set-marker origin nil))))
+
+;;;###autoload
+(defun visual-replace-regexp ()
+  "Run `visual-replace', starting in regular expression mode."
+  (interactive)
+  (let ((args (visual-replace-make-args)))
+    (setf (visual-replace-args-regexp args) t)
+    (apply #'visual-replace
+           (visual-replace-read args nil))))
 
 ;;;###autoload
 (defun visual-replace-from-isearch ()

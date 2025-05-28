@@ -3596,4 +3596,19 @@
                           :line-count 3)
                          (visual-replace--default-scope 10))))))))
 
+(ert-deftest visual-replace-regexp-command ()
+  (test-visual-replace-env
+   (dotimes (i 3)
+     (insert (format "line %d\n" i)))
+   (with-selected-window (display-buffer (current-buffer))
+     (goto-char (point-min))
+
+     (visual-replace-ert-simulate-keys (kbd "[0-9]+ TAB REDACTED RET")
+       (call-interactively 'visual-replace-regexp))
+     (should (equal (concat "line REDACTED\n"
+                            "line REDACTED\n"
+                            "line REDACTED\n")
+                    (buffer-substring-no-properties
+                     (point-min) (point-max)))))))
+
 ;;; visual-replace-test.el ends here
