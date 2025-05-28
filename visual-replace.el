@@ -866,8 +866,9 @@ The first time it's called, executes a `yank', then a `yank-pop'."
     (visual-replace--update-separator args)))
 
 (defun visual-replace-substring-match ()
-  "Switch to substring matching, turning off regexp or word flags when
-necessary."
+  "Switch to substring matching.
+
+This command turns off regexp or word search flags when necessary."
   (interactive)
   (visual-replace--assert-in-minibuffer)
   (let ((args (visual-replace-args--from-minibuffer)))
@@ -1222,8 +1223,7 @@ of (start . end) as returned by `region-bounds'."
 (defun visual-replace-regexp ()
   "Run `visual-replace', starting in regular expression mode."
   (interactive)
-  (let ((args (visual-replace-make-args)))
-    (setf (visual-replace-args-regexp args) t)
+  (let ((args (visual-replace-make-args :regexp t)))
     (apply #'visual-replace
            (visual-replace-read args nil))))
 
@@ -2011,7 +2011,7 @@ the visible range of the buffer."
       (push ov visual-replace--match-ovs))))
 
 (defun visual-replace--show-first-match (matches update-preview)
-  "Go to the first match and make sure it is visible.
+  "Go to the first match of MATCHES and make sure it is visible.
 
 This function is meant to be used as consumer for
 `visual-replace--run-idle-search'.
@@ -2546,7 +2546,7 @@ If NO-PAGING is non-nil, which-key will not intercept subsequent
 keypresses for the paging functionality."
   (interactive)
   (unless (featurep 'which-key)
-    (error "Command requires which-key, which is not installed."))
+    (error "Command requires which-key, which is not installed"))
   (which-key-show-keymap 'visual-replace-mode-map no-paging))
 
 (defun visual-replace--show-keymap-after-delay ()
