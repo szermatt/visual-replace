@@ -311,6 +311,16 @@ mode is on when a @code{w} follows the arrow.
 @code{(lax ws)} follows the arrow.
 
 @item 
+@code{M-% b} toggle backward replace. You know this mode is on when
+a @code{↩} follows the arrow. This only matters if query search mode
+@end itemize
+
+is on of when a replacement contains @code{\\#}.
+
+
+@itemize *
+
+@item 
 @code{<up>} and @code{<down>} move the cursor to the next or
 previous match, scrolling if necessary.
 
@@ -717,6 +727,7 @@ isearch is in progress, and bound to @code{isearch-mode-map}.
 @geindex command; visual-replace-toggle-query
 @geindex command; visual-replace-toggle-word
 @geindex command; visual-replace-toggle-case-fold
+@geindex command; visual-replace-toggle-backwards
 @geindex command; visual-replace-toggle-lax-ws
 @geindex command; visual-replace-next-match
 @geindex command; visual-replace-prev-match
@@ -751,6 +762,10 @@ toggles the word mode on and off.
 @item visual-replace-toggle-case-fold : <prefix> c, command
 
 toggles the case fold mode on and off.
+
+@item visual-replace-toggle-backwards : <prefix> d, command
+
+toggles backward replacement on and off.
 
 @item visual-replace-toggle-lax-ws : <prefix> s, command
 
@@ -1032,6 +1047,10 @@ searched as a word.
 @item 
 @code{:case-fold} if non-nil, search is non case-sensitive and
 replacement are case-aware. Defaults to @code{case-fold-search}.
+
+@item 
+@code{:backwards} if non-nil, replace backwards Defaults to nil
+(replace forwards).
 
 @item 
 @code{:lax-ws-non-regexp} if non-nil, whitespaces in regexp

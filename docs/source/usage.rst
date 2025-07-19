@@ -109,6 +109,10 @@ In Visual Replace mode:
 * :kbd:`M-% s` toggle lax whitespace. You know this mode is on when
   ``(lax ws)`` follows the arrow.
 
+* :kbd:`M-% b` toggle backward replace. You know this mode is on when
+  a ``↩`` follows the arrow. This only matters if query search mode
+is on of when a replacement contains ``\\#``.
+
 * :kbd:`<up>` and :kbd:`<down>` move the cursor to the next or
   previous match, scrolling if necessary.
 
@@ -453,6 +457,7 @@ visual-replace-from-isearch : command
    pair: command; visual-replace-toggle-query
    pair: command; visual-replace-toggle-word
    pair: command; visual-replace-toggle-case-fold
+   pair: command; visual-replace-toggle-backwards
    pair: command; visual-replace-toggle-lax-ws
    pair: command; visual-replace-next-match
    pair: command; visual-replace-prev-match
@@ -479,6 +484,9 @@ visual-replace-toggle-word : <prefix> w, command
 
 visual-replace-toggle-case-fold : <prefix> c, command
     toggles the case fold mode on and off.
+
+visual-replace-toggle-backwards : <prefix> d, command
+    toggles backward replacement on and off.
 
 visual-replace-toggle-lax-ws : <prefix> s, command
     toggles the lax whitespace mode on and off.

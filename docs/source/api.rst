@@ -102,6 +102,9 @@ overriding the search arguments and scope :
     - ``:case-fold`` if non-nil, search is non case-sensitive and
       replacement are case-aware. Defaults to ``case-fold-search``.
 
+    - ``:backwards`` if non-nil, replace backwards Defaults to nil
+      (replace forwards).
+
     - ``:lax-ws-non-regexp`` if non-nil, whitespaces in regexp
       searches skip text. Ignored in non-regexp searches.
       Defaults to ``replace-lax-whitespace``.
