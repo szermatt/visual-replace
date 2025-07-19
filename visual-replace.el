@@ -624,7 +624,7 @@ attempted but hit the max matches limit.")
 
 (defsubst visual-replace--init-preview-state ()
   "Initialize `visual-replace--preview-state'."
-  (setq visual-replace--preview-state (make-vector 6 nil)))
+  (setq visual-replace--preview-state (make-vector 7 nil)))
 
 (defsubst visual-replace--preview-args ()
   "`visual-replace-args' current when the preview was last updated."
@@ -646,6 +646,13 @@ attempted but hit the max matches limit.")
     (aref s 2)))
 (gv-define-setter visual-replace--preview-point (point)
   `(setf (aref visual-replace--preview-state 2) ,point))
+
+(defsubst visual-replace--preview-highlighted ()
+  "Overlay highlighted by the previous preview."
+  (when-let ((s visual-replace--preview-state))
+    (aref s 6)))
+(gv-define-setter visual-replace--preview-highlighted (point)
+  `(setf (aref visual-replace--preview-state 6) ,point))
 
 (defsubst visual-replace--preview-is-complete ()
   "Non-nil once the set of match overlays is complete."
@@ -1796,6 +1803,8 @@ MATCH-DATA is the value of (match-data) for the match."
   (let ((highlight (and visual-replace-highlight-match-at-point
                         (>= (point) (overlay-start ov))
                         (< (point) (overlay-end ov)))))
+    (when highlight
+      (setf (visual-replace--preview-highlighted) ov))
     (if-let ((after-string (overlay-get ov 'after-string)))
         (progn
           (overlay-put ov 'face (if highlight
@@ -1912,7 +1921,8 @@ matches to display unless NO-FIRST-MATCH is non-nil."
 
          ;; Preview overlays are complete; highlight needs updating.
          ((and equiv (not (equal (point) old-point)))
-          (visual-replace--set-ov-highlight-at-pos old-point)
+          (when-let ((ov (visual-replace--preview-highlighted)))
+            (visual-replace--set-ov-highlight ov))
           (visual-replace--set-ov-highlight-at-pos (point))
           (visual-replace--update-total)
           (setf (visual-replace--preview-point) (point)))
@@ -2406,8 +2416,15 @@ With a prefix argument NUM, repeat the replacement that many times."
            (last-match (car (last matches))))
       (unless first-match
         (error "No match"))
-      (visual-replace args (list (cons (car first-match)
-                                       (nth 1 last-match))))
+      (let ((range-end (copy-marker (nth 1 last-match)))
+            (handle (prepare-change-group)))
+        (setf (visual-replace-args-backwards args) t)
+        (dolist (match (nreverse matches))
+          (goto-char (nth 0 match))
+          (visual-replace args (list (cons (nth 0 match) (nth 1 match)))))
+        (undo-amalgamate-change-group handle)
+        (goto-char range-end)
+        (set-marker range-end nil))
       (when-let ((next (car (visual-replace--search
                              args
                              (visual-replace--range-intersect-sorted

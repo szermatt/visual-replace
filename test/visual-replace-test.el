@@ -2679,7 +2679,7 @@
 (turtles-ert-deftest visual-replace-read-apply-undo-everything-then-redo ()
   (test-visual-replace-env
    (let ((testbuf (current-buffer)))
-     (insert "Fee fi fo fum!")
+     (insert "foo1 foo2 foo3 foo4")
      (goto-char (point-min))
 
      (with-selected-window (display-buffer (current-buffer))
@@ -2688,22 +2688,80 @@
        (turtles-with-minibuffer
            (visual-replace-read)
 
-         :keys "f TAB l"
+         :keys "foo TAB bar"
          :command #'visual-replace-apply-one
-         (turtles-with-grab-buffer (:name "after apply" :buf testbuf)
-           (should (equal "Lee fi fo fum!" (buffer-string))))
+         (turtles-with-grab-buffer (:name "after apply" :buf testbuf :point "<>" :faces test-visual-replace-faces)
+           (should (equal "bar1 <>[foo]*{bar}*2 [foo]{bar}3 [foo]{bar}4" (buffer-string))))
 
          :command #'visual-replace-undo
-         (turtles-with-grab-buffer (:name "after undo" :buf testbuf)
-           (should (equal "Fee fi fo fum!" (buffer-string))))
+         (turtles-with-grab-buffer (:name "after undo" :buf testbuf :point "<>" :faces test-visual-replace-faces)
+           (should (equal "<>[foo]*{bar}*1 [foo]{bar}2 [foo]{bar}3 [foo]{bar}4" (buffer-string))))
 
          :command #'visual-replace-apply-one
          :command #'visual-replace-apply-one
          :command #'visual-replace-undo
          ;; Executing commands using M-x guarantees that undo breaks
          ;; are applied as they would normally be.
-         (turtles-with-grab-buffer (:name "after second undo" :buf testbuf)
-           (should (equal "Lee fi fo fum!" (buffer-string)))))))))
+         (turtles-with-grab-buffer (:name "after second undo" :buf testbuf :point "<>" :faces test-visual-replace-faces)
+           (should (equal "bar1 <>[foo]*{bar}*2 [foo]{bar}3 [foo]{bar}4" (buffer-string)))))))))
+
+(turtles-ert-deftest visual-replace-read-apply-one-start-recursive ()
+  (test-visual-replace-env
+   (let ((testbuf (current-buffer)))
+     (insert "foo bar foo foo")
+     (goto-char (point-min))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-with-minibuffer
+           (visual-replace-read)
+
+           :keys "foo TAB foor"
+           (visual-replace--update-preview)
+           :command #'visual-replace-apply-one
+           (visual-replace--update-preview)
+           (turtles-with-grab-buffer (:name "1st" :buf testbuf :faces test-visual-replace-faces :point "<>")
+             (should (equal "[foo]{foor}r bar <>[foo]*{foor}* [foo]{foor}" (buffer-string))))
+
+           :command #'visual-replace-apply-one
+           (visual-replace--update-preview)
+           (turtles-with-grab-buffer (:name "2nd" :buf testbuf :faces test-visual-replace-faces :point "<>")
+             (should (equal "[foo]{foor}r bar [foo]{foor}r <>[foo]*{foor}*" (buffer-string))))
+
+           :command #'visual-replace-apply-one
+           (visual-replace--update-preview)
+           (turtles-with-grab-buffer (:name "final" :buf testbuf :faces test-visual-replace-faces :point "<>")
+             (should (equal "[foo]{foor}r bar [foo]{foor}r [foo]*{foor}*r<>" (buffer-string)))))))))
+
+(turtles-ert-deftest visual-replace-read-apply-one-end-recursive ()
+  (test-visual-replace-env
+   (let ((testbuf (current-buffer)))
+     (insert "foo bar foo foo")
+     (goto-char (point-min))
+
+     (with-selected-window (display-buffer (current-buffer))
+       (delete-other-windows (selected-window))
+
+       (turtles-with-minibuffer
+           (visual-replace-read)
+
+           :keys "foo TAB rfoo"
+           (visual-replace--update-preview)
+           :command #'visual-replace-apply-one
+           (visual-replace--update-preview)
+           (turtles-with-grab-buffer (:name "1st" :buf testbuf :faces test-visual-replace-faces :point "<>")
+             (should (equal "r[foo]{rfoo} bar <>[foo]*{rfoo}* [foo]{rfoo}" (buffer-string))))
+
+           :command #'visual-replace-apply-one
+           (visual-replace--update-preview)
+           (turtles-with-grab-buffer (:name "2nd" :buf testbuf :faces test-visual-replace-faces :point "<>")
+             (should (equal "r[foo]{rfoo} bar r[foo]{rfoo} <>[foo]*{rfoo}*" (buffer-string))))
+
+           :command #'visual-replace-apply-one
+           (visual-replace--update-preview)
+           (turtles-with-grab-buffer (:name "final" :buf testbuf :faces test-visual-replace-faces :point "<>")
+             (should (equal "r[foo]{rfoo} bar r[foo]{rfoo} r[foo]*{rfoo}*<>" (buffer-string)))))))))
 
 (turtles-ert-deftest visual-replace-read-display-total ()
   (test-visual-replace-env
