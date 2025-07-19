@@ -146,6 +146,27 @@
                    `((,(point-min) . ,(point-max))))
    (should (equal (buffer-string) "foobar."))))
 
+(ert-deftest visual-replace-forward ()
+  (test-visual-replace-env
+   (insert "foo bar foo foo")
+   (goto-char (point-min))
+   (visual-replace (visual-replace-make-args
+                    :from "foo" :to "(num \\#)" :regexp t)
+                   `((,(point-min) . ,(point-max))))
+   (should (equal (buffer-string)
+                   "(num 0) bar (num 1) (num 2)"))))
+
+(ert-deftest visual-replace-backwards ()
+  (test-visual-replace-env
+   (insert "foo bar foo foo")
+   (goto-char (point-min))
+   (visual-replace (visual-replace-make-args
+                    :from "foo" :to "(num \\#)" :regexp t :backwards t)
+                   `((,(point-min) . ,(point-max))))
+   (should (equal (buffer-string)
+                   "(num 2) bar (num 1) (num 0)"))))
+
+
 (ert-deftest visual-replace-preprocess ()
   (test-visual-replace-env
    (let ((visual-replace-functions
@@ -1141,6 +1162,31 @@
        :command #'visual-replace-toggle-lax-ws
        (turtles-with-grab-buffer (:name "regexp only")
          (should (equal "Replace from point: hello →.* world" (buffer-string))))))))
+
+(turtles-ert-deftest visual-replace-read-toggle-backwards ()
+  (test-visual-replace-env
+   (with-selected-window (display-buffer (current-buffer))
+
+     (turtles-with-minibuffer
+         (should (equal (visual-replace-make-args
+                         :from "foo" :to "num\\#" :regexp t :backwards t)
+                        (car (visual-replace-read))))
+       :keys "foo TAB num\\#"
+       :command #'visual-replace-toggle-regexp
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point: foo →.* num\\#" (buffer-string))))
+
+       :command #'visual-replace-toggle-backwards
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point: foo →.*↩ num\\#" (buffer-string))))
+
+       :command #'visual-replace-toggle-backwards
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point: foo →.* num\\#" (buffer-string))))
+
+       :command #'visual-replace-toggle-backwards
+       (turtles-with-grab-buffer ()
+         (should (equal "Replace from point: foo →.*↩ num\\#" (buffer-string))))))))
 
 (turtles-ert-deftest visual-replace-read-toggle-scope ()
   (test-visual-replace-env

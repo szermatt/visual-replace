@@ -291,7 +291,8 @@ To run code in every case, register it with
   :options '(visual-replace-toggle-regexp
              visual-replace-toggle-word
              visual-replace-toggle-case-fold
-             visual-replace-toggle-lax-ws))
+             visual-replace-toggle-lax-ws
+             visual-replace-toggle-backwards))
 
 (defcustom visual-replace-minibuffer-mode-hook nil
   "Hook run when visual replace starts.
@@ -349,6 +350,7 @@ Inherits from `minibuffer-mode-map'.")
     (define-key map (kbd "w") (cons "toggle word boundary" #'visual-replace-toggle-word))
     (define-key map (kbd "t") (cons "match substring" #'visual-replace-substring-match))
     (define-key map (kbd "c") (cons "toggle case-fold" #'visual-replace-toggle-case-fold))
+    (define-key map (kbd "d") (cons "toggle replace backwards" #'visual-replace-toggle-backwards))
     (define-key map (kbd "s") (cons "toggle lax whitespaces" #'visual-replace-toggle-lax-ws))
     (define-key map (kbd "SPC") (cons "toggle scope" #'visual-replace-toggle-scope))
     (define-key map (kbd "b") (cons "scope: buffer" #'visual-replace-switch-to-full-scope))
@@ -441,6 +443,7 @@ word               if t, from is a word
 case-fold          overrides `case-fold-search` for the current query
 lax-ws-non-regexp  overrides `replace-lax-whitespace` for the current query
 lax-ws-regexp      overrides `replace-regexp-lax-whitespace` for the current query
+backwards          execute replacement from end to last
 
 To read or edit the lax-ws value that's appropriate to the
 current value of regexp, call `visual-replace-args-lax-ws'.
@@ -449,7 +452,8 @@ current value of regexp, call `visual-replace-args-lax-ws'.
   regexp query word
   (case-fold case-fold-search)
   (lax-ws-non-regexp replace-lax-whitespace)
-  (lax-ws-regexp replace-regexp-lax-whitespace))
+  (lax-ws-regexp replace-regexp-lax-whitespace)
+  backwards)
 
 
 (cl-defstruct (visual-replace-scope
@@ -727,6 +731,11 @@ mode.")
               (if (visual-replace-args-lax-ws args)
                   "Disable Lax Whitespaces"
                 "Enable Lax Whitespaces"))]
+    ["Replace Backwards" visual-replace-toggle-backwards
+     :label (when-let ((args (visual-replace-args--from-minibuffer)))
+              (if (visual-replace-args-backwards args)
+                  "Replace Backwards"
+                "Replace Forwards"))]
     "--"
     ["Search Whole Buffer" visual-replace-switch-to-full-scope
      :style radio
@@ -894,6 +903,15 @@ This command turns off regexp or word search flags when necessary."
         (setf (visual-replace-args-word args) nil)
       (setf (visual-replace-args-word args) t)
       (setf (visual-replace-args-regexp args) nil))
+    (visual-replace--update-separator args)))
+
+(defun visual-replace-toggle-backwards ()
+  "Toggle the backwards flag while building arguments for `visual-replace'."
+  (interactive)
+  (visual-replace--assert-in-minibuffer)
+  (let ((args (visual-replace-args--from-minibuffer)))
+    (setf (visual-replace-args-backwards args)
+          (not (visual-replace-args-backwards args)))
     (visual-replace--update-separator args)))
 
 (defun visual-replace-toggle-case-fold ()
@@ -1194,6 +1212,7 @@ of (start . end) as returned by `region-bounds'."
                 (start (apply #'min (mapcar #'car ranges)))
                 (end (apply #'max (mapcar #'cdr ranges)))
                 (noncontiguous-p (if (cdr ranges) t nil))
+                (backwards (visual-replace-args-backwards args))
 
                 ;; when noncontiguous-p is non-nil, perform-replace
                 ;; calls region-extract-function to get the ranges to
@@ -1215,7 +1234,10 @@ of (start . end) as returned by `region-bounds'."
                (visual-replace-args-query args)
                (visual-replace-args-regexp args)
                (visual-replace-args-word args)
-               1 nil start end nil noncontiguous-p)))
+               1 nil
+               (if backwards end start)
+               (if backwards start end)
+               backwards noncontiguous-p)))
           (goto-char origin))
       (set-marker origin nil))))
 
@@ -1354,6 +1376,7 @@ displayed in the prompt following the arrow."
          ((visual-replace-args-case-fold args) "i")
          (t "c"))
    (if (visual-replace-args-regexp args) ".*" "")
+   (if (visual-replace-args-backwards args) "↩" "")
    (if (visual-replace-args-word args) "w" "")))
 
 (defun visual-replace-args--describe (args)
