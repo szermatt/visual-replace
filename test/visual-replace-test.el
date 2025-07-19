@@ -2731,8 +2731,20 @@
 
            :command #'visual-replace-apply-one
            (visual-replace--update-preview)
-           (turtles-with-grab-buffer (:name "final" :buf testbuf :faces test-visual-replace-faces :point "<>")
-             (should (equal "[foo]{foor}r bar [foo]{foor}r [foo]*{foor}*r<>" (buffer-string)))))))))
+           (turtles-with-grab-buffer
+               (:name "final"
+                      :buf testbuf
+                      ;; Emacs 26 doesn't highlight the match, but
+                      ;; later versions do. The difference doesn't
+                      ;; matter, so leave it out from the test.
+                      :faces '((visual-replace-match "[]")
+                               (visual-replace-match-highlight "[]*")
+                               (visual-replace-delete-match "[]")
+                               (visual-replace-delete-match-highlight "[]")
+                               (visual-replace-replacement "{}")
+                               (visual-replace-replacement-highlight "{}"))
+                      :point "<>")
+             (should (equal "[foo]{foor}r bar [foo]{foor}r [foo]{foor}r<>" (buffer-string)))))))))
 
 (turtles-ert-deftest visual-replace-read-apply-one-end-recursive ()
   (test-visual-replace-env
@@ -2760,8 +2772,19 @@
 
            :command #'visual-replace-apply-one
            (visual-replace--update-preview)
-           (turtles-with-grab-buffer (:name "final" :buf testbuf :faces test-visual-replace-faces :point "<>")
-             (should (equal "r[foo]{rfoo} bar r[foo]{rfoo} r[foo]*{rfoo}*<>" (buffer-string)))))))))
+           (turtles-with-grab-buffer
+               (:name "final"
+                      :buf testbuf
+                      ;; Emacs 26 doesn't highlight the match, but other
+                      ;; version do. The difference doesn't matter, so leave it out from the test.
+                      :faces '((visual-replace-match "[]")
+                               (visual-replace-match-highlight "[]*")
+                               (visual-replace-delete-match "[]")
+                               (visual-replace-delete-match-highlight "[]")
+                               (visual-replace-replacement "{}")
+                               (visual-replace-replacement-highlight "{}"))
+                      :point "<>")
+             (should (equal "r[foo]{rfoo} bar r[foo]{rfoo} r[foo]{rfoo}<>" (buffer-string)))))))))
 
 (turtles-ert-deftest visual-replace-read-display-total ()
   (test-visual-replace-env
