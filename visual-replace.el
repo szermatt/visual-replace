@@ -1060,8 +1060,9 @@ INITIAL-ARGS or INITIAL-SCOPE is non-nil."
                          (cons text (if from (1+ (length text)) 0))))
         (visual-replace--preview-state nil)
         (after-change (lambda (_beg _end _len)
-                        (visual-replace--reset-preview)
-                        (visual-replace--update-preview)))
+                        (save-match-data
+                          (visual-replace--reset-preview)
+                          (visual-replace--update-preview))))
         (trigger (this-command-keys-vector))
         (visual-replace--total-ov nil)
         (default-value)
