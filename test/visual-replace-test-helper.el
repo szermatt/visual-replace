@@ -29,6 +29,17 @@
     (visual-replace-replacement-highlight "{}*"))
   "Convenient settings grab-face argument of `turtles-with-grab-buffer'.")
 
+(defconst test-visual-replace-faces-no-highlight
+  '((visual-replace-match "[]")
+    (visual-replace-match-highlight "[]*")
+    (visual-replace-delete-match "[]")
+    (visual-replace-delete-match-highlight "[]")
+    (visual-replace-replacement "{}")
+    (visual-replace-replacement-highlight "{}"))
+  "Convenient settings grab-face argument of `turtles-with-grab-buffer'.
+
+Ignores highlights.")
+
 (defmacro test-visual-replace-env (&rest body)
   "Run BODY within a test buffer and environment."
   `(save-window-excursion
