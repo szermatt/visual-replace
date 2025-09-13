@@ -1182,6 +1182,7 @@ of INITIAL-SCOPE, described on `visual-replace-read'."
               (region-bounds))
     :rectangle rectangle-mark-mode)))
 
+;;;###autoload
 (defun visual-replace (args ranges)
   "Replace text.
 
